@@ -9,7 +9,7 @@ GZIP=gzip
 PYTHON=python3
 
 # refinement levels
-SCALES=("1.0")  # "0.75")  #  "0.5" "0.3" "0.2" "0.1")
+SCALES=("2.0" "1.0")  # "0.75")  #  "0.5" "0.3" "0.2" "0.1")
 
 # geo file
 GEO_FILE=5-segs.geo

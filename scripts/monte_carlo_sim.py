@@ -7,49 +7,50 @@ from circle_subsec import get_problem
 
 get_linop, get_sol, get_output, problemfems = get_problem()
 
+uncdims = 2
+
 basenu = 1e-3
 varia = 0.
 varib = 1e-4
 
-mcits, mcruns = 25, 1000  # 200
+mcits, mcruns = 5, 5  # 200
 pcedimlist = [3, 5, 8, 12, 17]
 
 plotplease = False
 
 # ## CHAP Monte Carlo
 
-
-def realizenulist(poslist):
-    nulist = [basenu]*5
-    for k in poslist:
-        nulist[k] = basenu + (((varib-varia)*np.random.rand(1)).flatten())[0]
-    return nulist
+varinu = basenu + (varib-varia)*np.random.rand(mcits*mcruns, uncdims)
+expvnu = np.average(varinu, axis=0)
+print('expected value of nu: ', expvnu)
+varinulst = []
+for uncdim in range(uncdims):
+    varinulst.append(varinu[:, uncdim].tolist())
 
 # estxnu, estxy = 0, 0
-ylist, xnulist = [], []
+nulist = [basenu]*5
+ylist = []
+
 for mitk in range(mcits):
     for mck in range(mcruns):
-        nulist = realizenulist([4])
-        # estxnu += nulist[4]
+        for uncdim in range(uncdims):
+            nulist[uncdim] = varinulst[uncdim].pop(0)
         cury = get_output(nulist, plotfignum=None)
         ylist.append(cury)
-        xnulist.append(nulist[4])
-        # estxy += cury
-    estxnu = np.average(np.array(nulist))
     estxy = np.average(np.array(ylist))
-
     print('mc:{0}/{1}: estxy={2}'.format((mitk+1)*mcruns, mcits*mcruns, estxy))
 
-nulist = [basenu]*5
-nulist[4] = basenu+.5*(varib-varia)  # estxnu
+for uncdim in range(uncdims):
+    nulist[uncdim] = expvnu[uncdim]
+
 cury = get_output(nulist, plotfignum=None)
 print('y(estxnu)={0}'.format(cury))
 
 if plotplease:
     plt.figure(89)
     plt.plot(ylist, '.')
-    plt.figure(98)
-    plt.plot(xnulist, '.')
+    # plt.figure(98)
+    # plt.plot(xnulist, '.')
     plt.show()
 
 
@@ -63,7 +64,7 @@ for pcedim in pcedimlist:
     nulist = [basenu]*5
     ylist = []
     for cnu in abscissae:
-        nulist[4] = cnu
+        nulist[0] = cnu
         ylist.append(get_output(nulist, plotfignum=None))
 
     exypce = 0
