@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -7,15 +9,17 @@ from circle_subsec import get_problem
 
 get_linop, get_sol, get_output, problemfems = get_problem()
 
-uncdims = 2
+uncdims = 5
 
 basenu = 1e-3
 varia = 0.
-varib = 1e-4
+varib = 5e-4
 
-mcits, mcruns = 5, 5  # 200
-pcedimlist = [3, 5, 8, 12, 17]
+mcits, mcruns = 5, 500  # 200
+ydim = 1  # dimension of the output
+pcedimlist = [2, 3]
 
+plotplease = True
 plotplease = False
 
 # ## CHAP Monte Carlo
@@ -43,7 +47,8 @@ for mitk in range(mcits):
 for uncdim in range(uncdims):
     nulist[uncdim] = expvnu[uncdim]
 
-cury = get_output(nulist, plotfignum=None)
+curyplotfignum = 101 if plotplease else None
+cury = get_output(nulist, plotfignum=curyplotfignum)
 print('y(estxnu)={0}'.format(cury))
 
 if plotplease:
@@ -56,20 +61,44 @@ if plotplease:
 
 # ## CHAP Polynomial Chaos Expansion
 
+paxlist = np.arange(uncdims+1).tolist()
+paxlist.append(paxlist.pop(0))
+
+
+def tnsrtrnsps(X, times=1):
+    '''transpose the tensor (by cycling the dimensions)'''
+    for k in range(times):
+        X = np.transpose(X, paxlist)
+    return X
+
+
 nua, nub = basenu+varia, basenu+varib
 
 for pcedim in pcedimlist:
+    pceylist = []
+    ypcedims = [ydim]
+    ypcedims.extend([pcedim]*uncdims)
+    ypcedims = tuple(ypcedims)
+    ytens = np.zeros(ypcedims)
+
     abscissae, weights = ceu.get_gaussqr_uniform(N=pcedim, a=nua, b=nub)
+    # abscarray, weightsarray = np.array(abscissae), np.array(weights)
 
     nulist = [basenu]*5
-    ylist = []
-    for cnu in abscissae:
-        nulist[0] = cnu
-        ylist.append(get_output(nulist, plotfignum=None))
+    nuarray = np.array(nulist)
+    for idxtuple in itertools.product(np.arange(pcedim), repeat=uncdims):
+        idxarray = np.array(idxtuple)
+        nuarray[:uncdims] = abscissae[idxarray]
+        pceylist.append(get_output(nuarray.tolist(), plotfignum=None))
 
+    yrslttns = np.array(pceylist).reshape(ypcedims)
+    yrslttns = tnsrtrnsps(yrslttns)
     exypce = 0
-    for kk, cw in enumerate(weights):
-        exypce += cw*ylist[kk]
+    # for kk, cw in enumerate(weights):
+    for idxtuple in itertools.product(np.arange(pcedim), repeat=uncdims):
+        idxarray = np.array(idxtuple)
+        cw = (weights[idxarray]).prod()
+        exypce += cw*yrslttns[idxtuple]
 
-    print('pcedim={0:2.0f}, exypce={1}'.format(pcedim,
-                                               1./(varib-varia)*exypce))
+    print('pcedim={0:2.0f}, exypce={1}'.
+          format(pcedim, 1./((varib-varia)**uncdims)*exypce))

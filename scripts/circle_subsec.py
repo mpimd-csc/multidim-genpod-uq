@@ -62,7 +62,7 @@ def get_problem():
     examplerhsexp = dolfin.\
         Expression("sin(2*pi*(pow(x[0],2)+pow(x[1],2)))*sin(pi*4*x[0])",
                    degree=1)
-    rhs = dolfin.assemble(v*examplerhsexp*dx(2))
+    rhs = dolfin.assemble(v*examplerhsexp*dx(0)+v*examplerhsexp*dx(2))
     examplerhsvec = rhs.get_local()[ininds]
 
     def realize_sol(nulist, rhs=None):
@@ -88,7 +88,7 @@ def get_problem():
                                   ininds=ininds, V=V)
         if plotfignum is not None:
             plotit(vfun=solv, fignum=plotfignum)
-        output = np.sqrt(dolfin.assemble(solv*solv*dx(0)))
+        output = np.sqrt(dolfin.assemble(solv*solv*dx(4)))
         return output
 
     return realize_linop, realize_sol, realize_output, problemfems
