@@ -82,13 +82,17 @@ def get_problem():
         dolfin.plot(vfun)
         plt.show()
 
-    def realize_output(nulist, rhs=None, plotfignum=None):
+    def realize_output(nulist, rhs=None, plotfignum=None, pointeva=False):
         solvec = realize_sol(nulist, rhs=rhs)
         solv = dts.expand_dolfunc(solvec, bcinds=bcinds, bcvals=bcvals,
                                   ininds=ininds, V=V)
         if plotfignum is not None:
             plotit(vfun=solv, fignum=plotfignum)
-        output = np.sqrt(dolfin.assemble(solv*solv*dx(4)))
+        if pointeva:
+            midpt = dolfin.Point(0, 0)
+            output = solv(midpt)
+        else:
+            output = np.sqrt(dolfin.assemble(solv*solv*dx(4)))
         return output
 
     return realize_linop, realize_sol, realize_output, problemfems
