@@ -8,6 +8,8 @@ import dolfin
 
 import dolfin_navier_scipy.dolfin_to_sparrays as dts
 
+dolfin.parameters['linear_algebra_backend'] = 'Eigen'
+
 Nrgs = 5
 meshprfx = '../mesh/5-segs_lvl1'
 meshfile = meshprfx + '.xml.gz'

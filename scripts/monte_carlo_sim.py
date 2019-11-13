@@ -22,6 +22,10 @@ varia = 0.
 varib = 5e-4
 nua, nub = basenu+varia, basenu+varib
 
+basenulist = [basenu]*uncdims
+basey = get_output(basenulist)
+print('y(basenu)={0}'.format(basey))
+
 mcits, mcruns = 20, 5000  # 200
 # pcedimlist = [2, 3, 5]
 pcedimlist = [5]  # , 7]
