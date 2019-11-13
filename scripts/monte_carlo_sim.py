@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(0, "/home/heiland/work/code/19-genpod-uq")
+
 import itertools
 
 import numpy as np
@@ -8,9 +11,12 @@ import spacetime_galerkin_pod.chaos_expansion_utils as ceu
 import spacetime_galerkin_pod.ten_sor_utils as tsu
 import spacetime_galerkin_pod.gen_pod_utils as gpu
 
+import gen_pod_uq.mc_pce_utils as mpu
+
 from spacetime_galerkin_pod.ldfnp_ext_cholmod import SparseFactorMassmat
 
 from circle_subsec import get_problem
+
 
 get_linop, get_sol, get_output, problemfems = get_problem()
 print(problemfems['mmat'].shape[0])
@@ -22,7 +28,7 @@ varia = 0.
 varib = 5e-4
 nua, nub = basenu+varia, basenu+varib
 
-mcits, mcruns = 20, 5000  # 200
+mcits, mcruns = 20, 5  # 200
 # pcedimlist = [2, 3, 5]
 pcedimlist = [5]  # , 7]
 
@@ -30,35 +36,17 @@ mcplease = False
 pceplease = False
 plotplease = False
 # ## make it come true
-# mcplease = True
-pceplease = True
-plotplease = True
+mcplease = True
+# pceplease = True
+# plotplease = True
 
 # ## CHAP Monte Carlo
 if mcplease:
     varinu = basenu + (varib-varia)*np.random.rand(mcits*mcruns, uncdims)
     expvnu = np.average(varinu, axis=0)
     print('expected value of nu: ', expvnu)
-    varinulst = []
-    for uncdim in range(uncdims):
-        varinulst.append(varinu[:, uncdim].tolist())
-
-    # estxnu, estxy = 0, 0
-    nulist = [basenu]*5
-    ylist = []
-
-    for mitk in range(mcits):
-        for mck in range(mcruns):
-            for uncdim in range(uncdims):
-                nulist[uncdim] = varinulst[uncdim].pop(0)
-            cury = get_output(nulist, plotfignum=None)
-            ylist.append(cury)
-        estxy = np.average(np.array(ylist))
-        print('mc:{0}/{1}: estxy={2}'.
-              format((mitk+1)*mcruns, mcits*mcruns, estxy))
-
-    for uncdim in range(uncdims):
-        nulist[uncdim] = expvnu[uncdim]
+    varinulist = varinu.tolist()
+    mcout, expvnu = mpu.run_mc_sim(varinulist, get_output, verbose=True)
 
     curyplotfignum = 101 if plotplease else None
     cury = get_output(nulist, plotfignum=curyplotfignum)
