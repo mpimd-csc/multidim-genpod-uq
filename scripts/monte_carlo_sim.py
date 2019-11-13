@@ -1,6 +1,3 @@
-import sys
-sys.path.insert(0, "/home/heiland/work/code/19-genpod-uq")
-
 import itertools
 
 import numpy as np
@@ -10,10 +7,9 @@ import matplotlib.pyplot as plt
 import spacetime_galerkin_pod.chaos_expansion_utils as ceu
 import spacetime_galerkin_pod.ten_sor_utils as tsu
 import spacetime_galerkin_pod.gen_pod_utils as gpu
+from spacetime_galerkin_pod.ldfnp_ext_cholmod import SparseFactorMassmat
 
 import gen_pod_uq.mc_pce_utils as mpu
-
-from spacetime_galerkin_pod.ldfnp_ext_cholmod import SparseFactorMassmat
 
 from circle_subsec import get_problem
 
@@ -28,7 +24,7 @@ varia = 0.
 varib = 5e-4
 nua, nub = basenu+varia, basenu+varib
 
-mcits, mcruns = 20, 5  # 200
+mcits, mcruns = 6, 4  # 200
 # pcedimlist = [2, 3, 5]
 pcedimlist = [5]  # , 7]
 
@@ -37,24 +33,32 @@ pceplease = False
 plotplease = False
 # ## make it come true
 mcplease = True
-# pceplease = True
-# plotplease = True
+pceplease = True
+plotplease = True
+
+basenulist = [basenu]*uncdims
+basey = get_output(basenulist)
+print('y(estxnu)={0}'.format(basey))
+import ipdb
+ipdb.set_trace()
+
 
 # ## CHAP Monte Carlo
 if mcplease:
     varinu = basenu + (varib-varia)*np.random.rand(mcits*mcruns, uncdims)
+    print(varinu.shape)
     expvnu = np.average(varinu, axis=0)
     print('expected value of nu: ', expvnu)
     varinulist = varinu.tolist()
     mcout, expvnu = mpu.run_mc_sim(varinulist, get_output, verbose=True)
 
     curyplotfignum = 101 if plotplease else None
-    cury = get_output(nulist, plotfignum=curyplotfignum)
+    cury = get_output(expvnu.tolist(), plotfignum=curyplotfignum)
     print('y(estxnu)={0}'.format(cury))
 
     if plotplease:
         plt.figure(89)
-        plt.plot(ylist, '.')
+        plt.plot(mcout, '.')
         # plt.figure(98)
         # plt.plot(xnulist, '.')
         plt.show()
