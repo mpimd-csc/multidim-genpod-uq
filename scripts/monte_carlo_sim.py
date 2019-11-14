@@ -1,5 +1,3 @@
-import itertools
-
 import numpy as np
 import scipy.sparse as sps
 import matplotlib.pyplot as plt
@@ -39,14 +37,14 @@ plotplease = True
 basenulist = [basenu]*uncdims
 basey = get_output(basenulist)
 print('y(estxnu)={0}'.format(basey))
-import ipdb
-ipdb.set_trace()
+# import ipdb
+# ipdb.set_trace()
 
 
 # ## CHAP Monte Carlo
 if mcplease:
     varinu = basenu + (varib-varia)*np.random.rand(mcits*mcruns, uncdims)
-    print(varinu.shape)
+    # print(varinu.shape)
     expvnu = np.average(varinu, axis=0)
     print('expected value of nu: ', expvnu)
     varinulist = varinu.tolist()
@@ -69,11 +67,6 @@ if mcplease:
 if pceplease:
     ydim = 1  # dimension of the output
     for pcedim in pcedimlist:
-        pceylist = []
-        ypcedims = [ydim]
-        ypcedims.extend([pcedim]*uncdims)
-        ypcedims = tuple(ypcedims)
-
         abscissae, weights = ceu.get_gaussqr_uniform(N=pcedim, a=nua, b=nub)
         # abscarray, weightsarray = np.array(abscissae), np.array(weights)
 
