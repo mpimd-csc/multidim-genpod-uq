@@ -70,26 +70,6 @@ if pceplease:
         abscissae, weights = ceu.get_gaussqr_uniform(N=pcedim, a=nua, b=nub)
         # abscarray, weightsarray = np.array(abscissae), np.array(weights)
 
-        nulist = [basenu]*5
-        nuarray = np.array(nulist)
-        for idxtuple in itertools.product(np.arange(pcedim), repeat=uncdims):
-            idxarray = np.array(idxtuple)
-            nuarray[:uncdims] = abscissae[idxarray]
-            pceylist.append(get_output(nuarray.tolist(), plotfignum=None))
-
-        yrslttns = np.array(pceylist).reshape(ypcedims)
-        yrslttns = tsu.tnsrtrnsps(yrslttns)
-        exypce = 0
-        # for kk, cw in enumerate(weights):
-        for idxtuple in itertools.product(np.arange(pcedim), repeat=uncdims):
-            idxarray = np.array(idxtuple)
-            cw = (weights[idxarray]).prod()
-            exypce += cw*yrslttns[idxtuple]
-
-        print('pcedim={0:2.0f}, exypce={1}'.
-              format(pcedim, 1./((varib-varia)**uncdims)*exypce))
-        pceexy = 1./((varib-varia)**uncdims)*exypce
-
 # ## CHAP genpod
 pcedim = pcedimlist[0]
 mmat = problemfems['mmat']
