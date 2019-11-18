@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.sparse as sps
 import matplotlib.pyplot as plt
+import itertools
 
 import spacetime_galerkin_pod.chaos_expansion_utils as ceu
 import spacetime_galerkin_pod.ten_sor_utils as tsu
@@ -22,17 +23,17 @@ varia = 0.
 varib = 5e-4
 nua, nub = basenu+varia, basenu+varib
 
-mcits, mcruns = 6, 4  # 200
+mcits, mcruns = 6, 1000  # 200
 # pcedimlist = [2, 3, 5]
-pcedimlist = [5]  # , 7]
+pcedimlist = [2, 3]  # , 7]
 
 mcplease = False
 pceplease = False
 plotplease = False
 # ## make it come true
-mcplease = True
+# mcplease = True
 pceplease = True
-plotplease = True
+# plotplease = True
 
 basenulist = [basenu]*uncdims
 basey = get_output(basenulist)
@@ -64,11 +65,25 @@ if mcplease:
 
 # ## CHAP Polynomial Chaos Expansion
 
+
+def doublout(parlist):
+    out = get_output(parlist)
+    return np.array([out, out]).reshape((2, 1))
+
+
 if pceplease:
-    ydim = 1  # dimension of the output
     for pcedim in pcedimlist:
-        abscissae, weights = ceu.get_gaussqr_uniform(N=pcedim, a=nua, b=nub)
+        abscissae, weights, compexpv = mpu.\
+            setup_pce(distribution='uniform',
+                      distrpars=dict(a=nua, b=nub),
+                      pcedim=pcedim, uncdims=uncdims)
+        ceu.get_gaussqr_uniform(N=pcedim, a=nua, b=nub)
         # abscarray, weightsarray = np.array(abscissae), np.array(weights)
+        ysoltens = mpu.run_pce_sim_separable(solfunc=doublout,  # get_output,
+                                             uncdims=uncdims,
+                                             abscissae=abscissae)
+        expy = compexpv(ysoltens)
+        print('PCE({0}): E(y): {1}'.format(pcedim, expy))
 
 # ## CHAP genpod
 pcedim = pcedimlist[0]
@@ -164,8 +179,8 @@ for poddim in poddimlist:
                 cw = (weights[idxarray]).prod()
                 exypce += cw*yrslttns[idxtuple]
 
-            print('pcedim={0:2.0f}, poddim={2:2.0f}, exypce={1}'.
-                  format(pcedim, 1./((varib-varia)**uncdims)*exypce-pceexy,
-                         poddim))
+            # print('pcedim={0:2.0f}, poddim={2:2.0f}, exypce={1}'.
+            #       format(pcedim, 1./((varib-varia)**uncdims)*exypce-pceexy,
+            #              poddim))
 
 plt.show()
