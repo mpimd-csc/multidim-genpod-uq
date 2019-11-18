@@ -1,7 +1,6 @@
 import numpy as np
 import scipy.sparse as sps
 import matplotlib.pyplot as plt
-import itertools
 
 import spacetime_galerkin_pod.chaos_expansion_utils as ceu
 import spacetime_galerkin_pod.ten_sor_utils as tsu
@@ -25,7 +24,7 @@ nua, nub = basenu+varia, basenu+varib
 
 mcits, mcruns = 6, 100  # 200
 # pcedimlist = [2, 3, 5]
-pcedimlist = [2]  # , 3, 4, 5]  # , 7]
+pcedimlist = [4]  # , 3, 4, 5]  # , 7]
 
 mcplease = False
 pceplease = False
@@ -45,7 +44,6 @@ print('y(estxnu)={0}'.format(basey))
 # ## CHAP Monte Carlo
 if mcplease:
     varinu = basenu + (varib-varia)*np.random.rand(mcits*mcruns, uncdims)
-    # print(varinu.shape)
     expvnu = np.average(varinu, axis=0)
     print('expected value of nu: ', expvnu)
     varinulist = varinu.tolist()
@@ -58,8 +56,6 @@ if mcplease:
     if plotplease:
         plt.figure(89)
         plt.plot(mcout, '.')
-        # plt.figure(98)
-        # plt.plot(xnulist, '.')
         plt.show()
 
 
@@ -70,7 +66,6 @@ if pceplease:
             setup_pce(distribution='uniform',
                       distrpars=dict(a=nua, b=nub),
                       pcedim=pcedim, uncdims=uncdims)
-        ceu.get_gaussqr_uniform(N=pcedim, a=nua, b=nub)
         # abscarray, weightsarray = np.array(abscissae), np.array(weights)
         ysoltens = mpu.run_pce_sim_separable(solfunc=get_output,
                                              uncdims=uncdims,
@@ -81,99 +76,74 @@ if pceplease:
 # ## CHAP genpod
 pcedim = pcedimlist[0]
 mmat = problemfems['mmat']
-ydim = mmat.shape[0]
-ypcedims = [ydim]
-ypcedims.extend([pcedim]*uncdims)
-ypcedims = tuple(ypcedims)
-nulist = [basenu]*5
-nuarray = np.array(nulist)
+
 abscissae, weights = ceu.get_gaussqr_uniform(N=pcedim, a=nua, b=nub)
-
-pceylist = []
-for idxtuple in itertools.product(np.arange(pcedim), repeat=uncdims):
-    idxarray = np.array(idxtuple)
-    nuarray[:uncdims] = abscissae[idxarray]
-    pceylist.append(get_sol(nuarray.tolist()))
-yrslttns = np.array(pceylist).reshape(ypcedims)
-
 facmy = SparseFactorMassmat(mmat)
 pcemmat = sps.csc_matrix(sps.dia_matrix((weights, 0), shape=(pcedim, pcedim)))
 facmpce = SparseFactorMassmat(pcemmat)
 
-basisfrom = 'mc'
 basisfrom = 'pce'
-poddimlist = [5, 10, 20, 40]
+basisfrom = 'mc'
+poddimlist = [5, 10, 20]  # , 40]
 nmcsnapshots = 5*pcedim**uncdims
 
+pcewmat = sps.dia_matrix((weights, 0), shape=(pcedim, pcedim))
+pcewmatfac = sps.dia_matrix((np.sqrt(weights), 0), shape=(pcedim, pcedim))
+
+mfl = [facmy.F]
+mfl.extend([pcewmatfac]*uncdims)
+
 if basisfrom == 'pce':
-    pceymat = np.array(pceylist).T
-    pceymat = pceymat[0, :, :]
+    ysoltens = mpu.run_pce_sim_separable(solfunc=get_sol,
+                                         uncdims=uncdims,
+                                         abscissae=abscissae)
+
+    def get_pod_vecs(poddim=None):
+        return tsu.modeone_massmats_svd(ysoltens, mfl, poddim)
+
+
 elif basisfrom == 'mc':
     varinu = basenu + (varib-varia)*np.random.rand(nmcsnapshots, uncdims)
-    # expvnu = np.average(varinu, axis=0)
-    # print('expected value of nu: ', expvnu)
-    varinulst = []
-    for uncdim in range(uncdims):
-        varinulst.append(varinu[:, uncdim].tolist())
-    ylist = []
-    for mck in range(nmcsnapshots):
-        for uncdim in range(uncdims):
-            nulist[uncdim] = varinulst[uncdim].pop(0)
-        cury = get_sol(nulist)
-        ylist.append(cury)
-    pceymat = np.array(ylist).T
-    pceymat = pceymat[0, :, :]
+    expvnu = np.average(varinu, axis=0)
+    print('expected value of nu: ', expvnu)
+    varinulist = varinu.tolist()
+    mcout, expvnu = mpu.run_mc_sim(varinulist, get_sol, verbose=True)
+    pceymat = np.array(mcout).T
+    lypceymat = facmy.Ft*pceymat
 
-lypceymat = facmy.Ft*pceymat
+    def get_pod_vecs(poddim=None):
+        ypodvecs = gpu.get_ksvvecs(sol=lypceymat, poddim=poddim,
+                                   plotsvs=plotplease, labl='Singular Values')
+        return ypodvecs
+
+nulist = [basenu]*5
+nuarray = np.array(nulist)
+
 # lypceymat = pceymat
 for poddim in poddimlist:
-    ypodvecs = gpu.get_ksvvecs(sol=lypceymat, poddim=poddim,
-                               plotsvs=plotplease, labl='Singular Values')
 
-    # massfaclist = [facmy.F]
-    # massfaclist.extend([facmpce.F]*uncdims)
-    # ypodvecs = tsu.modeone_massmats_svd(yrslttns, massfaclist, kdim=poddim)
-
+    ypodvecs = get_pod_vecs(poddim)
     lyitVy = facmy.solve_Ft(ypodvecs)
-    # lyitVy = ypodvecs
+
+    def red_out_func(parlist):
+        return get_output(parlist, podmat=lyitVy)
 
     if plotplease:
         yfull = get_output(nuarray.tolist(), plotfignum=222)
         yred = get_output(nuarray.tolist(), plotfignum=111, podmat=lyitVy)
 
     if pceplease:
-        ydim = 1  # dimension of the output
         for pcedim in pcedimlist:
-            pceylist = []
-            ypcedims = [ydim]
-            ypcedims.extend([pcedim]*uncdims)
-            ypcedims = tuple(ypcedims)
-
-            abscissae, weights = ceu.get_gaussqr_uniform(N=pcedim,
-                                                         a=nua, b=nub)
-            # abscarray, weightsarray = np.array(abscissae), np.array(weights)
-
-            nulist = [basenu]*5
-            nuarray = np.array(nulist)
-            for idxtuple in itertools.product(np.arange(pcedim),
-                                              repeat=uncdims):
-                idxarray = np.array(idxtuple)
-                nuarray[:uncdims] = abscissae[idxarray]
-                pceylist.append(get_output(nuarray.tolist(), plotfignum=None,
-                                           podmat=lyitVy))
-
-            yrslttns = np.array(pceylist).reshape(ypcedims)
-            yrslttns = tsu.tnsrtrnsps(yrslttns)
-            exypce = 0
-            # for kk, cw in enumerate(weights):
-            for idxtuple in itertools.product(np.arange(pcedim),
-                                              repeat=uncdims):
-                idxarray = np.array(idxtuple)
-                cw = (weights[idxarray]).prod()
-                exypce += cw*yrslttns[idxtuple]
-
-            # print('pcedim={0:2.0f}, poddim={2:2.0f}, exypce={1}'.
-            #       format(pcedim, 1./((varib-varia)**uncdims)*exypce-pceexy,
-            #              poddim))
+            abscissae, weights, compredexpv = mpu.\
+                setup_pce(distribution='uniform',
+                          distrpars=dict(a=nua, b=nub),
+                          pcedim=pcedim, uncdims=uncdims)
+            redysoltens = mpu.run_pce_sim_separable(solfunc=red_out_func,
+                                                    uncdims=uncdims,
+                                                    abscissae=abscissae)
+            redexpy = compredexpv(redysoltens)
+            print('pcedim={0:2.0f}, poddim={2:2.0f}, exypce={1}'.
+                  format(pcedim, redexpy-expy,
+                         poddim))
 
 plt.show()

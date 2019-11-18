@@ -19,14 +19,14 @@ def run_mc_sim(parlist, solfunc, chunks=10,
             for cpar in parlist[mcit*mcx:(mcit+1)*mcx]:
                 cy = (solfunc(cpar)).flatten()
                 ylist.append(cy)
-            estxy = np.average(np.array(ylist))
-            print('mc:{0}/{1}: estxy={2}'.
+            estxy = np.average(np.array(ylist), axis=0)[0]
+            print('mc:{0}/{1}: estxy[0]={2}'.
                   format((mcit+1)*mcx, nmc, estxy))
         for cpar in parlist[(mcit+1)*mcx:]:
             cy = (solfunc(cpar)).flatten()
             ylist.append(cy)
-        estxy = np.average(np.array(ylist))
-        print('mc:{0}/{1}: estxy={2}'.format(nmc, nmc, estxy))
+        estxy = np.average(np.array(ylist), axis=0)[0]
+        print('mc:{0}/{1}: estxy[0]={2}'.format(nmc, nmc, estxy))
 
         return ylist, expvpara
 
