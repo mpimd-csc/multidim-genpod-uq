@@ -23,9 +23,9 @@ varia = 0.
 varib = 5e-4
 nua, nub = basenu+varia, basenu+varib
 
-mcits, mcruns = 6, 1000  # 200
+mcits, mcruns = 6, 100  # 200
 # pcedimlist = [2, 3, 5]
-pcedimlist = [2, 3]  # , 7]
+pcedimlist = [2]  # , 3, 4, 5]  # , 7]
 
 mcplease = False
 pceplease = False
@@ -64,13 +64,6 @@ if mcplease:
 
 
 # ## CHAP Polynomial Chaos Expansion
-
-
-def doublout(parlist):
-    out = get_output(parlist)
-    return np.array([out, out]).reshape((2, 1))
-
-
 if pceplease:
     for pcedim in pcedimlist:
         abscissae, weights, compexpv = mpu.\
@@ -79,7 +72,7 @@ if pceplease:
                       pcedim=pcedim, uncdims=uncdims)
         ceu.get_gaussqr_uniform(N=pcedim, a=nua, b=nub)
         # abscarray, weightsarray = np.array(abscissae), np.array(weights)
-        ysoltens = mpu.run_pce_sim_separable(solfunc=doublout,  # get_output,
+        ysoltens = mpu.run_pce_sim_separable(solfunc=get_output,
                                              uncdims=uncdims,
                                              abscissae=abscissae)
         expy = compexpv(ysoltens)

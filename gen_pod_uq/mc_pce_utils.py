@@ -42,13 +42,14 @@ def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None):
     # compute the sols
     pceylist = []
     for absctpl in itertools.product(abscissae, repeat=uncdims):
-        pceylist.append(solfunc(absctpl))
+        pceylist.append((solfunc(absctpl)).flatten())
 
     ypcedims = [pceylist[0].size]
     ypcedims.extend([len(abscissae)]*uncdims)
     ypcedims = tuple(ypcedims)
     # arrange it in the tensor
-    yrslttns = np.array(pceylist).reshape(ypcedims)
+    # first dimension is the state, then comes the uncertainty
+    yrslttns = (np.array(pceylist).T).reshape(ypcedims)
     return yrslttns
 
 
