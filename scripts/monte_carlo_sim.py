@@ -24,15 +24,19 @@ nua, nub = basenu+varia, basenu+varib
 
 mcits, mcruns = 6, 100  # 200
 # pcedimlist = [2, 3, 5]
-pcedimlist = [4]  # , 3, 4, 5]  # , 7]
+pcedimlist = [3]  # , 3, 4, 5]  # , 7]
 
 mcplease = False
 pceplease = False
 plotplease = False
+mcpod = False
+pcepod = False
 # ## make it come true
 # mcplease = True
-pceplease = True
+# pceplease = True
 # plotplease = True
+pcepod = True
+mcpod = True
 
 basenulist = [basenu]*uncdims
 basey = get_output(basenulist)
@@ -47,7 +51,7 @@ if mcplease:
     expvnu = np.average(varinu, axis=0)
     print('expected value of nu: ', expvnu)
     varinulist = varinu.tolist()
-    mcout, expvnu = mpu.run_mc_sim(varinulist, get_output, verbose=True)
+    mcout, mcxpy, expvnu = mpu.run_mc_sim(varinulist, get_output, verbose=True)
 
     curyplotfignum = 101 if plotplease else None
     cury = get_output(expvnu.tolist(), plotfignum=curyplotfignum)
@@ -60,8 +64,10 @@ if mcplease:
 
 
 # ## CHAP Polynomial Chaos Expansion
-if pceplease:
-    for pcedim in pcedimlist:
+if pceplease or pcepod:
+    pcepodonlyl = pcedimlist if pceplease else pcedimlist[-1:]
+
+    for pcedim in pcepodonlyl:
         abscissae, weights, compexpv = mpu.\
             setup_pce(distribution='uniform',
                       distrpars=dict(a=nua, b=nub),
@@ -82,8 +88,8 @@ facmy = SparseFactorMassmat(mmat)
 pcemmat = sps.csc_matrix(sps.dia_matrix((weights, 0), shape=(pcedim, pcedim)))
 facmpce = SparseFactorMassmat(pcemmat)
 
-basisfrom = 'pce'
 basisfrom = 'mc'
+basisfrom = 'pce'
 poddimlist = [5, 10, 20]  # , 40]
 nmcsnapshots = 5*pcedim**uncdims
 
@@ -107,7 +113,7 @@ elif basisfrom == 'mc':
     expvnu = np.average(varinu, axis=0)
     print('expected value of nu: ', expvnu)
     varinulist = varinu.tolist()
-    mcout, expvnu = mpu.run_mc_sim(varinulist, get_sol, verbose=True)
+    mcout, _, _ = mpu.run_mc_sim(varinulist, get_sol, verbose=True)
     pceymat = np.array(mcout).T
     lypceymat = facmy.Ft*pceymat
 
@@ -132,7 +138,7 @@ for poddim in poddimlist:
         yfull = get_output(nuarray.tolist(), plotfignum=222)
         yred = get_output(nuarray.tolist(), plotfignum=111, podmat=lyitVy)
 
-    if pceplease:
+    if pcepod:
         for pcedim in pcedimlist:
             abscissae, weights, compredexpv = mpu.\
                 setup_pce(distribution='uniform',
@@ -145,5 +151,14 @@ for poddim in poddimlist:
             print('pcedim={0:2.0f}, poddim={2:2.0f}, exypce={1}'.
                   format(pcedim, redexpy-expy,
                          poddim))
+    if mcpod:
+        varinu = basenu+(varib-varia)*np.random.rand(100*mcits*mcruns, uncdims)
+        expvnu = np.average(varinu, axis=0)
+        print('expected value of nu: ', expvnu)
+        varinulist = varinu.tolist()
+        mcout, rmcxpy, expvnu = mpu.run_mc_sim(varinulist, red_out_func,
+                                               verbose=True)
+        print('nsnap={0:2.0f}, poddim={2:2.0f}, exypce={1}'.
+              format(mcits*mcruns, rmcxpy-mcxpy, poddim))
 
 plt.show()

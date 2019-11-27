@@ -6,7 +6,7 @@ import spacetime_galerkin_pod.chaos_expansion_utils as ceu
 
 
 def run_mc_sim(parlist, solfunc, chunks=10,
-               comp_para_ev=True, verbose=False):
+               comp_para_ev=True, verbose=False, ret_ev=True):
     expvpara = None
     if comp_para_ev:
         expvpara = np.average(np.array(parlist), axis=0)
@@ -28,12 +28,12 @@ def run_mc_sim(parlist, solfunc, chunks=10,
         estxy = np.average(np.array(ylist), axis=0)[0]
         print('mc:{0}/{1}: estxy[0]={2}'.format(nmc, nmc, estxy))
 
-        return ylist, expvpara
+        return ylist, np.average(np.array(ylist), axis=0), expvpara
 
     else:
         for cpar in parlist:
             ylist.append(solfunc(cpar))
-        return ylist, expvpara
+        return ylist, np.average(np.array(ylist), axis=0), expvpara
 
 
 def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None):
