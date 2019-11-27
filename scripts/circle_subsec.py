@@ -81,10 +81,11 @@ def get_problem():
                                              dbcinds=bcinds, dbcvals=bcvals)
         lplclst.append(Akmat)
 
-    def realize_linop(nulist):
+    def realize_linop(nulist, lplcs=None):
+        loclplclst = lplclst if lplcs is None else lplcs
         amat = sps.csr_matrix((nv, nv))
         for kk, knu in enumerate(nulist):
-            amat = amat + knu*lplclst[kk]
+            amat = amat + knu*loclplclst[kk]
         return amat + convmat
 
     examplerhsexp = dolfin.\
@@ -93,19 +94,14 @@ def get_problem():
     rhs = dolfin.assemble(v*examplerhsexp*dx(0)+v*examplerhsexp*dx(2))
     examplerhsvec = rhs.get_local()[ininds]
 
-    def realize_sol(nulist, rhs=None, podmat=None):
-        if podmat is None:
-            rhsvec = examplerhsvec if rhs is None else rhs
-            amat = realize_linop(nulist)
-            solvec = spsla.spsolve(amat, rhsvec).reshape((nv, 1))
-            return solvec
+    def realize_sol(nulist, lplcs=None, rhs=None):
+        rhsvec = examplerhsvec if rhs is None else rhs
+        amat = realize_linop(nulist, lplcs=lplcs)
+        if sps.issparse(amat):
+            solvec = spsla.spsolve(amat, rhsvec).reshape((rhsvec.size, 1))
         else:
-            knv = podmat.shape[1]
-            rhsvec = podmat.T.dot(examplerhsvec) if rhs is None else rhs
-            amat = realize_linop(nulist)
-            amat = podmat.T.dot(amat*podmat)
-            solvec = npla.solve(amat, rhsvec).reshape((knv, 1))
-            return podmat.dot(solvec)
+            solvec = npla.spsolve(amat, rhsvec).reshape((rhsvec.size, 1))
+        return solvec
 
     def plotit(vvec=None, vfun=None, fignum=1):
         if vfun is None:
@@ -129,23 +125,46 @@ def get_problem():
     cmat = sps.csc_matrix(cform)[:, ininds]
 
     def realize_output(nulist, rhs=None, plotfignum=None,
-                       pointeva=False, podmat=None):
-        solvec = realize_sol(nulist, rhs=rhs, podmat=podmat)
+                       lplcs=None, pointeva=False, outputmat=None):
+        loccmat = cmat if outputmat is None else outputmat
+        solvec = realize_sol(nulist, lplcs=lplcs, rhs=rhs)
         if plotfignum is not None or pointeva:
             solv = dts.expand_dolfunc(solvec, bcinds=bcinds, bcvals=bcvals,
                                       ininds=ininds, V=V)
             if plotfignum is not None:
                 plotit(vfun=solv, fignum=plotfignum)
-                output = cmat.dot(solvec)
+                output = loccmat.dot(solvec)
             if pointeva:
                 midpt = dolfin.Point(0, 0)
                 output = solv(midpt)
         else:
-            output = cmat.dot(solvec)
-            # output = np.sqrt(dolfin.assemble(solv*solv*dx(4)))
+            output = loccmat.dot(solvec)
         return output
 
-    problemfems = dict(mmat=mmat, cmat=cmat,
-                       bcinds=bcinds, bcvals=bcvals, ininds=ininds)
+    problemfems = dict(mmat=mmat, cmat=cmat, realizeamat=realize_linop,
+                       bcinds=bcinds, bcvals=bcvals, ininds=ininds,
+                       examplerhs=examplerhsvec)
 
-    return realize_linop, realize_sol, realize_output, problemfems
+    def get_red_prob(podmat):
+        red_cmat = cmat.dot(podmat)
+        red_lpclist = []
+        red_examplerhsvec = podmat.T.dot(examplerhsvec)
+        for kk in range(Nrgs):
+            red_lpclist.append((podmat.T).dot(lplclst[kk].dot(podmat)))
+
+        def red_realize_sol(nulist, rhs=None):
+            rhsvec = red_examplerhsvec if rhs is None else rhs
+            solvec = realize_sol(nulist, lplcs=red_lpclist, rhs=rhsvec)
+            return podmat.dot(solvec)
+
+        def red_realize_output(nulist, rhs=None):
+            rhsvec = red_examplerhsvec if rhs is None else rhs
+            solvec = realize_sol(nulist, lplcs=red_lpclist, rhs=rhsvec)
+            return red_cmat.dot(solvec)
+
+        red_problemfems = dict(cmat=red_cmat, realizeamat=realize_linop,
+                               examplerhs=red_examplerhsvec)
+        return red_realize_sol, red_realize_output, red_problemfems
+
+    return realize_sol, realize_output, problemfems, get_red_prob
+

@@ -12,7 +12,7 @@ import gen_pod_uq.mc_pce_utils as mpu
 from circle_subsec import get_problem
 
 
-get_linop, get_sol, get_output, problemfems = get_problem()
+get_sol, get_output, problemfems, get_red_problem = get_problem()
 print(problemfems['mmat'].shape[0])
 
 uncdims = 5
@@ -131,8 +131,7 @@ for poddim in poddimlist:
     ypodvecs = get_pod_vecs(poddim)
     lyitVy = facmy.solve_Ft(ypodvecs)
 
-    def red_out_func(parlist):
-        return get_output(parlist, podmat=lyitVy)
+    red_realize_sol, red_realize_output, red_probfems = get_red_problem(lyitVy)
 
     if plotplease:
         yfull = get_output(nuarray.tolist(), plotfignum=222)
@@ -144,7 +143,7 @@ for poddim in poddimlist:
                 setup_pce(distribution='uniform',
                           distrpars=dict(a=nua, b=nub),
                           pcedim=pcedim, uncdims=uncdims)
-            redysoltens = mpu.run_pce_sim_separable(solfunc=red_out_func,
+            redysoltens = mpu.run_pce_sim_separable(solfunc=red_realize_output,
                                                     uncdims=uncdims,
                                                     abscissae=abscissae)
             redexpy = compredexpv(redysoltens)
@@ -156,7 +155,7 @@ for poddim in poddimlist:
         expvnu = np.average(varinu, axis=0)
         print('expected value of nu: ', expvnu)
         varinulist = varinu.tolist()
-        mcout, rmcxpy, expvnu = mpu.run_mc_sim(varinulist, red_out_func,
+        mcout, rmcxpy, expvnu = mpu.run_mc_sim(varinulist, red_realize_output,
                                                verbose=True)
         print('nsnap={0:2.0f}, poddim={2:2.0f}, exypce={1}'.
               format(mcits*mcruns, rmcxpy-mcxpy, poddim))
