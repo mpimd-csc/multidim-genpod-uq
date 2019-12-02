@@ -101,7 +101,7 @@ def get_problem():
         if sps.issparse(amat):
             solvec = spsla.spsolve(amat, rhs).reshape((rhs.size, 1))
         else:
-            solvec = npla.spsolve(amat, rhs).reshape((rhs.size, 1))
+            solvec = npla.solve(amat, rhs).reshape((rhs.size, 1))
         return solvec
 
     def plotit(vvec=None, vfun=None, fignum=1):
@@ -182,4 +182,4 @@ def get_problem():
                                convmat=red_convmat)
         return red_realize_sol, red_realize_output, red_problemfems
 
-    return realize_sol, realize_output, problemfems, get_red_prob
+    return full_realize_sol, full_realize_output, problemfems, get_red_prob

@@ -130,8 +130,9 @@ for poddim in poddimlist:
     lyitVy = facmy.solve_Ft(ypodvecs)
     red_realize_sol, red_realize_output, red_probfems = get_red_problem(lyitVy)
 
-    yred_comp = red_realize_output(nuarray.tolist())
-    print(yred_comp)
+    yred = red_realize_output(nuarray.tolist())
+    yfull = get_output(nuarray.tolist())
+    print(yred - yfull)
     import ipdb
     ipdb.set_trace()
 
