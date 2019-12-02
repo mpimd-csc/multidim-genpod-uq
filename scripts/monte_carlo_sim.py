@@ -23,7 +23,7 @@ nua, nub = basenu+varia, basenu+varib
 
 mcits, mcruns = 6, 100  # 200
 # pcedimlist = [2, 3, 5]
-pcedimlist = [3]  # , 3, 4, 5]  # , 7]
+pcedimlist = [4]  # , 3, 4, 5]  # , 7]
 
 mcplease = False
 pceplease = False
@@ -35,7 +35,7 @@ pcepod = False
 # pceplease = True
 # plotplease = True
 pcepod = True
-mcpod = True
+# mcpod = True
 
 basenulist = [basenu]*uncdims
 basey = get_output(basenulist)
@@ -87,8 +87,8 @@ facmy = SparseFactorMassmat(mmat)
 pcemmat = sps.csc_matrix(sps.dia_matrix((weights, 0), shape=(pcedim, pcedim)))
 facmpce = SparseFactorMassmat(pcemmat)
 
-basisfrom = 'mc'
 basisfrom = 'pce'
+basisfrom = 'mc'
 poddimlist = [5, 10, 20]  # , 40]
 nmcsnapshots = 5*pcedim**uncdims
 
@@ -132,9 +132,6 @@ for poddim in poddimlist:
 
     yred = red_realize_output(nuarray.tolist())
     yfull = get_output(nuarray.tolist())
-    print(yred - yfull)
-    import ipdb
-    ipdb.set_trace()
 
     if plotplease:
         yfull = get_output(nuarray.tolist(), plotfignum=222)
