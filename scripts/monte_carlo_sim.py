@@ -11,7 +11,6 @@ import gen_pod_uq.mc_pce_utils as mpu
 
 from circle_subsec import get_problem
 
-
 get_sol, get_output, problemfems, get_red_problem = get_problem()
 print(problemfems['mmat'].shape[0])
 
@@ -127,15 +126,19 @@ nuarray = np.array(nulist)
 
 # lypceymat = pceymat
 for poddim in poddimlist:
-
     ypodvecs = get_pod_vecs(poddim)
     lyitVy = facmy.solve_Ft(ypodvecs)
-
     red_realize_sol, red_realize_output, red_probfems = get_red_problem(lyitVy)
+
+    yred_comp = red_realize_output(nuarray.tolist())
+    print(yred_comp)
+    import ipdb
+    ipdb.set_trace()
 
     if plotplease:
         yfull = get_output(nuarray.tolist(), plotfignum=222)
         yred = get_output(nuarray.tolist(), plotfignum=111, podmat=lyitVy)
+        yred_comp = red_realize_output(nuarray.tolist())
 
     if pcepod:
         for pcedim in pcedimlist:
