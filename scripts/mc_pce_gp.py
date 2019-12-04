@@ -27,7 +27,7 @@ def simit(mcruns=None, pcedimlist=None, plotplease=False,
 
     basenulist = [basenu]*uncdims
     basey = get_output(basenulist)
-    print('y(estxnu)={0}'.format(basey))
+    print('y(basenu)={0}'.format(basey))
     # import ipdb
     # ipdb.set_trace()
 
