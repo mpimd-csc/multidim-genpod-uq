@@ -15,15 +15,17 @@ SCALES=("2.0")  #  "1.0")  # "0.75")  #  "0.5" "0.3" "0.2" "0.1")
 GEO_FILE=5-segs-3D.geo
 
 # prefix for mesh files
-MSH_PREFIX=3D-mshs/5-segs-3D
+MSH_DIR=3D-mshs
+MSH_PREFIX=5-segs-3D
 
 ## CLEAR FILES AND START MESH GENERATION
-find . -name "3D-mshs/*.xml" -exec rm  {} \;
-find . -name "3D-mshs/*.msh" -exec rm  {} \;
-find . -name "3D-mshs/*.xml.gz" -exec rm  {} \;
-find . -name "3D-mshs/*.pos" -exec rm  {} \;
-find . -name "3D-mshs/*.pvd" -exec rm  {} \;
-find . -name "3D-mshs/*.vtu" -exec rm  {} \;
+cd $MSH_DIR
+find . -name "*.xml" -exec rm  {} \;
+find . -name "*.msh" -exec rm  {} \;
+find . -name "*.xml.gz" -exec rm  {} \;
+find . -name "*.pos" -exec rm  {} \;
+find . -name "*.pvd" -exec rm  {} \;
+find . -name "*.vtu" -exec rm  {} \;
 
 # convert for level
 LVL=1
@@ -34,7 +36,7 @@ for SCALE in "${SCALES[@]}"; do
     echo "DO MESHING FOR SEGMENTS LEVEL=$LVL and SCALE=$SCALE"
 
     # create mesh with gmsh, convert to xmkl and zip it
-    gmsh ${GEO_FILE} -check -clscale ${SCALE} -3 -o ${MSH_PREFIX}_lvl$LVL.msh
+    gmsh ../${GEO_FILE} -check -clscale ${SCALE} -3 -o ${MSH_PREFIX}_lvl$LVL.msh
     # ~/software/other/gmsh-git-Linux64/bin/gmsh karman2D-rotcyl-bm.geo -check -clscale .5 -2 -o karman2D-rotcyl-bm.msh
 
     # convert it to xml
@@ -46,9 +48,9 @@ for SCALE in "${SCALES[@]}"; do
     ${GZIP} -f ${MSH_PREFIX}_lvl${LVL}_physical_region.xml
 
     # convert to paraview
-    ${PYTHON} mesh_to_paraview.py           ${MSH_PREFIX}_lvl${LVL}.xml.gz  ${MSH_PREFIX}_lvl${LVL}.pvd
-    ${PYTHON} meshfunction_to_paraview.py   ${MSH_PREFIX}_lvl${LVL}.xml.gz  ${MSH_PREFIX}_lvl${LVL}_facet_region.xml.gz ${MSH_PREFIX}_lvl${LVL}_facet_region.pvd
-    ${PYTHON} meshfunction_to_paraview.py   ${MSH_PREFIX}_lvl${LVL}.xml.gz  ${MSH_PREFIX}_lvl${LVL}_physical_region.xml.gz ${MSH_PREFIX}_lvl${LVL}_physical_region.pvd
+    ${PYTHON} ../mesh_to_paraview.py           ${MSH_PREFIX}_lvl${LVL}.xml.gz  ${MSH_PREFIX}_lvl${LVL}.pvd
+    ${PYTHON} ../meshfunction_to_paraview.py   ${MSH_PREFIX}_lvl${LVL}.xml.gz  ${MSH_PREFIX}_lvl${LVL}_facet_region.xml.gz ${MSH_PREFIX}_lvl${LVL}_facet_region.pvd
+    ${PYTHON} ../meshfunction_to_paraview.py   ${MSH_PREFIX}_lvl${LVL}.xml.gz  ${MSH_PREFIX}_lvl${LVL}_physical_region.xml.gz ${MSH_PREFIX}_lvl${LVL}_physical_region.pvd
 
     # increment level counter
     LVL=$[$LVL+1]
@@ -56,6 +58,7 @@ for SCALE in "${SCALES[@]}"; do
     echo "#####################################################################\n"
 
 # an unrolled version
+cd ..
 gmsh ${GEO_FILE} -0
 
 
