@@ -1,8 +1,9 @@
-RO = 1;        // outer radius 
-RI = 0.4;        // inner radius
-AL = 2*Pi/4;        // arclength
-D = 0.01*2*Pi*RI;        // mesh density
+RO = 1;                 // outer radius 
+RI = 0.4;               // inner radius
+AL = 2*Pi/4;            // arclength
+D = 0.01*2*Pi*RI;       // mesh density
 DZ = 1;                 // Extension in Z direction
+ROBSD = 0.1;             // Radius of the domain of observation
 
 Point(1) = {0, 0, 0, D};  // Center point
 
@@ -86,8 +87,8 @@ Extrude {0, 0, DZ} {
   Surface{4}; 
   Surface{5}; 
 }
-Physical Volume(1) = {1};
-Physical Volume(2) = {2};
-Physical Volume(3) = {3};
-Physical Volume(4) = {4};
-Physical Volume(5) = {5};
+Physical Volume(30) = {1};
+Physical Volume(31) = {2};
+Physical Volume(32) = {3};
+Physical Volume(33) = {4};
+Physical Volume(34) = {5};
