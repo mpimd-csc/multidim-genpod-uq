@@ -76,26 +76,26 @@ Plane Surface(2+surfpp) = {2+surfpp};
 Physical Surface(1+surfpp) = {2+surfpp};
 
 
-// // THE OBSERVATION DOMAIN
+// THE OBSERVATION DOMAIN
 
 lastline = lastline+2;
 surfpp = surfpp+2;
 pointpp = pointpp+2;
 
-Point(pointpp+1) = {0, 0, H, D};  // Center point at top
-Point(pointpp+2) = {ROBSD, 0, H, D};
-Point(pointpp+3) = {0, ROBSD, H, D};
-Point(pointpp+4) = {-ROBSD, 0, H, D};
-Point(pointpp+5) = {0, -ROBSD, H, D};
-
-Circle(lastline+1) = {pointpp+2, pointpp+1, pointpp+3};
-Circle(lastline+2) = {pointpp+3, pointpp+1, pointpp+4};
-Circle(lastline+3) = {pointpp+4, pointpp+1, pointpp+5};
-Circle(lastline+4) = {pointpp+5, pointpp+1, pointpp+2};
-
-Line Loop(1+surfpp) = {lastline+1, lastline+2, lastline+3, lastline+4};
-Plane Surface(1+surfpp) = {1+surfpp};
-Physical Surface(0+surfpp) = {1+surfpp};
+// Point(pointpp+1) = {0, 0, H, D};  // Center point at top
+// Point(pointpp+2) = {ROBSD, 0, H, D};
+// Point(pointpp+3) = {0, ROBSD, H, D};
+// Point(pointpp+4) = {-ROBSD, 0, H, D};
+// Point(pointpp+5) = {0, -ROBSD, H, D};
+// 
+// Circle(lastline+1) = {pointpp+2, pointpp+1, pointpp+3};
+// Circle(lastline+2) = {pointpp+3, pointpp+1, pointpp+4};
+// Circle(lastline+3) = {pointpp+4, pointpp+1, pointpp+5};
+// Circle(lastline+4) = {pointpp+5, pointpp+1, pointpp+2};
+// 
+// Line Loop(1+surfpp) = {lastline+1, lastline+2, lastline+3, lastline+4};
+// Plane Surface(1+surfpp) = {1+surfpp};
+// Physical Surface(0+surfpp) = {1+surfpp};
 
 
 // // // THE OUTER BOUNDARY
@@ -126,3 +126,8 @@ Physical Volume(34) = {5};
 // //+
 // Plane Surface(123) = {6, 7};
 // Physical Surface(21) = {123};
+//+
+Line Loop(6) = {39, 17, 83, 61};
+//+
+Plane Surface(123) = {6};
+Physical Surface(0+surfpp) = {123};
