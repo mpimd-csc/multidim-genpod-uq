@@ -12,11 +12,11 @@ PYTHON=python3
 SCALES=("2.0")  #  "1.0")  # "0.75")  #  "0.5" "0.3" "0.2" "0.1")
 
 # geo file
-GEO_FILE=5-segs-3D.geo
+GEO_FILE=4-segs-3D.geo
 
 # prefix for mesh files
 MSH_DIR=3D-mshs
-MSH_PREFIX=5-segs-3D
+MSH_PREFIX=4-segs-3D
 
 ## CLEAR FILES AND START MESH GENERATION
 cd $MSH_DIR
@@ -52,7 +52,7 @@ for SCALE in "${SCALES[@]}"; do
     ${PYTHON} ../meshfunction_to_paraview.py   ${MSH_PREFIX}_lvl${LVL}.xml.gz  ${MSH_PREFIX}_lvl${LVL}_facet_region.xml.gz ${MSH_PREFIX}_lvl${LVL}_facet_region.pvd
     ${PYTHON} ../meshfunction_to_paraview.py   ${MSH_PREFIX}_lvl${LVL}.xml.gz  ${MSH_PREFIX}_lvl${LVL}_physical_region.xml.gz ${MSH_PREFIX}_lvl${LVL}_physical_region.pvd
 
-    ${PYTHON} trying_meshio.py
+    # ${PYTHON} trying_meshio.py
     # increment level counter
     LVL=$[$LVL+1]
 
