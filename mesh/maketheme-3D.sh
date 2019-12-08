@@ -52,6 +52,7 @@ for SCALE in "${SCALES[@]}"; do
     ${PYTHON} ../meshfunction_to_paraview.py   ${MSH_PREFIX}_lvl${LVL}.xml.gz  ${MSH_PREFIX}_lvl${LVL}_facet_region.xml.gz ${MSH_PREFIX}_lvl${LVL}_facet_region.pvd
     ${PYTHON} ../meshfunction_to_paraview.py   ${MSH_PREFIX}_lvl${LVL}.xml.gz  ${MSH_PREFIX}_lvl${LVL}_physical_region.xml.gz ${MSH_PREFIX}_lvl${LVL}_physical_region.pvd
 
+    ${PYTHON} trying_meshio.py
     # increment level counter
     LVL=$[$LVL+1]
 
