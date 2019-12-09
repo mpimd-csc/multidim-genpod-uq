@@ -2,7 +2,6 @@ import numpy as np
 import scipy.sparse as sps
 import scipy.sparse.linalg as spsla
 import numpy.linalg as npla
-import matplotlib.pyplot as plt
 
 import dolfin
 
@@ -11,23 +10,24 @@ import dolfin_navier_scipy.dolfin_to_sparrays as dts
 dolfin.parameters['linear_algebra_backend'] = 'Eigen'
 
 Nrgs = 4
-meshprfx = '../mesh/3D-mshs/{0}-segs-3D_lvl1'.format(Nrgs)
-meshfile = meshprfx + '.xml.gz'
-physregs = meshprfx + '_physical_region.xml.gz'
-fctsregs = meshprfx + '_facet_region.xml.gz'
-
 # the physical entities of volumes, input faces, and output faces
-volpes = [0 + k+1 for k in range(Nrgs)]
-inppes = [10 + k+1 for k in range(Nrgs)]
-outpes = [20 + k+1 for k in range(Nrgs)]
+volpes = [20 + k+1 for k in range(Nrgs)]
+inppes = [0 + k+1 for k in range(Nrgs)]
+outpes = [10 + k+1 for k in range(Nrgs)]
 
 
-def get_problem():
+def get_problem(meshlevel=1):
     ''' the 3D cylinder
      * with Dirichlet control at the bottom
      * zero Neumann elsewhere
      * observation in a ring at the top
     '''
+
+    meshprfx = '../mesh/3D-mshs/{0}-segs-3D_lvl{1}'.format(Nrgs, meshlevel)
+
+    meshfile = meshprfx + '.xml.gz'
+    physregs = meshprfx + '_physical_region.xml.gz'
+    fctsregs = meshprfx + '_facet_region.xml.gz'
 
     mesh = dolfin.Mesh(meshfile)
     boundaries = dolfin.MeshFunction('size_t', mesh, fctsregs)
@@ -39,17 +39,29 @@ def get_problem():
     V = dolfin.FunctionSpace(mesh, 'CG', 1)
 
     # ## the boundary
-
+    # print(dolfin.assemble(1*dx(1)))
     bcexp = dolfin.\
-        Expression("sin(2*pi*(pow(x[0],2)+pow(x[1],2)))*sin(pi*4*x[0])",
+        Expression("sin(2*pi*(pow(x[0],2)+pow(x[1],2)))*sin(pi*2*x[0])",
                    degree=1)
+    # bcexp = dolfin.Expression("1", degree=1)
     diribcs = []
+
     for pe in inppes:
         diribcs.append(dolfin.DirichletBC(V, bcexp, boundaries, pe))
+
     bcinds, bcvals = dts.unroll_dlfn_dbcs(diribcs)
 
     u = dolfin.TrialFunction(V)
     v = dolfin.TestFunction(V)
+
+    # pvdfile = dolfin.File('meshfunc.pvd')
+    # pvdfile << boundaries
+    # oneexp = dolfin.Expression('1', degree=1)
+    # onefunc = dolfin.interpolate(oneexp, V)
+    # for kk in range(100):
+    #     print('kk: {0}'.format(kk), (dolfin.assemble(onefunc*ds(kk))))
+    # import ipdb
+    # ipdb.set_trace()
 
     # the mass matrix
     mmat = dolfin.assemble(dolfin.inner(u, v)*dolfin.dx)
@@ -59,19 +71,21 @@ def get_problem():
                                                  dbcvals=bcvals)
     ininds = bcinidx['ininds']
 
-    lplclist, lplcrhslist = [], []
-    kk = 1
     convfac = 1.
-
+    # reacfac = .0
     convexp = dolfin.Expression(('(x[0]*x[0]+x[1]*x[1]-1)*x[1]',
-                                 '(1-x[0]*x[0]-x[1]*x[1])*x[0]'), degree=1)
-    convform = dolfin.assemble(v*dolfin.inner(convexp,
-                               dolfin.grad(u))*dolfin.dx)
-    convmat = convfac*dts.mat_dolfin2sparse(convform)
+                                 '(1-x[0]*x[0]-x[1]*x[1])*x[0]',
+                                 '0'), degree=1)
+    convform = dolfin.assemble(convfac*v*dolfin.inner(convexp,
+                               dolfin.grad(u))*dolfin.dx
+                               # + reacfac*u*v*dolfin.dx)
+                               )
+    convmat = dts.mat_dolfin2sparse(convform)
     convmat, convrhs = dts.\
         condense_velmatsbybcs(convmat, invinds=ininds,
                               dbcinds=bcinds, dbcvals=bcvals)
 
+    lplclist, lplcrhslist = [], []
     for kk in volpes:
         # assemble all mit nu=1
         akform = dolfin.assemble((1.*dolfin.inner(dolfin.grad(u),
@@ -81,7 +95,7 @@ def get_problem():
         Akmat, krhs = dts.condense_velmatsbybcs(Akmat, invinds=ininds,
                                                 dbcinds=bcinds, dbcvals=bcvals)
         lplclist.append(Akmat)
-        lplcrhslist.appen(krhs)
+        lplcrhslist.append(krhs)
 
     def realize_linop(nulist, lplclist=None, convmat=None):
         lnv = lplclist[0].shape[0]
@@ -97,8 +111,8 @@ def get_problem():
         lnv = lplcrhslist[0].shape[0]
         rhs = np.zeros((lnv, 1))
         for kk, knu in enumerate(lplcrhslist):
-            rhs = rhs + knu*lplclist[kk]
-        if convmat is None:
+            rhs = rhs + knu*lplcrhslist[kk]
+        if convrhs is None:
             return rhs
         else:
             return rhs + convrhs
@@ -112,13 +126,11 @@ def get_problem():
             solvec = npla.solve(amat, rhs).reshape((rhs.size, 1))
         return solvec
 
-    def plotit(vvec=None, vfun=None, fignum=1):
+    def plotit(vvec=None, vfun=None, pvdfile=None):
         if vfun is None:
             vfun = dts.expand_dolfunc(vvec, bcinds=bcinds, bcvals=bcvals,
                                       ininds=ininds, V=V)
-        plt.figure(fignum)
-        dolfin.plot(vfun)
-        plt.show()
+        pvdfile << vfun
 
     # ## Output
 
@@ -131,13 +143,12 @@ def get_problem():
 
     cmat = sps.vstack(obsoplist)
 
-    def realize_output(nulist, realize_sol=None, cmat=None,
-                       plotfignum=None):
+    def realize_output(nulist, realize_sol=None, cmat=None, pvdfile=None):
         solvec = realize_sol(nulist)
-        if plotfignum is not None:
+        if pvdfile is not None:
             solv = dts.expand_dolfunc(solvec, bcinds=bcinds, bcvals=bcvals,
                                       ininds=ininds, V=V)
-            plotit(vfun=solv, fignum=plotfignum)
+            plotit(vfun=solv, pvdfile=pvdfile)
         output = cmat.dot(solvec)
         return output
 
@@ -145,15 +156,15 @@ def get_problem():
         return realize_linop(nulist, lplclist=lplclist, convmat=convmat)
 
     def full_realize_rhs(nulist):
-        return realize_linop(nulist, lplcrhslist=lplcrhslist, convrhs=convrhs)
+        return realize_rhs(nulist, lplcrhslist=lplcrhslist, convrhs=convrhs)
 
     def full_realize_sol(nulist):
         return realize_sol(nulist, realize_amat=full_realize_linop,
                            realize_rhs=full_realize_rhs)
 
-    def full_realize_output(nulist, plotfignum=None):
+    def full_realize_output(nulist, pvdfile=None):
         return realize_output(nulist, realize_sol=full_realize_sol, cmat=cmat,
-                              plotfignum=plotfignum)
+                              pvdfile=pvdfile)
 
     problemfems = dict(mmat=mmat, cmat=cmat, realizeamat=full_realize_linop,
                        bcinds=bcinds, bcvals=bcvals, ininds=ininds,
@@ -183,9 +194,9 @@ def get_problem():
             return realize_sol(nulist, realize_amat=red_realize_linop,
                                rhs=red_realize_rhs)
 
-        def red_realize_output(nulist, plotfignum=None):
+        def red_realize_output(nulist, pvdfile=None):
             return realize_output(nulist, realize_sol=red_realize_sol,
-                                  cmat=red_cmat, plotfignum=plotfignum)
+                                  cmat=red_cmat, pvdfile=pvdfile)
 
         red_problemfems = dict(cmat=red_cmat, realizeamat=red_realize_linop,
                                realizerhs=red_realize_rhs,

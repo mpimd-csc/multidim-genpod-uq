@@ -9,7 +9,7 @@ GZIP=gzip
 PYTHON=python3
 
 # refinement levels
-SCALES=("2.0")  #  "1.0")  # "0.75")  #  "0.5" "0.3" "0.2" "0.1")
+SCALES=("2.0" "1.5" "1.2" "1.0" "0.9" "0.85" "0.8")  #  "0.5" "0.3" "0.2" "0.1")
 
 # geo file
 GEO_FILE=4-segs-3D.geo
@@ -58,9 +58,8 @@ for SCALE in "${SCALES[@]}"; do
 
     echo "#####################################################################\n"
 
-# an unrolled version
-cd ..
-gmsh ${GEO_FILE} -0
-
+    # an unrolled version
+    gmsh ${GEO_FILE} -0
 
 done
+cd ..

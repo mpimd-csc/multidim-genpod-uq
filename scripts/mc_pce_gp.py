@@ -2,6 +2,8 @@ import numpy as np
 import scipy.sparse as sps
 import matplotlib.pyplot as plt
 
+import dolfin
+
 import spacetime_galerkin_pod.chaos_expansion_utils as ceu
 import spacetime_galerkin_pod.ten_sor_utils as tsu
 import spacetime_galerkin_pod.gen_pod_utils as gpu
@@ -10,23 +12,33 @@ from spacetime_galerkin_pod.ldfnp_ext_cholmod import SparseFactorMassmat
 import gen_pod_uq.mc_pce_utils as mpu
 
 from circle_subsec import get_problem
+from cyl_subsec import get_problem as cylinder
 
 
-def simit(mcruns=None, pcedimlist=None, plotplease=False,
+def simit(problem='circle', meshlevel=None,
+          mcruns=None, pcedimlist=None, plotplease=False,
           mcplease=False, pceplease=False, mcpod=False, pcepod=False,
           basisfrom='pce'):
 
-    get_sol, get_output, problemfems, get_red_problem = get_problem()
+    if problem == 'cylinder':
+        (get_sol, get_output, problemfems,
+         get_red_problem) = cylinder(meshlevel=meshlevel)
+        uncdims = 4
+    else:
+        get_sol, get_output, problemfems, get_red_problem = get_problem()
+        uncdims = 5
+
     print(problemfems['mmat'].shape[0])
 
-    uncdims = 5
     basenu = 1e-3
     varia = 0.
     varib = 5e-4
     nua, nub = basenu+varia, basenu+varib
 
+    pvdfile = dolfin.File('results/basesol-N{0}.pvd'.format(meshlevel)) \
+        if plotplease else None
     basenulist = [basenu]*uncdims
-    basey = get_output(basenulist)
+    basey = get_output(basenulist, pvdfile=pvdfile)
     print('y(basenu)={0}'.format(basey))
     # import ipdb
     # ipdb.set_trace()
@@ -40,8 +52,8 @@ def simit(mcruns=None, pcedimlist=None, plotplease=False,
         mcout, mcxpy, expvnu = mpu.run_mc_sim(varinulist, get_output,
                                               verbose=True)
 
-        curyplotfignum = 101 if plotplease else None
-        cury = get_output(expvnu.tolist(), plotfignum=curyplotfignum)
+        mmcsolfile = dolfin.File('results/mmcsol.pvd') if plotplease else None
+        cury = get_output(expvnu.tolist(), pvdfile=mmcsolfile)
         print('y(estxnu)={0}'.format(cury))
 
         if plotplease:
@@ -115,8 +127,10 @@ def simit(mcruns=None, pcedimlist=None, plotplease=False,
 
         if plotplease:
             nulist = [basenu]*5
-            get_output(nulist, plotfignum=222)
-            get_output(nulist, plotfignum=111, podmat=lyitVy)
+            fullsolfile = dolfin.File('results/fullsol.pvd')
+            redsolfile = dolfin.File('results/redsol.pvd')
+            get_output(nulist, pvdfile=fullsolfile)
+            get_output(nulist, pvdfile=redsolfile, podmat=lyitVy)
 
         if pcepod:
             for pcedim in pcedimlist:
@@ -145,7 +159,9 @@ def simit(mcruns=None, pcedimlist=None, plotplease=False,
 
 
 if __name__ == '__main__':
-    mcruns = 100  # 200
+    problem = 'cylinder'
+    meshlevel = 7
+    mcruns = 10  # 200
     pcedimlist = [3]  # , 3, 4, 5]  # , 7]
     mcplease = False
     pceplease = False
@@ -153,13 +169,14 @@ if __name__ == '__main__':
     mcpod = False
     pcepod = False
     # ## make it come true
-    mcplease = True
+    # mcplease = True
     # pceplease = True
-    # plotplease = True
+    plotplease = True
     # pcepod = True
     # mcpod = True
     basisfrom = 'mc'
     basisfrom = 'pce'
-    simit(mcruns=mcruns, pcedimlist=pcedimlist,
+    simit(mcruns=mcruns, pcedimlist=pcedimlist, problem=problem,
+          meshlevel=meshlevel,
           plotplease=plotplease, basisfrom=basisfrom,
           mcplease=mcplease, pceplease=pceplease, mcpod=mcpod, pcepod=pcepod)
