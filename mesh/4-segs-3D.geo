@@ -5,8 +5,8 @@ D = 0.01*2*Pi*RI;       // mesh density
 H = 1;                 // Extension in Z direction
 DR = 0.1;             // Radius of the domain of observation
 
-OBSDOMS = 10;          // Start of range for observation domains
 CONTDOMS = 0;           // Start of range for control domains
+OBSDOMS = 10;          // Start of range for observation domains
 VOLDOMS = 20;          // Start of range for physical volumes
 
 Point(1) = {0, 0, 0, D};  // Center point
