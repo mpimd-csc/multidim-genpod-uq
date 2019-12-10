@@ -187,12 +187,12 @@ def get_problem(meshlevel=1):
                                  convmat=red_convmat)
 
         def red_realize_rhs(nulist):
-            return realize_rhs(nulist, lplcrhslist=red_lplclist,
+            return realize_rhs(nulist, lplcrhslist=red_lplcrhslist,
                                convrhs=red_convrhs)
 
         def red_realize_sol(nulist):
             return realize_sol(nulist, realize_amat=red_realize_linop,
-                               rhs=red_realize_rhs)
+                               realize_rhs=red_realize_rhs)
 
         def red_realize_output(nulist, pvdfile=None):
             return realize_output(nulist, realize_sol=red_realize_sol,

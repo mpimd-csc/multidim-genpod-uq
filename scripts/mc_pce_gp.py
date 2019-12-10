@@ -126,7 +126,7 @@ def simit(problem='circle', meshlevel=None,
             = get_red_problem(lyitVy)
 
         if plotplease:
-            nulist = [basenu]*5
+            nulist = [basenu]*uncdims
             fullsolfile = dolfin.File('results/fullsol.pvd')
             redsolfile = dolfin.File('results/redsol.pvd')
             get_output(nulist, pvdfile=fullsolfile)
