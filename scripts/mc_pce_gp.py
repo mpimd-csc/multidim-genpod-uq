@@ -41,7 +41,7 @@ def simit(problem='circle', meshlevel=None,
     basev = get_sol(basenulist)
     plotit(vvec=basev, pvdfile=basepvdfile, plotplease=plotplease)
 
-    print('y(basenu)={0}'.format(cmat.dot(basev)))
+    print('N{1}: y(basenu)={0}'.format(cmat.dot(basev), meshlevel))
 
     # ## CHAP Monte Carlo
     if mcplease:
@@ -131,7 +131,8 @@ def simit(problem='circle', meshlevel=None,
         nulist = [basenu]*uncdims
         redv = red_realize_sol(nulist)
         red_plotit(vvec=redv, pvdfile=redsolfile, plotplease=plotplease)
-        print('red_y(basenu)={0}'.format(red_cmat.dot(redv)))
+        print('N{1}pod{2}red_y(basenu)={0}'.format(red_cmat.dot(redv),
+                                                   meshlevel, poddim))
 
         pcepod = False
         mcpod = False
