@@ -1,3 +1,7 @@
+import getopt
+import sys
+import numpy as np
+
 from mc_pce_gp import simit
 
 mcruns = 10000  # 200
@@ -17,6 +21,14 @@ basisfrom = 'mc'
 basisfrom = 'pce'
 problem = 'cylinder'
 meshlevel = 4
+
+options, rest = getopt.getopt(sys.argv[1:], '',
+                              ['mesh='
+                               ])
+for opt, arg in options:
+    if opt == '--mesh':
+        meshlevel = np.int(arg)
+
 
 simit(mcruns=mcruns, pcedimlist=pcedimlist,
       problem=problem, meshlevel=meshlevel,

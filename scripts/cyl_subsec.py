@@ -146,8 +146,8 @@ def get_problem(meshlevel=1):
             get_local().reshape((1, V.dim()))
         obsopmat = sps.csc_matrix(obsop)[:, ininds]
         obsoplist.append(obsopmat/obsopmat.sum())
-    print('disc error in estimating the area of the observation domain: ')
-    print(obsopmat.sum() - .25*np.pi*(0.5*0.5 - 0.4*0.4))
+    arer = obsopmat.sum() - .25*np.pi*(0.5*0.5 - 0.4*0.4)
+    print('meshlevel: {0}: error obs domain: {1}'.format(meshlevel, arer))
 
     cmat = sps.vstack(obsoplist)
     cmat = sps.csc_matrix(cmat.sum(0))
