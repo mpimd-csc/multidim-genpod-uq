@@ -40,10 +40,10 @@ def get_problem(meshlevel=1):
 
     # ## the boundary
     # print(dolfin.assemble(1*dx(1)))
-    bcexp = dolfin.\
-        Expression("sin(2*pi*(pow(x[0],2)+pow(x[1],2)))*sin(pi*2*x[0])",
-                   degree=1)
-    # bcexp = dolfin.Expression("1", degree=1)
+    # bcexp = dolfin.\
+    #     Expression("sin(2*pi*(pow(x[0],2)+pow(x[1],2)))*sin(pi*2*x[0])",
+    #                degree=1)
+    bcexp = dolfin.Expression("0", degree=1)
     diribcs = []
 
     for pe in inppes:

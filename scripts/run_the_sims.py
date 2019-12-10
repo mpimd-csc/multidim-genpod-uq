@@ -1,7 +1,7 @@
 from mc_pce_gp import simit
 
 mcruns = 10000  # 200
-pcedimlist = [3, 5]  # , 3, 4, 5]  # , 7]
+pcedimlist = [2]  # , 5]  # , 3, 4, 5]  # , 7]
 mcplease = False
 pceplease = False
 plotplease = False
