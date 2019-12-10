@@ -21,7 +21,7 @@ def simit(problem='circle', meshlevel=None,
           basisfrom='pce'):
 
     if problem == 'cylinder':
-        (get_sol, get_output, problemfems,
+        (get_sol, get_output, problemfems, plotit,
          get_red_problem) = cylinder(meshlevel=meshlevel)
         uncdims = 4
     else:
@@ -34,14 +34,14 @@ def simit(problem='circle', meshlevel=None,
     varia = 0.
     varib = 5e-4
     nua, nub = basenu+varia, basenu+varib
+    cmat = problemfems['cmat']
 
-    pvdfile = dolfin.File('results/basesol-N{0}.pvd'.format(meshlevel)) \
-        if plotplease else None
+    basepvdfile = dolfin.File('results/basesol-N{0}.pvd'.format(meshlevel))
     basenulist = [basenu]*uncdims
-    basey = get_output(basenulist, pvdfile=pvdfile)
-    print('y(basenu)={0}'.format(basey))
-    # import ipdb
-    # ipdb.set_trace()
+    basev = get_sol(basenulist)
+    plotit(vvec=basev, pvdfile=basepvdfile, plotplease=plotplease)
+
+    print('y(basenu)={0}'.format(cmat.dot(basev)))
 
     # ## CHAP Monte Carlo
     if mcplease:
@@ -52,9 +52,10 @@ def simit(problem='circle', meshlevel=None,
         mcout, mcxpy, expvnu = mpu.run_mc_sim(varinulist, get_output,
                                               verbose=True)
 
-        mmcsolfile = dolfin.File('results/mmcsol.pvd') if plotplease else None
-        cury = get_output(expvnu.tolist(), pvdfile=mmcsolfile)
-        print('y(estxnu)={0}'.format(cury))
+        mmcsolfile = dolfin.File('results/mmcsol.pvd')
+        curv = get_output(expvnu.tolist())
+        plotit(vvec=curv, pvdfile=mmcsolfile, plotplease=plotplease)
+        print('y(estxnu)={0}'.format(cmat.dot(curv)))
 
         if plotplease:
             plt.figure(89)
@@ -119,19 +120,21 @@ def simit(problem='circle', meshlevel=None,
             return ypodvecs
 
     # lypceymat = pceymat
+    redsolfile = dolfin.File('results/redsol-N{0}pods.pvd'.format(meshlevel))
     for poddim in poddimlist:
         ypodvecs = get_pod_vecs(poddim)
         lyitVy = facmy.solve_Ft(ypodvecs)
-        red_realize_sol, red_realize_output, red_probfems \
+        red_realize_sol, red_realize_output, red_probfems, red_plotit \
             = get_red_problem(lyitVy)
+        red_cmat = red_probfems['cmat']
 
-        if plotplease:
-            nulist = [basenu]*5
-            fullsolfile = dolfin.File('results/fullsol.pvd')
-            redsolfile = dolfin.File('results/redsol.pvd')
-            get_output(nulist, pvdfile=fullsolfile)
-            get_output(nulist, pvdfile=redsolfile, podmat=lyitVy)
+        nulist = [basenu]*uncdims
+        redv = red_realize_sol(nulist)
+        red_plotit(vvec=redv, pvdfile=redsolfile, plotplease=plotplease)
+        print('red_y(basenu)={0}'.format(red_cmat.dot(redv)))
 
+        pcepod = False
+        mcpod = False
         if pcepod:
             for pcedim in pcedimlist:
                 abscissae, weights, compredexpv = mpu.\

@@ -44,6 +44,11 @@ def get_problem(meshlevel=1):
     #     Expression("sin(2*pi*(pow(x[0],2)+pow(x[1],2)))*sin(pi*2*x[0])",
     #                degree=1)
     bcexp = dolfin.Expression("0", degree=1)
+
+    distrhsexp = dolfin.\
+        Expression(("sin(2*pi*x[0])*sin(4*pi*x[1])*x[2]*(0.5-x[2])"),
+                   degree=1)
+
     diribcs = []
 
     for pe in inppes:
@@ -53,15 +58,6 @@ def get_problem(meshlevel=1):
 
     u = dolfin.TrialFunction(V)
     v = dolfin.TestFunction(V)
-
-    # pvdfile = dolfin.File('meshfunc.pvd')
-    # pvdfile << boundaries
-    # oneexp = dolfin.Expression('1', degree=1)
-    # onefunc = dolfin.interpolate(oneexp, V)
-    # for kk in range(100):
-    #     print('kk: {0}'.format(kk), (dolfin.assemble(onefunc*ds(kk))))
-    # import ipdb
-    # ipdb.set_trace()
 
     # the mass matrix
     mmat = dolfin.assemble(dolfin.inner(u, v)*dolfin.dx)
@@ -84,6 +80,10 @@ def get_problem(meshlevel=1):
     convmat, convrhs = dts.\
         condense_velmatsbybcs(convmat, invinds=ininds,
                               dbcinds=bcinds, dbcvals=bcvals)
+
+    distrhsfun = (dolfin.assemble(v*distrhsexp*dolfin.dx))
+    distrhsvec = (distrhsfun.get_local()).reshape((V.dim(), 1))[ininds, :]
+    convrhs = convrhs+distrhsvec
 
     lplclist, lplcrhslist = [], []
     for kk in volpes:
@@ -126,11 +126,13 @@ def get_problem(meshlevel=1):
             solvec = npla.solve(amat, rhs).reshape((rhs.size, 1))
         return solvec
 
-    def plotit(vvec=None, vfun=None, pvdfile=None):
-        if vfun is None:
+    def plotit(vvec=None, pvdfile=None, plotplease=True):
+        if plotplease:
             vfun = dts.expand_dolfunc(vvec, bcinds=bcinds, bcvals=bcvals,
                                       ininds=ininds, V=V)
-        pvdfile << vfun
+            pvdfile << vfun
+        else:
+            return
 
     # ## Output
 
@@ -143,12 +145,8 @@ def get_problem(meshlevel=1):
 
     cmat = sps.vstack(obsoplist)
 
-    def realize_output(nulist, realize_sol=None, cmat=None, pvdfile=None):
+    def realize_output(nulist, realize_sol=None, cmat=None):
         solvec = realize_sol(nulist)
-        if pvdfile is not None:
-            solv = dts.expand_dolfunc(solvec, bcinds=bcinds, bcvals=bcvals,
-                                      ininds=ininds, V=V)
-            plotit(vfun=solv, pvdfile=pvdfile)
         output = cmat.dot(solvec)
         return output
 
@@ -162,9 +160,8 @@ def get_problem(meshlevel=1):
         return realize_sol(nulist, realize_amat=full_realize_linop,
                            realize_rhs=full_realize_rhs)
 
-    def full_realize_output(nulist, pvdfile=None):
-        return realize_output(nulist, realize_sol=full_realize_sol, cmat=cmat,
-                              pvdfile=pvdfile)
+    def full_realize_output(nulist):
+        return realize_output(nulist, realize_sol=full_realize_sol, cmat=cmat)
 
     problemfems = dict(mmat=mmat, cmat=cmat, realizeamat=full_realize_linop,
                        bcinds=bcinds, bcvals=bcvals, ininds=ininds,
@@ -187,20 +184,28 @@ def get_problem(meshlevel=1):
                                  convmat=red_convmat)
 
         def red_realize_rhs(nulist):
-            return realize_rhs(nulist, lplcrhslist=red_lplclist,
+            return realize_rhs(nulist, lplcrhslist=red_lplcrhslist,
                                convrhs=red_convrhs)
 
         def red_realize_sol(nulist):
             return realize_sol(nulist, realize_amat=red_realize_linop,
-                               rhs=red_realize_rhs)
+                               realize_rhs=red_realize_rhs)
 
-        def red_realize_output(nulist, pvdfile=None):
+        def red_realize_output(nulist):
             return realize_output(nulist, realize_sol=red_realize_sol,
-                                  cmat=red_cmat, pvdfile=pvdfile)
+                                  cmat=red_cmat)
+
+        def red_plotit(vvec=None, pvdfile=None, plotplease=True):
+            if plotplease:
+                inflvvec = podmat.dot(vvec)
+                plotit(vvec=inflvvec, pvdfile=pvdfile)
+            else:
+                return
 
         red_problemfems = dict(cmat=red_cmat, realizeamat=red_realize_linop,
                                realizerhs=red_realize_rhs,
                                convmat=red_convmat)
-        return red_realize_sol, red_realize_output, red_problemfems
+        return red_realize_sol, red_realize_output, red_problemfems, red_plotit
 
-    return full_realize_sol, full_realize_output, problemfems, get_red_prob
+    return (full_realize_sol, full_realize_output, problemfems,
+            plotit, get_red_prob)
