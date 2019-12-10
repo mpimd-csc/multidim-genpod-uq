@@ -134,6 +134,8 @@ def get_problem(meshlevel=1):
         if plotplease:
             vfun = dts.expand_dolfunc(vvec, bcinds=bcinds, bcvals=bcvals,
                                       ininds=ininds, V=V)
+            print('N{1}: Norm of v: {0}'.format(dolfin.norm(vfun, 'L2'),
+                                                vvec.size))
             pvdfile << vfun
         else:
             return

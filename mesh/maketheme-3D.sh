@@ -10,6 +10,10 @@ PYTHON=python3
 
 # refinement levels
 SCALES=("2.0" "1.5" "1.2" "1.0" "0.9" "0.85" "0.8")  #  "0.5" "0.3" "0.2" "0.1")
+LVL=1
+
+LVL=8
+SCALES=("0.77" "0.75" "0.74")
 
 # geo file
 GEO_FILE=4-segs-3D.geo
@@ -20,18 +24,16 @@ MSH_PREFIX=4-segs-3D
 
 ## CLEAR FILES AND START MESH GENERATION
 cd $MSH_DIR
-find . -name "*.xml" -exec rm  {} \;
-find . -name "*.msh" -exec rm  {} \;
-find . -name "*.xml.gz" -exec rm  {} \;
-find . -name "*.pos" -exec rm  {} \;
-find . -name "*.pvd" -exec rm  {} \;
-find . -name "*.vtu" -exec rm  {} \;
-
-# convert for level
-LVL=1
-
 # create meshes for different levels
 for SCALE in "${SCALES[@]}"; do
+
+    find . -name "*lvl${LVL}.xml" -exec rm  {} \;
+    find . -name "*lvl${LVL}.msh" -exec rm  {} \;
+    find . -name "*lvl${LVL}.xml.gz" -exec rm  {} \;
+    find . -name "*lvl${LVL}.pos" -exec rm  {} \;
+    find . -name "*lvl${LVL}.pvd" -exec rm  {} \;
+    find . -name "*lvl${LVL}.vtu" -exec rm  {} \;
+
 
     echo "DO MESHING FOR SEGMENTS LEVEL=$LVL and SCALE=$SCALE"
 

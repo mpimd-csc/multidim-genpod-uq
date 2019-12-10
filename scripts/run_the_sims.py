@@ -20,7 +20,7 @@ plotplease = True
 basisfrom = 'mc'
 basisfrom = 'pce'
 problem = 'cylinder'
-meshlevel = 4
+meshlevel = 1
 
 options, rest = getopt.getopt(sys.argv[1:], '',
                               ['mesh='
