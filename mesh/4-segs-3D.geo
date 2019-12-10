@@ -239,25 +239,28 @@ Physical Volume(VOLDOMS+segid) = {segid};
 Physical Surface(CONTDOMS+segid) = {5+surfpp};
 Physical Surface(OBSDOMS+segid) = {2+surfpp};
 //+
-Field[1] = Attractor;
-//+
-Delete Field [1];
-//+
 Field[1] = Box;
-//+
 Field[1].VIn = 0.2*D;
-//+
 Field[1].VOut = D;
-//+
 Field[1].XMax = 1;
-//+
 Field[1].XMin = -1;
-//+
 Field[1].YMax = 1;
-//+
 Field[1].YMin = -1;
-//+
 Field[1].ZMax = 0.5*D;
 Field[1].ZMin = -0.01;
+
+Field[2] = Cylinder;
+Field[2].Radius = RI+DR;
+Field[2].VIn = 0.4*D;
+Field[2].VOut = D;
+Field[2].XAxis = 0;
+Field[2].XCenter = 0;
+Field[2].YAxis = 0;
+Field[2].YCenter = 0;
+Field[2].ZAxis = 1;
+Field[2].ZCenter = 0;
 //+
-Background Field = 1;
+// Finally, let's use the minimum of all the fields as the background mesh field
+Field[3] = Min;
+Field[3].FieldsList = {1,2};
+Background Field = 3;

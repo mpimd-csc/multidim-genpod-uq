@@ -40,14 +40,17 @@ def get_problem(meshlevel=1):
 
     # ## the boundary
     # print(dolfin.assemble(1*dx(1)))
-    bcexp = dolfin.\
-        Expression("sin(2*pi*(pow(x[0],2)+pow(x[1],2)))*sin(pi*2*x[0])",
-                   degree=1)
-    # bcexp = dolfin.Expression("0", degree=1)
+    # bcexp = dolfin.\
+    #     Expression("sin(2*pi*(pow(x[0],2)+pow(x[1],2)))*sin(pi*2*x[0])",
+    #                degree=1)
+
+    print('we use zero boundary conditions!')
+    bcexp = dolfin.Expression("0", degree=1)
 
     distrhsexp = dolfin.\
         Expression(("sin(2*pi*x[0])*sin(4*pi*x[1])*x[2]*(0.5-x[2])"),
                    degree=1)
+    # distrhsexp = dolfin.Expression(("0"), degree=1)
 
     diribcs = []
 
@@ -81,9 +84,10 @@ def get_problem(meshlevel=1):
         condense_velmatsbybcs(convmat, invinds=ininds,
                               dbcinds=bcinds, dbcvals=bcvals)
 
-    distrhsfun = (dolfin.assemble(v*distrhsexp*dolfin.dx))
+    # distrhsfun = (dolfin.assemble(v*distrhsexp*dolfin.dx))
+    distrhsfun = (dolfin.assemble(v*distrhsexp*dx(21)+v*distrhsexp*dx(23)))
     distrhsvec = (distrhsfun.get_local()).reshape((V.dim(), 1))[ininds, :]
-    convrhs = convrhs+distrhsvec
+    convrhs = convrhs + distrhsvec
 
     lplclist, lplcrhslist = [], []
     for kk in volpes:
@@ -142,8 +146,11 @@ def get_problem(meshlevel=1):
             get_local().reshape((1, V.dim()))
         obsopmat = sps.csc_matrix(obsop)[:, ininds]
         obsoplist.append(obsopmat/obsopmat.sum())
+    print('disc error in estimating the area of the observation domain: ')
+    print(obsopmat.sum() - .25*np.pi*(0.5*0.5 - 0.4*0.4))
 
     cmat = sps.vstack(obsoplist)
+    cmat = sps.csc_matrix(cmat.sum(0))
 
     def realize_output(nulist, realize_sol=None, cmat=None):
         solvec = realize_sol(nulist)

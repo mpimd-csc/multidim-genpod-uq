@@ -9,14 +9,14 @@ mcpod = False
 pcepod = False
 # ## make it come true
 # mcplease = True
-pceplease = True
+# pceplease = True
 plotplease = True
-pcepod = True
+# pcepod = True
 # mcpod = True
 basisfrom = 'mc'
 basisfrom = 'pce'
 problem = 'cylinder'
-meshlevel = 1
+meshlevel = 4
 
 simit(mcruns=mcruns, pcedimlist=pcedimlist,
       problem=problem, meshlevel=meshlevel,
