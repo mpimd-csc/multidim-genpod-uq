@@ -32,7 +32,7 @@ def run_mc_sim(parlist, solfunc, chunks=10,
 
     else:
         for cpar in parlist:
-            ylist.append(solfunc(cpar))
+            ylist.append((solfunc(cpar)).flatten())
         return ylist, np.average(np.array(ylist), axis=0), expvpara
 
 

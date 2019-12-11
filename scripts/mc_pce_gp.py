@@ -18,6 +18,7 @@ from cyl_subsec import get_problem as cylinder
 def simit(problem='circle', meshlevel=None,
           mcruns=None, pcedimlist=None, plotplease=False,
           mcplease=False, pceplease=False, mcpod=False, pcepod=False,
+          checkredmod=False,
           basisfrom='pce'):
 
     if problem == 'cylinder':
@@ -53,7 +54,7 @@ def simit(problem='circle', meshlevel=None,
                                               verbose=True)
 
         mmcsolfile = dolfin.File('results/mmcsol.pvd')
-        curv = get_output(expvnu.tolist())
+        curv = get_sol(expvnu.tolist())
         plotit(vvec=curv, pvdfile=mmcsolfile, plotplease=plotplease)
         print('y(estxnu)={0}'.format(cmat.dot(curv)))
 
@@ -108,11 +109,11 @@ def simit(problem='circle', meshlevel=None,
     elif basisfrom == 'mc':
         varinu = basenu + (varib-varia)*np.random.rand(nmcsnapshots, uncdims)
         expvnu = np.average(varinu, axis=0)
-        print('expected value of nu: ', expvnu)
         varinulist = varinu.tolist()
-        mcout, _, _ = mpu.run_mc_sim(varinulist, get_sol, verbose=True)
+        mcout, _, _ = mpu.run_mc_sim(varinulist, get_sol)
         pceymat = np.array(mcout).T
         lypceymat = facmy.Ft*pceymat
+        print('POD basis by {0} random samplings'.format(nmcsnapshots))
 
         def get_pod_vecs(poddim=None):
             ypodvecs = gpu.get_ksvvecs(sol=lypceymat, poddim=poddim,
@@ -128,14 +129,13 @@ def simit(problem='circle', meshlevel=None,
             = get_red_problem(lyitVy)
         red_cmat = red_probfems['cmat']
 
-        nulist = [basenu]*uncdims
-        redv = red_realize_sol(nulist)
-        red_plotit(vvec=redv, pvdfile=redsolfile, plotplease=plotplease)
-        print('N{1}pod{2}red_y(basenu)={0}'.format(red_cmat.dot(redv),
-                                                   meshlevel, poddim))
+        if checkredmod:
+            nulist = [basenu]*uncdims
+            redv = red_realize_sol(nulist)
+            red_plotit(vvec=redv, pvdfile=redsolfile, plotplease=plotplease)
+            print('N{1}pod{2}red_y(basenu)={0}'.format(red_cmat.dot(redv),
+                                                       meshlevel, poddim))
 
-        pcepod = False
-        mcpod = False
         if pcepod:
             for pcedim in pcedimlist:
                 abscissae, weights, compredexpv = mpu.\
@@ -155,9 +155,9 @@ def simit(problem='circle', meshlevel=None,
             print('expected value of nu: ', expvnu)
             varinulist = varinu.tolist()
             mcout, rmcxpy, expvnu = mpu.\
-                run_mc_sim(varinulist, red_realize_output, verbose=True)
-            print('nsnap={0:2.0f}, poddim={2:2.0f}, exypce={1}'.
-                  format(mcruns, rmcxpy-mcxpy, poddim))
+                run_mc_sim(varinulist, red_realize_output)
+            print('mcruns={0:2.0f}, poddim={2:2.0f}, exypce={1}'.
+                  format(100*mcruns, rmcxpy-mcxpy, poddim))
 
     plt.show()
 

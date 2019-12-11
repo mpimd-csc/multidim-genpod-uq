@@ -5,7 +5,7 @@ import numpy as np
 from mc_pce_gp import simit
 
 mcruns = 10000  # 200
-pcedimlist = [2]  # , 5]  # , 3, 4, 5]  # , 7]
+pcedimlist = [2, 3]  # , 5]  # , 3, 4, 5]  # , 7]
 mcplease = False
 pceplease = False
 plotplease = False
@@ -14,7 +14,7 @@ pcepod = False
 # ## make it come true
 # mcplease = True
 # pceplease = True
-plotplease = True
+# plotplease = True
 # pcepod = True
 # mcpod = True
 basisfrom = 'mc'
@@ -26,7 +26,7 @@ options, rest = getopt.getopt(sys.argv[1:], '',
                               ['mesh=',
                                'mc=',
                                'pce=',
-                               'podbas=',
+                               'podbase=',
                                'pcepod=',
                                'mcpod='
                                ])
@@ -45,16 +45,24 @@ for opt, arg in options:
         else:
             print('minimal number for mcruns is 10')
             mcplease = False
-    elif opt == '--podbas':
+    elif opt == '--podbase':
         basisfrom = np.str(arg)
 
 infostring = ('meshlevel      = {0}'.format(meshlevel) +
               '\nbasisfrom      = {0}'.format(basisfrom) +
               '\npce            = {0}'.format(pceplease) +
-              '\nmc             = {0}'.format(mcplease)
+              '\nmc             = {0}'.format(mcplease) +
+              '\nmcpod          = {0}'.format(mcpod) +
+              '\npcepod         = {0}'.format(pcepod)
               )
 
+if mcplease:
+    infostring = (infostring + 
+                  '\nmcruns         = {0}'.format(mcruns))
+
+print('******************')
 print(infostring)
+print('******************')
 
 
 simit(mcruns=mcruns, pcedimlist=pcedimlist,
