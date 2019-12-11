@@ -48,7 +48,7 @@ def get_problem(meshlevel=1):
     bcexp = dolfin.Expression("0", degree=1)
 
     distrhsexp = dolfin.\
-        Expression(("sin(2*pi*x[0])*sin(4*pi*x[1])*x[2]*(0.5-x[2])"),
+        Expression(("-sin(2*pi*x[0])*sin(4*pi*x[1])*x[2]*(0.5-x[2])"),
                    degree=1)
     # distrhsexp = dolfin.Expression(("0"), degree=1)
 

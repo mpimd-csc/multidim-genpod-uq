@@ -20,14 +20,41 @@ plotplease = True
 basisfrom = 'mc'
 basisfrom = 'pce'
 problem = 'cylinder'
-meshlevel = 1
+meshlevel = 6
 
 options, rest = getopt.getopt(sys.argv[1:], '',
-                              ['mesh='
+                              ['mesh=',
+                               'mc=',
+                               'pce=',
+                               'podbas=',
+                               'pcepod=',
+                               'mcpod='
                                ])
+
 for opt, arg in options:
     if opt == '--mesh':
         meshlevel = np.int(arg)
+    elif opt == '--pcepod':
+        pcepod = np.bool(np.int(arg))
+    elif opt == '--mcpod':
+        mcpod = np.bool(np.int(arg))
+    elif opt == '--mc':
+        mcruns = np.int(arg)
+        if mcruns >= 10:
+            mcplease = True
+        else:
+            print('minimal number for mcruns is 10')
+            mcplease = False
+    elif opt == '--podbas':
+        basisfrom = np.str(arg)
+
+infostring = ('meshlevel      = {0}'.format(meshlevel) +
+              '\nbasisfrom      = {0}'.format(basisfrom) +
+              '\npce            = {0}'.format(pceplease) +
+              '\nmc             = {0}'.format(mcplease)
+              )
+
+print(infostring)
 
 
 simit(mcruns=mcruns, pcedimlist=pcedimlist,
