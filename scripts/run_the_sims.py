@@ -5,7 +5,7 @@ import numpy as np
 from mc_pce_gp import simit
 
 mcruns = 10000  # 200
-pcedimlist = [2, 3]  # , 5]  # , 3, 4, 5]  # , 7]
+pcedimlist = [3, 4]  # , 5]  # , 3, 4, 5]  # , 7]
 mcplease = False
 pceplease = False
 plotplease = False
@@ -47,6 +47,8 @@ for opt, arg in options:
             mcplease = False
     elif opt == '--podbase':
         basisfrom = np.str(arg)
+    elif opt == '--pce':
+        pceplease = np.bool(np.int(arg))
 
 infostring = ('meshlevel      = {0}'.format(meshlevel) +
               '\nbasisfrom      = {0}'.format(basisfrom) +
@@ -57,7 +59,7 @@ infostring = ('meshlevel      = {0}'.format(meshlevel) +
               )
 
 if mcplease:
-    infostring = (infostring + 
+    infostring = (infostring +
                   '\nmcruns         = {0}'.format(mcruns))
 
 print('******************')
