@@ -18,7 +18,8 @@ from cyl_subsec import get_problem as cylinder
 def simit(problem='circle', meshlevel=None,
           mcruns=None, pcedimlist=None, plotplease=False,
           mcplease=False, pceplease=False, mcpod=False, pcepod=False,
-          checkredmod=False,
+          checkredmod=False, pcexpy=None, mcxpy=None, redmcruns=None,
+          mcsnap=None, pcesnapdim=None,
           basisfrom='pce'):
 
     if problem == 'cylinder':
@@ -64,10 +65,8 @@ def simit(problem='circle', meshlevel=None,
             plt.show()
 
     # ## CHAP Polynomial Chaos Expansion
-    if pceplease or pcepod:
-        pcepodonlyl = pcedimlist if pceplease else pcedimlist[-1:]
-
-        for pcedim in pcepodonlyl:
+    if pceplease:
+        for pcedim in pcedimlist:
             abscissae, weights, compexpv = mpu.\
                 setup_pce(distribution='uniform',
                           distrpars=dict(a=nua, b=nub),
@@ -76,21 +75,20 @@ def simit(problem='circle', meshlevel=None,
             ysoltens = mpu.run_pce_sim_separable(solfunc=get_output,
                                                  uncdims=uncdims,
                                                  abscissae=abscissae)
-            expy = compexpv(ysoltens)
-            print('PCE({0}): E(y): {1}'.format(pcedim, expy))
+            pcexpy = compexpv(ysoltens)
+            print('PCE({0}): E(y): {1}'.format(pcedim, pcexpy))
 
     if not (pcepod or mcpod):
         return
 
     # ## CHAP genpod
-    pcedim = pcedimlist[0]
+    pcedim = pcesnapdim
     mmat = problemfems['mmat']
 
     abscissae, weights = ceu.get_gaussqr_uniform(N=pcedim, a=nua, b=nub)
     facmy = SparseFactorMassmat(mmat)
 
     poddimlist = [5, 10, 20]  # , 40]
-    nmcsnapshots = 5*pcedim**uncdims
 
     # pcewmat = sps.dia_matrix((weights, 0), shape=(pcedim, pcedim))
     pcewmatfac = sps.dia_matrix((np.sqrt(weights), 0), shape=(pcedim, pcedim))
@@ -107,13 +105,13 @@ def simit(problem='circle', meshlevel=None,
             return tsu.modeone_massmats_svd(ysoltens, mfl, poddim)
 
     elif basisfrom == 'mc':
-        varinu = basenu + (varib-varia)*np.random.rand(nmcsnapshots, uncdims)
+        varinu = basenu + (varib-varia)*np.random.rand(mcsnap, uncdims)
         expvnu = np.average(varinu, axis=0)
         varinulist = varinu.tolist()
         mcout, _, _ = mpu.run_mc_sim(varinulist, get_sol)
         pceymat = np.array(mcout).T
         lypceymat = facmy.Ft*pceymat
-        print('POD basis by {0} random samplings'.format(nmcsnapshots))
+        print('POD basis by {0} random samplings'.format(mcsnap))
 
         def get_pod_vecs(poddim=None):
             ypodvecs = gpu.get_ksvvecs(sol=lypceymat, poddim=poddim,
@@ -122,6 +120,10 @@ def simit(problem='circle', meshlevel=None,
 
     # lypceymat = pceymat
     redsolfile = dolfin.File('results/redsol-N{0}pods.pvd'.format(meshlevel))
+    rmcxpyl, rpcesxpyl = [], []
+    cmpwmc = 'comp reduced mc and full mc'
+    cmpwpce = 'comp reduced mc and full pce'
+
     for poddim in poddimlist:
         ypodvecs = get_pod_vecs(poddim)
         lyitVy = facmy.solve_Ft(ypodvecs)
@@ -137,6 +139,7 @@ def simit(problem='circle', meshlevel=None,
                                                        meshlevel, poddim))
 
         if pcepod:
+            dimsrpcexpyl = []
             for pcedim in pcedimlist:
                 abscissae, weights, compredexpv = mpu.\
                     setup_pce(distribution='uniform',
@@ -145,19 +148,29 @@ def simit(problem='circle', meshlevel=None,
                 redysoltens = mpu.\
                     run_pce_sim_separable(solfunc=red_realize_output,
                                           uncdims=uncdims, abscissae=abscissae)
-                redexpy = compredexpv(redysoltens)
+                redpcexpy = compredexpv(redysoltens)
+                dimsrpcexpyl.append(redpcexpy)
                 print('pcedim={0:2.0f}, poddim={2:2.0f}, exypce={1}'.
-                      format(pcedim, redexpy-expy,
-                             poddim))
+                      format(pcedim, redpcexpy-pcexpy, poddim))
+            rpcesxpyl.append(dimsrpcexpyl)
         if mcpod:
-            varinu = basenu+(varib-varia)*np.random.rand(100*mcruns, uncdims)
+            varinu = basenu+(varib-varia)*np.random.rand(redmcruns, uncdims)
             expvnu = np.average(varinu, axis=0)
             print('expected value of nu: ', expvnu)
             varinulist = varinu.tolist()
             mcout, rmcxpy, expvnu = mpu.\
                 run_mc_sim(varinulist, red_realize_output)
-            print('mcruns={0:2.0f}, poddim={2:2.0f}, exypce={1}'.
-                  format(100*mcruns, rmcxpy-mcxpy, poddim))
+            cmpwmc += 'poddim={2:2.0f}, rmcxpy-mcxpy={1}'.\
+                format(poddim, rmcxpyl-mcxpy)
+            try:
+                cmpwpce += 'poddim={2:2.0f}, rmcxpy-pcexpy={1}'.\
+                    format(poddim, rmcxpyl[k]-pcexpy)
+            except NameError:
+                pass
+
+            print('mcruns={0:2.0f}, poddim={2:2.0f}, rmcxpy-mcxpy={1}'.
+                  format(redmcruns, rmcxpy-mcxpy, poddim))
+            rmcxpyl.append(rmcxpy)
 
     plt.show()
 

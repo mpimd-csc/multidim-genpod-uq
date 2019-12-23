@@ -6,6 +6,8 @@ from mc_pce_gp import simit
 
 mcruns = 10000  # 200
 pcedimlist = [3, 4]  # , 5]  # , 3, 4, 5]  # , 7]
+pcesnapdim = 3
+mcsnap = 3**5*2
 mcplease = False
 pceplease = False
 plotplease = False
@@ -16,11 +18,17 @@ pcepod = False
 # pceplease = True
 # plotplease = True
 # pcepod = True
-# mcpod = True
+mcpod = True
 basisfrom = 'mc'
 basisfrom = 'pce'
 problem = 'cylinder'
 meshlevel = 6
+
+if meshlevel == 6:
+    mcxpy = 0.7234999474635652  # from 15000 mc runs, see editha-logs
+    pcexpy = 0.72347945  # PCE(5) see editha-logs
+else:
+    mcxpy, pcexpy = None, None
 
 options, rest = getopt.getopt(sys.argv[1:], '',
                               ['mesh=',
@@ -70,4 +78,6 @@ print('******************')
 simit(mcruns=mcruns, pcedimlist=pcedimlist,
       problem=problem, meshlevel=meshlevel,
       plotplease=plotplease, basisfrom=basisfrom,
+      mcxpy=mcxpy, pcexpy=pcexpy, redmcruns=15000,
+      mcsnap=mcsnap, pcesnapdim=pcesnapdim,
       mcplease=mcplease, pceplease=pceplease, mcpod=mcpod, pcepod=pcepod)
