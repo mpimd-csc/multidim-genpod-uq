@@ -4,7 +4,7 @@ import numpy as np
 
 from mc_pce_gp import simit
 
-mcruns = 10000  # 200
+mcruns = 1000  # 200
 pcedimlist = [3, 4]  # , 5]  # , 3, 4, 5]  # , 7]
 pcesnapdim = 3
 mcsnap = 3**5*2
@@ -17,16 +17,19 @@ pcepod = False
 # mcplease = True
 # pceplease = True
 # plotplease = True
-# pcepod = True
+pcepod = True
 mcpod = True
 basisfrom = 'mc'
 basisfrom = 'pce'
 problem = 'cylinder'
-meshlevel = 6
+meshlevel = 1
 
 if meshlevel == 6:
     mcxpy = 0.7234999474635652  # from 15000 mc runs, see editha-logs
     pcexpy = 0.72347945  # PCE(5) see editha-logs
+if meshlevel == 1:
+    mcxpy = 0.660508808729938  # from 1000 mc runs
+    pcexpy = 0.66298159  # PCE(4)
 else:
     mcxpy, pcexpy = None, None
 

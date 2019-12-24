@@ -160,11 +160,11 @@ def simit(problem='circle', meshlevel=None,
             varinulist = varinu.tolist()
             mcout, rmcxpy, expvnu = mpu.\
                 run_mc_sim(varinulist, red_realize_output)
-            cmpwmc += 'poddim={2:2.0f}, rmcxpy-mcxpy={1}'.\
-                format(poddim, rmcxpyl-mcxpy)
+            cmpwmc += 'poddim={0:2.0f}, rmcxpy-mcxpy={1}'.\
+                format(poddim, rmcxpy-mcxpy)
             try:
-                cmpwpce += 'poddim={2:2.0f}, rmcxpy-pcexpy={1}'.\
-                    format(poddim, rmcxpyl[k]-pcexpy)
+                cmpwpce += 'poddim={0:2.0f}, rmcxpy-pcexpy={1}'.\
+                    format(poddim, rmcxpy-pcexpy)
             except NameError:
                 pass
 
