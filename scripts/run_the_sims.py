@@ -36,10 +36,13 @@ else:
 options, rest = getopt.getopt(sys.argv[1:], '',
                               ['mesh=',
                                'mc=',
+                               'mcruns=',
                                'pce=',
                                'podbase=',
                                'pcepod=',
-                               'mcpod='
+                               'mcpod=',
+                               'pcesnapdim=',
+                               'mcsnap='
                                ])
 
 for opt, arg in options:
@@ -50,16 +53,19 @@ for opt, arg in options:
     elif opt == '--mcpod':
         mcpod = np.bool(np.int(arg))
     elif opt == '--mc':
+        mcplease = np.bool(np.int(arg))
+    elif opt == '--mcruns':
         mcruns = np.int(arg)
-        if mcruns >= 10:
-            mcplease = True
-        else:
-            print('minimal number for mcruns is 10')
-            mcplease = False
+        if mcruns < 10:
+            raise UserWarning('minimal number for mcruns is 10')
     elif opt == '--podbase':
         basisfrom = np.str(arg)
     elif opt == '--pce':
         pceplease = np.bool(np.int(arg))
+    elif opt == '--pcesnapdim':
+        pcesnapdim = np.int(arg)
+    elif opt == '--mcsnap':
+        mcsnap = np.int(arg)
 
 infostring = ('meshlevel      = {0}'.format(meshlevel) +
               '\nbasisfrom      = {0}'.format(basisfrom) +
@@ -72,6 +78,15 @@ infostring = ('meshlevel      = {0}'.format(meshlevel) +
 if mcplease:
     infostring = (infostring +
                   '\nmcruns         = {0}'.format(mcruns))
+
+if basisfrom == 'mc':
+    infostring = (infostring +
+                  '\nmc snapshots   = {0}'.format(mcsnap) +
+                  '\nred mc runs    = {0}'.format(mcruns))
+
+if basisfrom == 'pce':
+    infostring = (infostring +
+                  '\ntrain pce dim  = {0}'.format(pcesnapdim))
 
 print('******************')
 print(infostring)
