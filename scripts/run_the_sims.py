@@ -27,9 +27,12 @@ meshlevel = 1
 if meshlevel == 6:
     mcxpy = 0.7234999474635652  # from 15000 mc runs, see editha-logs
     pcexpy = 0.72347945  # PCE(5) see editha-logs
-if meshlevel == 1:
+elif meshlevel == 111:
     mcxpy = 0.660508808729938  # from 1000 mc runs
     pcexpy = 0.66298159  # PCE(4)
+elif meshlevel == 1:
+    mcxpy = None
+    pcexpy = None
 else:
     mcxpy, pcexpy = None, None
 

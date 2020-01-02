@@ -125,6 +125,7 @@ def simit(problem='circle', meshlevel=None,
     cmpwpce = 'comp reduced mc and full pce'
 
     for poddim in poddimlist:
+        print('pcexpy: {0}'.format(pcexpy))
         ypodvecs = get_pod_vecs(poddim)
         lyitVy = facmy.solve_Ft(ypodvecs)
         red_realize_sol, red_realize_output, red_probfems, red_plotit \
