@@ -80,6 +80,8 @@ def simit(problem='circle', meshlevel=None,
 
     if not (pcepod or mcpod):
         return
+    if pcepod and pcexpy is None or mcpod and mcxpy is None:
+        raise UserWarning('wont do the POD -- nothing compares')
 
     # ## CHAP genpod
     pcedim = pcesnapdim
