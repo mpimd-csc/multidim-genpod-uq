@@ -74,7 +74,7 @@ def get_problem(meshlevel=1):
     # reacfac = .0
     convexp = dolfin.Expression(('(x[0]*x[0]+x[1]*x[1]-1)*x[1]',
                                  '(1-x[0]*x[0]-x[1]*x[1])*x[0]',
-                                 '0'), degree=1)
+                                 'x[0]*x[1]*sin(2*x[2])'), degree=1)
     convform = dolfin.assemble(convfac*v*dolfin.inner(convexp,
                                dolfin.grad(u))*dolfin.dx
                                # + reacfac*u*v*dolfin.dx)
@@ -153,6 +153,7 @@ def get_problem(meshlevel=1):
 
     cmat = sps.vstack(obsoplist)
     cmat = sps.csc_matrix(cmat.sum(0))
+    # cmat = sps.csc_matrix(cmat[0, :])
 
     def realize_output(nulist, realize_sol=None, cmat=None):
         solvec = realize_sol(nulist)
