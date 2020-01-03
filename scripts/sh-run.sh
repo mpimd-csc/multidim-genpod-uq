@@ -1,7 +1,7 @@
 source addpypath.sh
-MESH=1
+MESH=2
 MC=0
-PCE=0
+PCE=1
 PCEPOD=1
 MCPOD=0
 BASISFROM=pce

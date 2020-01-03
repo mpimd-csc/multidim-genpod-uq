@@ -5,7 +5,7 @@ import numpy as np
 from mc_pce_gp import simit
 
 mcruns = 1000  # 200
-pcedimlist = [3, 4]  # , 5]  # , 3, 4, 5]  # , 7]
+pcedimlist = [3, 4, 5]  # , 3, 4, 5]  # , 7]
 pcesnapdim = 3
 mcsnap = 3**5*2
 mcplease = False
@@ -16,7 +16,7 @@ pcepod = False
 # ## make it come true
 # mcplease = True
 # pceplease = True
-# plotplease = True
+plotplease = True
 pcepod = True
 mcpod = True
 basisfrom = 'mc'
