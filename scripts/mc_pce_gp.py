@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 import dolfin
 
-import spacetime_galerkin_pod.chaos_expansion_utils as ceu
+# import spacetime_galerkin_pod.chaos_expansion_utils as ceu
 import spacetime_galerkin_pod.ten_sor_utils as tsu
 import spacetime_galerkin_pod.gen_pod_utils as gpu
 from spacetime_galerkin_pod.ldfnp_ext_cholmod import SparseFactorMassmat
@@ -87,7 +87,10 @@ def simit(problem='circle', meshlevel=None,
     pcedim = pcesnapdim
     mmat = problemfems['mmat']
 
-    abscissae, weights = ceu.get_gaussqr_uniform(N=pcedim, a=nua, b=nub)
+    abscissae, weights, compexpv = mpu.\
+        setup_pce(distribution='uniform',
+                  distrpars=dict(a=nua, b=nub),
+                  pcedim=pcedim, uncdims=uncdims)
     facmy = SparseFactorMassmat(mmat)
 
     poddimlist = [5, 10, 20]  # , 40]
@@ -102,6 +105,14 @@ def simit(problem='circle', meshlevel=None,
         ysoltens = mpu.run_pce_sim_separable(solfunc=get_sol,
                                              uncdims=uncdims,
                                              abscissae=abscissae)
+        # cysoltens = mpu.run_pce_sim_separable(solfunc=get_output,
+        #                                       uncdims=uncdims,
+        #                                       abscissae=abscissae)
+        trainpcexpy = compexpv(ysoltens)
+        # ctrainpcexpy = compexpv(cysoltens)
+        # print(cmat.dot(trainpcexpy)-ctrainpcexpy)
+        print('train pcedim={0:2.0f}, exypce={1}'.
+              format(pcedim, cmat.dot(trainpcexpy)-pcexpy))
 
         def get_pod_vecs(poddim=None):
             return tsu.modeone_massmats_svd(ysoltens, mfl, poddim)
