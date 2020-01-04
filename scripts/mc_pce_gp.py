@@ -32,9 +32,9 @@ def simit(problem='circle', meshlevel=None,
 
     print(problemfems['mmat'].shape[0])
 
-    basenu = 1e-3
-    varia = 0.
-    varib = 5e-4
+    basenu = 1e-4
+    varia = -5e-5
+    varib = 5e-5
     nua, nub = basenu+varia, basenu+varib
     cmat = problemfems['cmat']
 
@@ -47,7 +47,7 @@ def simit(problem='circle', meshlevel=None,
 
     # ## CHAP Monte Carlo
     if mcplease:
-        varinu = basenu + (varib-varia)*np.random.rand(mcruns, uncdims)
+        varinu = basenu + varia + (varib-varia)*np.random.rand(mcruns, uncdims)
         expvnu = np.average(varinu, axis=0)
         print('expected value of nu: ', expvnu)
         varinulist = varinu.tolist()
@@ -118,7 +118,7 @@ def simit(problem='circle', meshlevel=None,
             return tsu.modeone_massmats_svd(ysoltens, mfl, poddim)
 
     elif basisfrom == 'mc':
-        varinu = basenu + (varib-varia)*np.random.rand(mcsnap, uncdims)
+        varinu = basenu + varia + (varib-varia)*np.random.rand(mcsnap, uncdims)
         expvnu = np.average(varinu, axis=0)
         varinulist = varinu.tolist()
         mcout, _, _ = mpu.run_mc_sim(varinulist, get_sol)
@@ -168,7 +168,8 @@ def simit(problem='circle', meshlevel=None,
                       format(pcedim, redpcexpy-pcexpy, poddim))
             rpcesxpyl.append(dimsrpcexpyl)
         if mcpod:
-            varinu = basenu+(varib-varia)*np.random.rand(redmcruns, uncdims)
+            varinu = basenu + varia + \
+                (varib-varia)*np.random.rand(redmcruns, uncdims)
             expvnu = np.average(varinu, axis=0)
             print('expected value of nu: ', expvnu)
             varinulist = varinu.tolist()
