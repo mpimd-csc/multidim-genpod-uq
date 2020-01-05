@@ -32,9 +32,12 @@ def simit(problem='circle', meshlevel=None,
 
     print(problemfems['mmat'].shape[0])
 
-    basenu = 4e-4
-    varia = -5e-5
-    varib = 5e-5
+    basenu = 5e-4
+    varia = -1e-4
+    varib = 1e-4
+    print('basenu: {0}'.format(basenu))
+    print('mininu: {0}'.format(basenu+varia))
+    print('maxinu: {0}'.format(basenu+varib))
     nua, nub = basenu+varia, basenu+varib
     cmat = problemfems['cmat']
 
@@ -192,9 +195,9 @@ def simit(problem='circle', meshlevel=None,
 
 if __name__ == '__main__':
     problem = 'cylinder'
-    meshlevel = 7
+    meshlevel = 6
     mcruns = 10  # 200
-    pcedimlist = [3]  # , 3, 4, 5]  # , 7]
+    pcedimlist = [2, 3, 4]  # , 3, 4, 5]  # , 7]
     mcplease = False
     pceplease = False
     plotplease = False
@@ -202,7 +205,7 @@ if __name__ == '__main__':
     pcepod = False
     # ## make it come true
     # mcplease = True
-    # pceplease = True
+    pceplease = True
     plotplease = True
     # pcepod = True
     # mcpod = True
