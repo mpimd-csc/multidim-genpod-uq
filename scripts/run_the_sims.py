@@ -1,6 +1,7 @@
 import getopt
 import sys
 import numpy as np
+import re
 
 from mc_pce_gp import simit
 
@@ -29,6 +30,7 @@ options, rest = getopt.getopt(sys.argv[1:], '',
                                'mc=',
                                'mcruns=',
                                'pce=',
+                               'pcedims=',
                                'podbase=',
                                'pcepod=',
                                'mcpod=',
@@ -53,6 +55,9 @@ for opt, arg in options:
         basisfrom = np.str(arg)
     elif opt == '--pce':
         pceplease = np.bool(np.int(arg))
+    elif opt == '--pcedims' and pceplease:
+        nmstrl = re.findall('\\d+', arg)
+        pcedimlist = [np.int(xstr) for xstr in nmstrl]
     elif opt == '--pcesnapdim':
         pcesnapdim = np.int(arg)
     elif opt == '--mcsnap':
@@ -69,6 +74,10 @@ infostring = ('meshlevel      = {0}'.format(meshlevel) +
 if mcplease:
     infostring = (infostring +
                   '\nmcruns         = {0}'.format(mcruns))
+
+if pceplease:
+    infostring = (infostring +
+                  '\npcedims        = {0}'.format(pcedimlist))
 
 if basisfrom == 'mc':
     infostring = (infostring +
