@@ -32,7 +32,7 @@ def simit(problem='circle', meshlevel=None,
 
     print(problemfems['mmat'].shape[0])
 
-    basenu = 1e-4
+    basenu = 4e-4
     varia = -5e-5
     varib = 5e-5
     nua, nub = basenu+varia, basenu+varib

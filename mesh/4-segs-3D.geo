@@ -239,8 +239,9 @@ Physical Volume(VOLDOMS+segid) = {segid};
 Physical Surface(CONTDOMS+segid) = {5+surfpp};
 Physical Surface(OBSDOMS+segid) = {2+surfpp};
 //+
+
 Field[1] = Box;
-Field[1].VIn = 0.3*D;
+Field[1].VIn = D/2;
 Field[1].VOut = D;
 Field[1].XMax = 1;
 Field[1].XMin = -1;
@@ -250,7 +251,7 @@ Field[1].ZMax = 0.5*D;
 Field[1].ZMin = -0.01;
 
 Field[2] = Box;
-Field[2].VIn = 0.4*D;
+Field[2].VIn = D/2;
 Field[2].VOut = D;
 Field[2].XMax = RI+DR;
 Field[2].XMin = -RI-DR;
@@ -258,19 +259,35 @@ Field[2].YMax = RI+DR;
 Field[2].YMin = -RI-DR;
 Field[2].ZMax = H;
 Field[2].ZMin = H-D;
+// 
+// // Field[2] = Cylinder;
+// // Field[2].Radius = RI+DR;
+// // Field[2].VIn = 0.4*D;
+// // Field[2].VOut = D;
+// // Field[2].XAxis = 0;
+// // Field[2].XCenter = 0;
+// // Field[2].YAxis = 0;
+// // Field[2].YCenter = 0;
+// // Field[2].ZAxis = 1;
+// // Field[2].ZCenter = 0;
+// //+
+// // Finally, let's use the minimum of all the fields as the background mesh field
+// Field[3] = Min;
+// Field[3].FieldsList = {1,2};
+// Background Field = 3;
 
-// Field[2] = Cylinder;
-// Field[2].Radius = RI+DR;
-// Field[2].VIn = 0.4*D;
-// Field[2].VOut = D;
-// Field[2].XAxis = 0;
-// Field[2].XCenter = 0;
-// Field[2].YAxis = 0;
-// Field[2].YCenter = 0;
-// Field[2].ZAxis = 1;
-// Field[2].ZCenter = 0;
-//+
-// Finally, let's use the minimum of all the fields as the background mesh field
-Field[3] = Min;
-Field[3].FieldsList = {1,2};
-Background Field = 3;
+Field[3] = Attractor;
+Field[3].NNodesByEdge = 9;
+Field[3].EdgesList = {10,19,29,39,2,20,30,40};
+
+Field[4] = Threshold;
+Field[4].IField = 3;
+Field[4].LcMin = D/3;
+Field[4].LcMax = D;
+Field[4].DistMin = D/3;
+Field[4].DistMax = D/2;
+
+Field[5] = Min;
+Field[5].FieldsList = {1,2,4};
+Background Field = 5;
+
