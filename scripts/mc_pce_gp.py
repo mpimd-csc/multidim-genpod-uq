@@ -20,7 +20,7 @@ def simit(problem='circle', meshlevel=None,
           mcplease=False, pceplease=False, mcpod=False, pcepod=False,
           checkredmod=False, pcexpy=None, mcxpy=None, redmcruns=None,
           mcsnap=None, pcesnapdim=None,
-          basisfrom='pce'):
+          basisfrom='pce', poddimlist=[5, 10, 20]):
 
     if problem == 'cylinder':
         (get_sol, get_output, problemfems, plotit,
@@ -95,8 +95,6 @@ def simit(problem='circle', meshlevel=None,
                   distrpars=dict(a=nua, b=nub),
                   pcedim=pcedim, uncdims=uncdims)
     facmy = SparseFactorMassmat(mmat)
-
-    poddimlist = [5, 10, 20]  # , 40]
 
     # pcewmat = sps.dia_matrix((weights, 0), shape=(pcedim, pcedim))
     pcewmatfac = sps.dia_matrix((np.sqrt(weights), 0), shape=(pcedim, pcedim))
