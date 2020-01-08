@@ -1,9 +1,9 @@
 source addpypath.sh
+<<<<<<< HEAD
 MESH=8
 MC=0
 PCE=0
-PCEDIMS='2-3-4-5'
-PODDIMS='5-10-15-20-25'
+PCEDIMS='3-4-5'
 PCEPOD=0
 MCPOD=0
 BASISFROM=pce
@@ -23,3 +23,4 @@ python3 run_the_sims.py --mesh $MESH \
     >> logs/$LOGFILE
     # --mcpod 1 \
     # --mc 1000 \
+(48:2A:E3:5B:08:CB)
