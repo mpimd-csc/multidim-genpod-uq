@@ -1,3 +1,9 @@
 *.vtu
 *.pvd
 *.xml.gz
+
+pics/
+logs/
+editha-logs/
+mesh/3D-mshs/
+mesh/plots/
