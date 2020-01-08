@@ -1,5 +1,5 @@
 source addpypath.sh
-<<<<<<< HEAD
+
 MESH=8
 MC=0
 PCE=0
@@ -23,4 +23,3 @@ python3 run_the_sims.py --mesh $MESH \
     >> logs/$LOGFILE
     # --mcpod 1 \
     # --mc 1000 \
-(48:2A:E3:5B:08:CB)
