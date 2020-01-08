@@ -147,17 +147,15 @@ Line(11+linepp) = {6+pointpp, 5+pointpp};
 Line(12+linepp) = {5+pointpp, 1+pointpp};
 
 // THE FACES
-//surfpp=8
-//linepp=18
 
 Line Loop(1+surfpp) = {16, 2+linepp, -1-6-linepp, -1-linepp};   // inner
 Surface(1+surfpp) = {1+surfpp};
+
 Line Loop(2+surfpp) = {-7, 3+linepp, -2-6-linepp, -2-linepp};   // top mid ring   
 Plane Surface(2+surfpp) = {2+surfpp};
+
 Line Loop(3+surfpp) = {-11, 4+linepp, -3-6-linepp, -3-linepp};   // ceil
 Plane Surface(3+surfpp) = {3+surfpp};
-
-// linepp=18
 
 Line Loop(4+surfpp) = {-18, 5+linepp, -4-6-linepp, -4-linepp};   // outer upper
 Surface(4+surfpp) = {4+surfpp};
@@ -171,168 +169,155 @@ Plane Surface(6+surfpp) = {6+surfpp};
 Line Loop(7+surfpp) = {7+linepp, 8+linepp, 9+linepp, 10+linepp, 11+linepp, 12+linepp}; // front
 Plane Surface(7+surfpp) = {7+surfpp};
 
-Surface Loop(segid) = {1+7, 2+7, 3+7, 4+7, 5+7, 6+7, 6};
+//--// Surface Loop(2) = {11, 12, 13, 14, 9, 10, 15, 7};
+//--// Volume(2) = {2};
+
+Surface Loop(segid) = {1+surfpp, 2+surfpp, 3+surfpp, 4+surfpp, 5+surfpp, 6+surfpp, surfpp+7, 7};
 Volume(segid) = {segid};
 
 Physical Volume(VOLDOMS+segid) = {segid};
-Physical Surface(CONTDOMS+segid) = {5+surfpp};
+Physical Surface(CONTDOMS+segid) = {6+surfpp};
 Physical Surface(OBSDOMS+segid) = {2+surfpp};
 
-linepp = linepp+10;
-pointpp = pointpp+5;
-surfpp = surfpp+6;
+linepp = linepp+12;
+pointpp = pointpp+6;
+surfpp = surfpp+7;
 
-//*// // **************
-//*// // THIRD SEGMENT
-//*// // **************
-//*// 
-//*// segid = 3;
-//*// 
-//*// Rotate { {0,0,1}, {0, 0, 0},  AL } { Duplicata { Point{pointpp-4}; }}  // 1+pointpp -- inner bot
-//*// Rotate { {0,0,1}, {0, 0, 0},  AL } { Duplicata { Point{pointpp-3}; }}  // 2+pointpp -- inner top 
-//*// Rotate { {0,0,1}, {0, 0, 0},  AL } { Duplicata { Point{pointpp-2}; }}  // 3+pointpp -- mid top 
-//*// Rotate { {0,0,1}, {0, 0, 0},  AL } { Duplicata { Point{pointpp-1}; }}  // 4+pointpp -- out top 
-//*// Rotate { {0,0,1}, {0, 0, 0},  AL } { Duplicata { Point{pointpp}; }}  // 5+pointpp -- out bot 
-//*// 
-//*// // THE ARCS
-//*// Circle(1+linepp) = {pointpp-4, 1, 1+pointpp};  // inner bot
-//*// Circle(2+linepp) = {pointpp-3, 2, 2+pointpp};  // inner top
-//*// Circle(3+linepp) = {pointpp-2, 2, 3+pointpp};  // mid top
-//*// Circle(4+linepp) = {pointpp-1, 2, 4+pointpp};  // out top 
-//*// Circle(5+linepp) = {pointpp,   1, 5+pointpp};  // out bot 
-//*// 
-//*// // CLOSE THE FACE
-//*// 
-//*// Line(6+linepp) = {1+pointpp, 2+pointpp};
-//*// Line(7+linepp) = {2+pointpp, 3+pointpp};
-//*// Line(8+linepp) = {3+pointpp, 4+pointpp};
-//*// Line(9+linepp) = {4+pointpp, 5+pointpp};
-//*// Line(10+linepp) = {5+pointpp, 1+pointpp};
-//*// 
-//*// // THE FACES
-//*// Line Loop(1+surfpp) = {linepp-4, 2+linepp, -1-5-linepp, -1-linepp};   // inner
-//*// Surface(1+surfpp) = {1+surfpp};
-//*// Line Loop(2+surfpp) = {linepp-3, 3+linepp, -2-5-linepp, -2-linepp};   // top mid ring   
-//*// Plane Surface(2+surfpp) = {2+surfpp};
-//*// Line Loop(3+surfpp) = {linepp-2, 4+linepp, -3-5-linepp, -3-linepp};   // ceil
-//*// Plane Surface(3+surfpp) = {3+surfpp};
-//*// Printf('linepp: %g', linepp);
-//*// Line Loop(4+surfpp) = {linepp-1, 5+linepp, -4-5-linepp, -4-linepp};   // outer
-//*// Surface(4+surfpp) = {4+surfpp};
-//*// Line Loop(5+surfpp) = {linepp, 1+linepp, -5-5-linepp, -5-linepp};   // bot
-//*// Plane Surface(5+surfpp) = {5+surfpp};
-//*// Line Loop(6+surfpp) = {6+linepp, 7+linepp, 8+linepp, 9+linepp, 10+linepp}; // front
-//*// Plane Surface(6+surfpp) = {6+surfpp};
-//*// 
-//*// Surface Loop(segid) = {1+surfpp, 2+surfpp, 3+surfpp, 4+surfpp, 5+surfpp, 6+surfpp, surfpp};
-//*// Volume(segid) = {segid};
-//*// 
-//*// Physical Volume(VOLDOMS+segid) = {segid};
-//*// Physical Surface(CONTDOMS+segid) = {5+surfpp};
-//*// Physical Surface(OBSDOMS+segid) = {2+surfpp};
-//*// 
-//*// linepp = linepp+10;
-//*// pointpp = pointpp+5;
-//*// surfpp = surfpp+6;
-//*// 
-//*// // **************
-//*// // FINAL SEGMENT
-//*// // **************
-//*// 
-//*// segid = 4;
-//*// 
-//*// // THE ARCS
-//*// Circle(1+linepp) = {pointpp-4, 1, 3};  // inner bot
-//*// Circle(2+linepp) = {pointpp-3, 2, 7};  // inner top
-//*// Circle(3+linepp) = {pointpp-2, 2, 8};  // mid top
-//*// Circle(4+linepp) = {pointpp-1, 2, 9};  // out top 
-//*// Circle(5+linepp) = {pointpp,   1, 4};  // out bot 
-//*// 
-//*// // CLOSE THE FACE -- ITS ClOSED ALREADY
-//*// 
-//*// Printf('linepp: %g', linepp);
-//*// Printf('surfpp: %g', surfpp);
-//*// 
-//*// // THE FACES
-//*// Line Loop(1+surfpp) = {linepp-4, 2+linepp, -12, -1-linepp};   // inner
-//*// Surface(1+surfpp) = {1+surfpp};
-//*// Line Loop(2+surfpp) = {linepp-3, 3+linepp, -5, -2-linepp};   // top mid ring   
-//*// Plane Surface(2+surfpp) = {2+surfpp};
-//*// Line Loop(3+surfpp) = {linepp-2, 4+linepp, -9, -3-linepp};   // ceil
-//*// Plane Surface(3+surfpp) = {3+surfpp};
-//*// Line Loop(4+surfpp) = {linepp-1, 5+linepp, 13, -4-linepp};   // outer
-//*// Surface(4+surfpp) = {4+surfpp};
-//*// Line Loop(5+surfpp) = {linepp, 1+linepp, 1, -5-linepp};   // bot
-//*// Plane Surface(5+surfpp) = {5+surfpp};
-//*// 
-//*// 
-//*// Surface Loop(segid) = {1+surfpp, 2+surfpp, 3+surfpp, 4+surfpp, 5+surfpp, surfpp, 4};
-//*// Volume(segid) = {segid};
-//*// 
-//*// Physical Volume(VOLDOMS+segid) = {segid};
-//*// Physical Surface(CONTDOMS+segid) = {5+surfpp};
-//*// Physical Surface(OBSDOMS+segid) = {2+surfpp};
-//*// 
-//*// linepp = linepp+5;
-//*// 
-//*// //+
-//*// 
-//*// Field[1] = Box;
-//*// Field[1].VIn = D/2;
-//*// Field[1].VOut = D;
-//*// Field[1].XMax = 1;
-//*// Field[1].XMin = -1;
-//*// Field[1].YMax = 1;
-//*// Field[1].YMin = -1;
-//*// Field[1].ZMax = 0.5*D;
-//*// Field[1].ZMin = -0.01;
-//*// 
-//*// Field[2] = Box;
-//*// Field[2].VIn = D/2;
-//*// Field[2].VOut = D;
-//*// Field[2].XMax = RI+DR;
-//*// Field[2].XMin = -RI-DR;
-//*// Field[2].YMax = RI+DR;
-//*// Field[2].YMin = -RI-DR;
-//*// Field[2].ZMax = H;
-//*// Field[2].ZMin = H-D;
-//*// // 
-//*// // // Field[2] = Cylinder;
-//*// // // Field[2].Radius = RI+DR;
-//*// // // Field[2].VIn = 0.4*D;
-//*// // // Field[2].VOut = D;
-//*// // // Field[2].XAxis = 0;
-//*// // // Field[2].XCenter = 0;
-//*// // // Field[2].YAxis = 0;
-//*// // // Field[2].YCenter = 0;
-//*// // // Field[2].ZAxis = 1;
-//*// // // Field[2].ZCenter = 0;
-//*// // //+
-//*// // // Finally, let's use the minimum of all the fields as the background mesh field
-//*// // Field[3] = Min;
-//*// // Field[3].FieldsList = {1,2};
-//*// // Background Field = 3;
-//*// 
-//*// Field[3] = Attractor;
-//*// Field[3].NNodesByEdge = 9;
-//*// Field[3].EdgesList = {10,19,29,39,2,20,30,40};
-//*// 
-//*// Field[4] = Threshold;
-//*// Field[4].IField = 3;
-//*// Field[4].LcMin = D/3;
-//*// Field[4].LcMax = D;
-//*// Field[4].DistMin = D/3;
-//*// Field[4].DistMax = D/2;
-//*// 
-//*// Field[5] = Min;
-//*// Field[5].FieldsList = {1,2,4};
-//*// Background Field = 5;
-//*// 
-//*// 
-//*// Point(pointpp+1) = {0, 0, H/2, D};  // Center point middle
-//*// Translate {0, 0, H/2} { Duplicata { Point{4}; } } // pointpp+2
-//*// Translate {0, 0, H/2} { Duplicata { Point{6}; } } // pointpp+3
-//*// // Rotate { {0,0,1}, {0, 0, 0},  AL/10 } { Point{pointpp+2}; }
-//*// // Rotate { {0,0,1}, {0, 0, 0},  -AL/10 } { Point{pointpp+3}; }
-//*// Circle(linepp+1) = {pointpp+2, pointpp+1, pointpp+3};  // outer arc
-//*// Line{linepp+1} In Volume{1};
+// **************
+// THIRD SEGMENT
+// **************
+
+segid = 3;
+
+Rotate { {0,0,1}, {0, 0, 0},  AL } { Duplicata { Point{pointpp-5}; }}  // 1+pointpp -- inner bot
+Rotate { {0,0,1}, {0, 0, 0},  AL } { Duplicata { Point{pointpp-4}; }}  // 2+pointpp -- inner top 
+Rotate { {0,0,1}, {0, 0, 0},  AL } { Duplicata { Point{pointpp-3}; }}  // 3+pointpp -- mid top 
+Rotate { {0,0,1}, {0, 0, 0},  AL } { Duplicata { Point{pointpp-2}; }}  // 4+pointpp -- out top 
+Rotate { {0,0,1}, {0, 0, 0},  AL } { Duplicata { Point{pointpp-1}; }}  // 5+pointpp -- out bot 
+Rotate { {0,0,1}, {0, 0, 0},  AL } { Duplicata { Point{pointpp}; }}  // 6+pointpp -- out mid 
+
+// THE ARCS
+Circle(1+linepp) = {pointpp-5, 1, 1+pointpp};  // inner bot
+Circle(2+linepp) = {pointpp-4, 2, 2+pointpp};  // inner top
+Circle(3+linepp) = {pointpp-3, 2, 3+pointpp};  // mid top
+Circle(4+linepp) = {pointpp-2, 2, 4+pointpp};  // out top 
+Circle(5+linepp) = {pointpp, 13, 6+pointpp};  // out mid 
+Circle(6+linepp) = {pointpp-1, 1, 5+pointpp};  // out bot 
+
+// CLOSE THE FACE
+
+Line(7+linepp) = {1+pointpp, 2+pointpp};
+Line(8+linepp) = {2+pointpp, 3+pointpp};
+Line(9+linepp) = {3+pointpp, 4+pointpp};
+Line(10+linepp) = {4+pointpp, 6+pointpp};
+Line(11+linepp) = {6+pointpp, 5+pointpp};
+Line(12+linepp) = {5+pointpp, 1+pointpp};
+
+Printf('linepp: %g', linepp);
+Printf('surfpp: %g', surfpp);
+// THE FACES
+Line Loop(1+surfpp) = {linepp-5, 2+linepp, -1-6-linepp, -1-linepp};   // inner
+Surface(1+surfpp) = {1+surfpp};
+Line Loop(2+surfpp) = {linepp-4, 3+linepp, -2-6-linepp, -2-linepp};   // top mid ring   
+Plane Surface(2+surfpp) = {2+surfpp};
+Line Loop(3+surfpp) = {linepp-3, 4+linepp, -3-6-linepp, -3-linepp};   // ceil
+Plane Surface(3+surfpp) = {3+surfpp};
+
+Line Loop(4+surfpp) = {linepp-2, 5+linepp, -4-6-linepp, -4-linepp};   // outer up
+Surface(4+surfpp) = {4+surfpp};
+
+Line Loop(5+surfpp) = {linepp-1, 6+linepp, -5-6-linepp, -5-linepp};   // outer bot
+Surface(5+surfpp) = {5+surfpp};
+
+Line Loop(6+surfpp) = {linepp, 1+linepp, -6-6-linepp, -6-linepp};   // bot
+Plane Surface(6+surfpp) = {6+surfpp};
+
+Line Loop(7+surfpp) = {7+linepp, 8+linepp, 9+linepp, 10+linepp, 11+linepp, 12+linepp}; // front
+Plane Surface(7+surfpp) = {7+surfpp};
+
+Surface Loop(segid) = {1+surfpp, 2+surfpp, 3+surfpp, 4+surfpp, 5+surfpp, 6+surfpp, surfpp+7, surfpp};
+Volume(segid) = {segid};
+
+Physical Volume(VOLDOMS+segid) = {segid};
+Physical Surface(CONTDOMS+segid) = {6+surfpp};
+Physical Surface(OBSDOMS+segid) = {2+surfpp};
+
+linepp = linepp+12;
+pointpp = pointpp+6;
+surfpp = surfpp+7;
+
+// **************
+// FINAL SEGMENT
+// **************
+
+segid = 4;
+
+// THE ARCS
+Circle(1+linepp) = {pointpp-5, 1, 3};  // inner bot
+Circle(2+linepp) = {pointpp-4, 2, 7};  // inner top
+Circle(3+linepp) = {pointpp-3, 2, 8};  // mid top
+Circle(4+linepp) = {pointpp-2, 2, 9};  // out top 
+Circle(5+linepp) = {pointpp, 13, 14};  // out mid 
+Circle(6+linepp) = {pointpp-1,   1, 4};  // out bot 
+
+// CLOSE THE FACE -- ITS ClOSED ALREADY
+
+Printf('linepp: %g', linepp);
+Printf('surfpp: %g', surfpp);
+
+// THE FACES
+Line Loop(1+surfpp) = {linepp-5, 2+linepp, -13, -1-linepp};   // inner
+Surface(1+surfpp) = {1+surfpp};
+Line Loop(2+surfpp) = {linepp-4, 3+linepp, -5, -2-linepp};   // top mid ring   
+Plane Surface(2+surfpp) = {2+surfpp};
+Line Loop(3+surfpp) = {linepp-3, 4+linepp, -9, -3-linepp};   // ceil
+Plane Surface(3+surfpp) = {3+surfpp};
+Line Loop(4+surfpp) = {linepp-2, 5+linepp, 15, -4-linepp};   // outer up
+Surface(4+surfpp) = {4+surfpp};
+Line Loop(5+surfpp) = {linepp-1, 6+linepp, 14, -5-linepp};   // outer down
+Surface(5+surfpp) = {5+surfpp};
+Line Loop(6+surfpp) = {linepp, 1+linepp, 1, -6-linepp};   // bot
+Plane Surface(6+surfpp) = {6+surfpp};
+
+Surface Loop(segid) = {1+surfpp, 2+surfpp, 3+surfpp, 4+surfpp, 5+surfpp, 6+surfpp, surfpp, 4};
+Volume(segid) = {segid};
+
+Physical Volume(VOLDOMS+segid) = {segid};
+Physical Surface(CONTDOMS+segid) = {6+surfpp};
+Physical Surface(OBSDOMS+segid) = {2+surfpp};
+
+Field[1] = Box;
+Field[1].VIn = D/2;
+Field[1].VOut = D;
+Field[1].XMax = 1;
+Field[1].XMin = -1;
+Field[1].YMax = 1;
+Field[1].YMin = -1;
+Field[1].ZMax = 0.5*D;
+Field[1].ZMin = -0.01;
+
+// Field[2] = Box;
+// Field[2].VIn = D/2;
+// Field[2].VOut = D;
+// Field[2].XMax = RI+DR;
+// Field[2].XMin = -RI-DR;
+// Field[2].YMax = RI+DR;
+// Field[2].YMin = -RI-DR;
+// Field[2].ZMax = H;
+// Field[2].ZMin = H-D;
+
+Field[2] = Attractor;
+Field[2].NNodesByEdge = 50;
+Field[2].EdgesList = {10,22,34,46,8,20,32,44};
+Field[2].NodesList = {4,6,19,25,7,10,17,23};
+
+Field[3] = Threshold;
+Field[3].IField = 2;
+Field[3].LcMin = D/3;
+Field[3].LcMax = D;
+Field[3].DistMin = D/3;
+Field[3].DistMax = D/2;
+
+Field[4] = Min;
+Field[4].FieldsList = {1,3};
+Background Field = 4;
