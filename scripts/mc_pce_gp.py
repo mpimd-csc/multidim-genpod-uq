@@ -19,7 +19,7 @@ def simit(problem='circle', meshlevel=None,
           mcruns=None, pcedimlist=None, plotplease=False,
           mcplease=False, pceplease=False, mcpod=False, pcepod=False,
           checkredmod=False, pcexpy=None, mcxpy=None, redmcruns=None,
-          mcsnap=None, pcesnapdim=None,
+          mcsnap=None, pcesnapdim=None, onlymeshtest=False,
           basisfrom='pce', poddimlist=[5, 10, 20]):
 
     if problem == 'cylinder':
@@ -44,9 +44,11 @@ def simit(problem='circle', meshlevel=None,
     basepvdfile = dolfin.File('results/basesol-N{0}.pvd'.format(meshlevel))
     basenulist = [basenu]*uncdims
     basev = get_sol(basenulist)
-    plotit(vvec=basev, pvdfile=basepvdfile, plotplease=plotplease)
-
     print('N{1}: y(basenu)={0}'.format(cmat.dot(basev), meshlevel))
+    if onlymeshtest:
+        return problemfems['mmat'].shape[0], cmat.dot(basev)
+
+    plotit(vvec=basev, pvdfile=basepvdfile, plotplease=plotplease)
 
     # ## CHAP Monte Carlo
     if mcplease:
