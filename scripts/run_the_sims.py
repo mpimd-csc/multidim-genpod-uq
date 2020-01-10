@@ -101,8 +101,6 @@ print(infostring)
 print('******************')
 
 mcxpy, pcexpy = None, None
-if meshlevel == 6:
-    pcexpy = 0.86154515  # PCE(5) see editha-logs
 
 simit(mcruns=mcruns, pcedimlist=pcedimlist,
       problem=problem, meshlevel=meshlevel,
