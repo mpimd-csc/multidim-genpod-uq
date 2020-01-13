@@ -1,10 +1,9 @@
 source addpypath.sh
 
-MESH=3
+MESH=10
 MC=0
 PCE=1
 PCEDIMS='3-4-5'
-PCEDIMS='3'
 PODDIMS='5-10-15-20'
 PCEPOD=0
 MCPOD=0
@@ -13,7 +12,7 @@ MCRUNS=10
 PCESNAPDIM=2
 NPCESNAP=$(($PCESNAPDIM**5))
 MCSNAP=$((5*$NPCESNAP))
-VARINU='[3,7]e-2'
+VARINU='[3,7]e-4'
 LOGFILE=alldump
 echo 'tail -f logs/'$LOGFILE
 
