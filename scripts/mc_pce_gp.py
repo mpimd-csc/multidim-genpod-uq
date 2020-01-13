@@ -20,6 +20,8 @@ def simit(problem='circle', meshlevel=None,
           mcplease=False, pceplease=False, mcpod=False, pcepod=False,
           checkredmod=False, pcexpy=None, mcxpy=None, redmcruns=None,
           mcsnap=None, pcesnapdim=None, onlymeshtest=False,
+          # basenu=5e-4, varia=-1e-4, varib=1e-4,
+          nulb=6e-4, nuub=8e-4,
           basisfrom='pce', poddimlist=[5, 10, 20]):
 
     if problem == 'cylinder':
@@ -32,27 +34,28 @@ def simit(problem='circle', meshlevel=None,
 
     print(problemfems['mmat'].shape[0])
 
-    basenu = 5e-4
-    varia = -1e-4
-    varib = 1e-4
+    nua, nub = nulb, nuub
+    basenu = .5*(nua+nub)
     print('basenu: {0}'.format(basenu))
-    print('mininu: {0}'.format(basenu+varia))
-    print('maxinu: {0}'.format(basenu+varib))
-    nua, nub = basenu+varia, basenu+varib
+    print('mininu: {0}'.format(nua))
+    print('maxinu: {0}'.format(nub))
+
     cmat = problemfems['cmat']
 
-    basepvdfile = dolfin.File('results/basesol-N{0}.pvd'.format(meshlevel))
-    basenulist = [basenu]*uncdims
-    basev = get_sol(basenulist)
-    print('N{1}: y(basenu)={0}'.format(cmat.dot(basev), meshlevel))
-    if onlymeshtest:
-        return problemfems['mmat'].shape[0], cmat.dot(basev)
-
-    plotit(vvec=basev, pvdfile=basepvdfile, plotplease=plotplease)
+    if onlymeshtest or plotplease:
+        basenulist = [basenu]*uncdims
+        basev = get_sol(basenulist)
+        print('N{1}: y(basenu)={0}'.format(cmat.dot(basev), meshlevel))
+        basepvdfile = dolfin.File('results/basesol-nu{1:0.2e}-N{0}.pvd'.
+                                  format(meshlevel, basenu))
+        plotit(vvec=basev, pvdfile=basepvdfile, plotplease=plotplease)
+        if onlymeshtest:
+            return problemfems['mmat'].shape[0], cmat.dot(basev)
 
     # ## CHAP Monte Carlo
     if mcplease:
-        varinu = basenu + varia + (varib-varia)*np.random.rand(mcruns, uncdims)
+        # varinu = nulb + (nulb-varia)*np.random.rand(mcruns, uncdims)
+        varinu = nulb + (nuub-nulb)*np.random.rand(mcruns, uncdims)
         expvnu = np.average(varinu, axis=0)
         print('expected value of nu: ', expvnu)
         varinulist = varinu.tolist()
@@ -121,7 +124,8 @@ def simit(problem='circle', meshlevel=None,
             return tsu.modeone_massmats_svd(ysoltens, mfl, poddim)
 
     elif basisfrom == 'mc':
-        varinu = basenu + varia + (varib-varia)*np.random.rand(mcsnap, uncdims)
+        # varinu = basenu+varia+(varib-varia)*np.random.rand(mcsnap, uncdims)
+        varinu = nulb + (nuub-nulb)*np.random.rand(mcruns, uncdims)
         expvnu = np.average(varinu, axis=0)
         varinulist = varinu.tolist()
         mcout, _, _ = mpu.run_mc_sim(varinulist, get_sol)
@@ -171,8 +175,7 @@ def simit(problem='circle', meshlevel=None,
                       format(pcedim, redpcexpy-pcexpy, poddim))
             rpcesxpyl.append(dimsrpcexpyl)
         if mcpod:
-            varinu = basenu + varia + \
-                (varib-varia)*np.random.rand(redmcruns, uncdims)
+            varinu = nulb + (nuub-nulb)*np.random.rand(mcruns, uncdims)
             expvnu = np.average(varinu, axis=0)
             print('expected value of nu: ', expvnu)
             varinulist = varinu.tolist()

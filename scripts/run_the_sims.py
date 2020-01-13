@@ -17,14 +17,18 @@ mcpod = False
 pcepod = False
 # ## make it come true
 # mcplease = True
-# pceplease = True
-plotplease = True
-pcepod = True
-mcpod = True
+pceplease = True
+# plotplease = True
+# pcepod = True
+# mcpod = True
+
 basisfrom = 'mc'
 basisfrom = 'pce'
 problem = 'cylinder'
 meshlevel = 1
+nulb = 4e-4
+nuub = 6e-4
+
 
 options, rest = getopt.getopt(sys.argv[1:], '',
                               ['mesh=',
@@ -37,7 +41,8 @@ options, rest = getopt.getopt(sys.argv[1:], '',
                                'pcepod=',
                                'mcpod=',
                                'pcesnapdim=',
-                               'mcsnap='
+                               'mcsnap=',
+                               'varinu='
                                ])
 
 for opt, arg in options:
@@ -67,6 +72,16 @@ for opt, arg in options:
         pcesnapdim = np.int(arg)
     elif opt == '--mcsnap':
         mcsnap = np.int(arg)
+    elif opt == '--varinu':
+        nuabstrl = re.findall('\\d+', arg)
+        nuabl = [np.int(xstr) for xstr in nuabstrl]
+        nulb = nuabl[0]*10**(-nuabl[2])
+        nuub = nuabl[1]*10**(-nuabl[2])
+        # basenu = .5*(nub+nua)
+        # varia = -nua + basenu
+        # varib = basenu + nub
+        # import ipdb
+        # ipdb.set_trace()
 
 infostring = ('meshlevel      = {0}'.format(meshlevel) +
               '\npce            = {0}'.format(pceplease) +
@@ -107,4 +122,6 @@ simit(mcruns=mcruns, pcedimlist=pcedimlist,
       plotplease=plotplease, basisfrom=basisfrom,
       mcxpy=mcxpy, pcexpy=pcexpy, redmcruns=15000,
       mcsnap=mcsnap, pcesnapdim=pcesnapdim, poddimlist=poddimlist,
+      # basenu=basenu, varia=varia, varib=varib,
+      nulb=nulb, nuub=nuub,
       mcplease=mcplease, pceplease=pceplease, mcpod=mcpod, pcepod=pcepod)
