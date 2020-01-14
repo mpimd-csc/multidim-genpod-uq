@@ -61,7 +61,8 @@ def simit(problem='circle', meshlevel=None,
         print('expected value of nu: ', expvnu)
         varinulist = varinu.tolist()
         mcout, mcxpy, expvnu = mpu.run_mc_sim(varinulist, get_output,
-                                              verbose=True)
+                                              verbose=True,
+                                              multiproc=multiproc)
 
         mmcsolfile = dolfin.File('results/mmcsol.pvd')
         curv = get_sol(expvnu.tolist())
@@ -131,7 +132,7 @@ def simit(problem='circle', meshlevel=None,
         varinu = nulb + (nuub-nulb)*np.random.rand(mcruns, uncdims)
         expvnu = np.average(varinu, axis=0)
         varinulist = varinu.tolist()
-        mcout, _, _ = mpu.run_mc_sim(varinulist, get_sol)
+        mcout, _, _ = mpu.run_mc_sim(varinulist, get_sol, multiproc=multiproc)
         pceymat = np.array(mcout).T
         lypceymat = facmy.Ft*pceymat
         print('POD basis by {0} random samplings'.format(mcsnap))
@@ -184,7 +185,7 @@ def simit(problem='circle', meshlevel=None,
             print('expected value of nu: ', expvnu)
             varinulist = varinu.tolist()
             mcout, rmcxpy, expvnu = mpu.\
-                run_mc_sim(varinulist, red_realize_output)
+                run_mc_sim(varinulist, red_realize_output, multiproc=multiproc)
             cmpwmc += 'poddim={0:2.0f}, rmcxpy-mcxpy={1}'.\
                 format(poddim, rmcxpy-mcxpy)
             try:

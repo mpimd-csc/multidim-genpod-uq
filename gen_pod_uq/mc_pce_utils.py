@@ -1,39 +1,81 @@
 from itertools import product, islice
+from multiprocessing import Queue, Process
 
 import numpy as np
 
 import spacetime_galerkin_pod.chaos_expansion_utils as ceu
 
 
-def run_mc_sim(parlist, solfunc, chunks=10,
+def run_mc_sim(parlist, solfunc, chunks=10, multiproc=0,
                comp_para_ev=True, verbose=False, ret_ev=True):
     expvpara = None
     if comp_para_ev:
         expvpara = np.average(np.array(parlist), axis=0)
 
-    ylist = []
-    if verbose:
-        nmc = len(parlist)
-        mcx = np.int(nmc/chunks)
-        for mcit in range(chunks-1):
-            for cpar in parlist[mcit*mcx:(mcit+1)*mcx]:
-                cy = (solfunc(cpar)).flatten()
-                ylist.append(cy)
-            estxy = np.average(np.array(ylist), axis=0)[0]
-            print('mc:{0}/{1}: estxy[0]={2}'.
-                  format((mcit+1)*mcx, nmc, estxy))
-        for cpar in parlist[(mcit+1)*mcx:]:
-            cy = (solfunc(cpar)).flatten()
-            ylist.append(cy)
-        estxy = np.average(np.array(ylist), axis=0)[0]
-        print('mc:{0}/{1}: estxy[0]={2}'.format(nmc, nmc, estxy))
+    def _compallsols(paralist):
+        locylist = []
+        for cpara in paralist:
+            locylist.append(solfunc(cpara))
+        return locylist
+
+    def _formproc(paralist, pqueue):
+        ylist = _compallsols(paralist)
+        pqueue.put(ylist)
+
+    nmc = len(parlist)
+    if multiproc > 1:
+        pqueue = Queue()
+        mcx = nmc/multiproc
+
+        itschunks = []
+        for k in range(multiproc-1):
+            itschunks.append(parlist[np.int(np.floor(k*mcx)):
+                                     np.int(np.floor((k+1)*mcx))])
+        itschunks.append(parlist[np.int(np.floor((multiproc-1)*mcx)):nmc])
+
+        plist = []
+        for k in range(multiproc):
+            p = Process(target=_formproc, args=(itschunks[k], pqueue))
+            plist.append(p)
+            p.start()
+
+        for p in plist:
+            p.join()
+
+        ylist = []
+        for k in range(multiproc):
+            cylist = pqueue.get()
+            ylist.extend(cylist)
+            if verbose:
+                estxy = np.average(np.array(ylist), axis=0)[0]
+                print('mc:{0}/{1}: estxy[0]={2}'.
+                      format(len(ylist), nmc, estxy))
 
         return ylist, np.average(np.array(ylist), axis=0), expvpara
 
     else:
-        for cpar in parlist:
-            ylist.append((solfunc(cpar)).flatten())
-        return ylist, np.average(np.array(ylist), axis=0), expvpara
+        ylist = []
+        if verbose:
+            mcx = np.int(nmc/chunks)
+            for mcit in range(chunks-1):
+                for cpar in parlist[mcit*mcx:(mcit+1)*mcx]:
+                    cy = (solfunc(cpar)).flatten()
+                    ylist.append(cy)
+                estxy = np.average(np.array(ylist), axis=0)[0]
+                print('mc:{0}/{1}: estxy[0]={2}'.
+                      format((mcit+1)*mcx, nmc, estxy))
+            for cpar in parlist[(mcit+1)*mcx:]:
+                cy = (solfunc(cpar)).flatten()
+                ylist.append(cy)
+            estxy = np.average(np.array(ylist), axis=0)[0]
+            print('mc:{0}/{1}: estxy[0]={2}'.format(nmc, nmc, estxy))
+
+            return ylist, np.average(np.array(ylist), axis=0), expvpara
+
+        else:
+            for cpar in parlist:
+                ylist.append((solfunc(cpar)).flatten())
+            return ylist, np.average(np.array(ylist), axis=0), expvpara
 
 
 def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
@@ -42,7 +84,6 @@ def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
     """
     # compute the sols
     if multiproc > 1:
-        from multiprocessing import Queue, Process
         pqueue = Queue()
 
         def comppart(itspart, partnum, queue):
