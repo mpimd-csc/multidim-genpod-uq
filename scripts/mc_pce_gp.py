@@ -21,6 +21,7 @@ def simit(problem='circle', meshlevel=None,
           checkredmod=False, pcexpy=None, mcxpy=None, redmcruns=None,
           mcsnap=None, pcesnapdim=None, onlymeshtest=False,
           # basenu=5e-4, varia=-1e-4, varib=1e-4,
+          multiproc=0,
           nulb=6e-4, nuub=8e-4,
           basisfrom='pce', poddimlist=[5, 10, 20]):
 
@@ -82,6 +83,7 @@ def simit(problem='circle', meshlevel=None,
             # abscarray, weightsarray = np.array(abscissae), np.array(weights)
             ysoltens = mpu.run_pce_sim_separable(solfunc=get_output,
                                                  uncdims=uncdims,
+                                                 multiproc=multiproc,
                                                  abscissae=abscissae)
             pcexpy = compexpv(ysoltens)
             print('PCE({0}): E(y): {1}'.format(pcedim, pcexpy))
@@ -110,6 +112,7 @@ def simit(problem='circle', meshlevel=None,
     if basisfrom == 'pce':
         ysoltens = mpu.run_pce_sim_separable(solfunc=get_sol,
                                              uncdims=uncdims,
+                                             multiproc=multiproc,
                                              abscissae=abscissae)
         # cysoltens = mpu.run_pce_sim_separable(solfunc=get_output,
         #                                       uncdims=uncdims,
@@ -168,6 +171,7 @@ def simit(problem='circle', meshlevel=None,
                               pcedim=pcedim, uncdims=uncdims)
                 redysoltens = mpu.\
                     run_pce_sim_separable(solfunc=red_realize_output,
+                                          multiproc=multiproc,
                                           uncdims=uncdims, abscissae=abscissae)
                 redpcexpy = compredexpv(redysoltens)
                 dimsrpcexpyl.append(redpcexpy)

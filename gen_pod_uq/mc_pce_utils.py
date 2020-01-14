@@ -37,12 +37,12 @@ def run_mc_sim(parlist, solfunc, chunks=10,
 
 
 def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
-                          multiproc=4):
+                          multiproc=0):
     """ pce simulation for all PCE dimensions being the same
     """
     # compute the sols
     if multiproc > 1:
-        from multiprocessing import Process, Queue
+        from multiprocessing import Queue, Process
         pqueue = Queue()
 
         def comppart(itspart, partnum, queue):
@@ -51,63 +51,32 @@ def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
                 locylist.append((solfunc(absctpl)).flatten())
             queue.put((partnum, locylist))
 
-        if multiproc == 2:
-            print('we use 2 processes')
-            lenits = abscissae.size**uncdims
-            itspart = np.int(np.floor(lenits/2))
-            partone = islice(product(abscissae, repeat=uncdims), 0, itspart)
-            parttwo = islice(product(abscissae, repeat=uncdims),
-                             itspart, lenits)
+        lenits = abscissae.size**uncdims
+        itspart = np.int(np.floor(lenits/multiproc))
+        itschunks = []
+        for k in range(multiproc-1):
+            itschunks.append(islice(product(abscissae, repeat=uncdims),
+                             k*itspart, (k+1)*itspart))
+        itschunks.append(islice(product(abscissae, repeat=uncdims),
+                         (multiproc-1)*itspart, lenits))
+        plist = []
+        for k in range(multiproc):
+            p = Process(target=comppart, args=(itschunks[k], k, pqueue))
+            plist.append(p)
+            p.start()
 
-            pone = Process(target=comppart, args=(partone, 1, pqueue))
-            ptwo = Process(target=comppart, args=(parttwo, 2, pqueue))
-            pone.start()
-            ptwo.start()
-            pone.join()
-            ptwo.join()
-            thingone = pqueue.get()
-            thingtwo = pqueue.get()
+        for p in plist:
+            p.join()
 
-            if thingone[0] == 1:
-                pceylist = thingone[1]
-                pceylist.extend(thingtwo[1])
-            else:
-                pceylist = thingtwo[1]
-                pceylist.extend(thingone[1])
+        thinglist, orderarray = [], np.zeros((multiproc, ))
+        for kk in range(multiproc):
+            thething = pqueue.get()
+            thinglist.append(thething[1])
+            orderarray[thething[0]] = kk
 
-        elif multiproc == 4:
-            print('we use 4 processes')
-            lenits = abscissae.size**uncdims
-            itspart = np.int(np.floor(lenits/4))
-            partone = islice(product(abscissae, repeat=uncdims), 0, itspart)
-            parttwo = islice(product(abscissae, repeat=uncdims),
-                             itspart, 2*itspart)
-            partthr = islice(product(abscissae, repeat=uncdims),
-                             2*itspart, 3*itspart)
-            partfou = islice(product(abscissae, repeat=uncdims),
-                             3*itspart, lenits)
-
-            pone = Process(target=comppart, args=(partone, 1, pqueue))
-            ptwo = Process(target=comppart, args=(parttwo, 2, pqueue))
-            pthr = Process(target=comppart, args=(partthr, 3, pqueue))
-            pfou = Process(target=comppart, args=(partfou, 4, pqueue))
-            pone.start()
-            ptwo.start()
-            pthr.start()
-            pfou.start()
-            pone.join()
-            ptwo.join()
-            pthr.join()
-            pfou.join()
-            thinglist, orderarray = [], np.zeros((4, ))
-            for kk in range(4):
-                thething = pqueue.get()
-                thinglist.append(thething[1])
-                orderarray[thething[0]-1] = kk
-
-            pceylist = []
-            for kk in orderarray:
-                pceylist.extend(thinglist[np.int(kk)])
+        pceylist = []
+        for kk in orderarray:
+            pceylist.extend(thinglist[np.int(kk)])
 
     else:
         pceylist = []

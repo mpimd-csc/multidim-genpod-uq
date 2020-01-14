@@ -28,6 +28,7 @@ problem = 'cylinder'
 meshlevel = 1
 nulb = 4e-4
 nuub = 6e-4
+nprocs = 2
 
 
 options, rest = getopt.getopt(sys.argv[1:], '',
@@ -42,7 +43,8 @@ options, rest = getopt.getopt(sys.argv[1:], '',
                                'mcpod=',
                                'pcesnapdim=',
                                'mcsnap=',
-                               'varinu='
+                               'varinu=',
+                               'nprocs='
                                ])
 
 for opt, arg in options:
@@ -77,11 +79,8 @@ for opt, arg in options:
         nuabl = [np.int(xstr) for xstr in nuabstrl]
         nulb = nuabl[0]*10**(-nuabl[2])
         nuub = nuabl[1]*10**(-nuabl[2])
-        # basenu = .5*(nub+nua)
-        # varia = -nua + basenu
-        # varib = basenu + nub
-        # import ipdb
-        # ipdb.set_trace()
+    elif opt == '--nprocs':
+        nprocs = np.int(arg)
 
 infostring = ('meshlevel      = {0}'.format(meshlevel) +
               '\npce            = {0}'.format(pceplease) +
@@ -109,6 +108,9 @@ if mcpod or pcepod:
     if basisfrom == 'pce':
         infostring = (infostring +
                       '\ntrain pce dim  = {0}'.format(pcesnapdim))
+if nprocs > 1:
+    infostring = (infostring +
+                  '\nnprocs         = {0}'.format(nprocs))
 
 
 print('******************')
@@ -122,6 +124,7 @@ simit(mcruns=mcruns, pcedimlist=pcedimlist,
       plotplease=plotplease, basisfrom=basisfrom,
       mcxpy=mcxpy, pcexpy=pcexpy, redmcruns=15000,
       mcsnap=mcsnap, pcesnapdim=pcesnapdim, poddimlist=poddimlist,
+      multiproc=nprocs,
       # basenu=basenu, varia=varia, varib=varib,
       nulb=nulb, nuub=nuub,
       mcplease=mcplease, pceplease=pceplease, mcpod=mcpod, pcepod=pcepod)
