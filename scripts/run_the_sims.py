@@ -4,6 +4,7 @@ import numpy as np
 import re
 
 from mc_pce_gp import simit
+from dolfin_navier_scipy.data_output_utils import Timer
 
 mcruns = 1000  # 200
 pcedimlist = [3, 4, 5]  # , 3, 4, 5]  # , 7]
@@ -119,12 +120,13 @@ print('******************')
 
 mcxpy, pcexpy = None, None
 
-simit(mcruns=mcruns, pcedimlist=pcedimlist,
-      problem=problem, meshlevel=meshlevel,
-      plotplease=plotplease, basisfrom=basisfrom,
-      mcxpy=mcxpy, pcexpy=pcexpy, redmcruns=15000,
-      mcsnap=mcsnap, pcesnapdim=pcesnapdim, poddimlist=poddimlist,
-      multiproc=nprocs,
-      # basenu=basenu, varia=varia, varib=varib,
-      nulb=nulb, nuub=nuub,
-      mcplease=mcplease, pceplease=pceplease, mcpod=mcpod, pcepod=pcepod)
+with Timer():
+    simit(mcruns=mcruns, pcedimlist=pcedimlist,
+          problem=problem, meshlevel=meshlevel,
+          plotplease=plotplease, basisfrom=basisfrom,
+          mcxpy=mcxpy, pcexpy=pcexpy, redmcruns=15000,
+          mcsnap=mcsnap, pcesnapdim=pcesnapdim, poddimlist=poddimlist,
+          multiproc=nprocs,
+          # basenu=basenu, varia=varia, varib=varib,
+          nulb=nulb, nuub=nuub,
+          mcplease=mcplease, pceplease=pceplease, mcpod=mcpod, pcepod=pcepod)

@@ -52,13 +52,15 @@ def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
             queue.put((partnum, locylist))
 
         lenits = abscissae.size**uncdims
-        itspart = np.int(np.floor(lenits/multiproc))
+        itspart = lenits/multiproc
+        print('itspart {0} : lenits {1}'.format(itspart, lenits))
         itschunks = []
         for k in range(multiproc-1):
             itschunks.append(islice(product(abscissae, repeat=uncdims),
-                             k*itspart, (k+1)*itspart))
+                             np.int(np.floor(k*itspart)),
+                             np.int(np.floor((k+1)*itspart))))
         itschunks.append(islice(product(abscissae, repeat=uncdims),
-                         (multiproc-1)*itspart, lenits))
+                         np.int(np.floor((multiproc-1)*itspart)), lenits))
         plist = []
         for k in range(multiproc):
             p = Process(target=comppart, args=(itschunks[k], k, pqueue))
