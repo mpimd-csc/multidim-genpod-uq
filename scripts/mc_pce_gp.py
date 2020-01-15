@@ -138,7 +138,7 @@ def simit(problem='circle', meshlevel=None,
         expvnu = np.average(varinu, axis=0)
         varinulist = varinu.tolist()
         mcout, _, _ = mpu.run_mc_sim(varinulist, get_sol, multiproc=multiproc)
-        pceymat = np.array(mcout).T
+        pceymat = mcout.T
         lypceymat = facmy.Ft*pceymat
         print('POD basis by {0} random samplings'.format(mcsnap))
 

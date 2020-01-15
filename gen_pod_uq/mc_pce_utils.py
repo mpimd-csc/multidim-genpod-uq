@@ -1,5 +1,5 @@
 from itertools import product, islice
-from multiprocessing import Queue, Process
+from multiprocessing import Process
 
 import numpy as np
 from scipy.io import savemat, loadmat
@@ -27,16 +27,16 @@ def run_mc_sim(parlist, solfunc, chunks=10, multiproc=0,
     if multiproc > 1:
         mcx = nmc/multiproc
 
-        itschunks, fstrl = [], []
+        itschunks, fstrl = [], ['_tmp_mc_chunk{0}of{1}'.format(1, multiproc)]
         for k in range(multiproc-1):
-            filestr = '_tmp_pce_chunk{0}of{1}'.format(k+1, multiproc)
+            filestr = '_tmp_mc_chunk{0}of{1}'.format(k+2, multiproc)
             fstrl.append(filestr)
             itschunks.append(parlist[np.int(np.floor(k*mcx)):
                                      np.int(np.floor((k+1)*mcx))])
         itschunks.append(parlist[np.int(np.floor((multiproc-1)*mcx)):nmc])
 
         plist = []
-        for fstr in fstrl:
+        for k, fstr in enumerate(fstrl):
             p = Process(target=_formproc, args=(itschunks[k], fstr))
             plist.append(p)
             p.start()
@@ -45,13 +45,13 @@ def run_mc_sim(parlist, solfunc, chunks=10, multiproc=0,
             p.join()
 
         yarray = loadmat(fstrl[0])['ypart']
-        for k, fstr in enumerate(fstrl):
+        for fstr in fstrl[1:]:
             cychunk = loadmat(fstr)['ypart']
             yarray = np.vstack([yarray, cychunk])
             if verbose:
                 estxy = np.average(yarray, axis=0)[0]
                 print('mc:{0}/{1}: estxy[0]={2}'.
-                      format(np.floor((k+1)*mcx), nmc, estxy))
+                      format(yarray.shape[0], nmc, estxy))
 
         return yarray, np.average(yarray, axis=0), expvpara
 
