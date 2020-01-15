@@ -2,6 +2,7 @@ from itertools import product, islice
 from multiprocessing import Queue, Process
 
 import numpy as np
+from scipy.io import savemat, loadmat
 
 import spacetime_galerkin_pod.chaos_expansion_utils as ceu
 
@@ -18,40 +19,41 @@ def run_mc_sim(parlist, solfunc, chunks=10, multiproc=0,
             locylist.append(solfunc(cpara))
         return locylist
 
-    def _formproc(paralist, pqueue):
+    def _formproc(paralist, filestr):
         ylist = _compallsols(paralist)
-        pqueue.put(ylist)
+        savemat(filestr, dict(ypart=np.array(ylist)))
 
     nmc = len(parlist)
     if multiproc > 1:
-        pqueue = Queue()
         mcx = nmc/multiproc
 
-        itschunks = []
+        itschunks, fstrl = [], []
         for k in range(multiproc-1):
+            filestr = '_tmp_pce_chunk{0}of{1}'.format(k+1, multiproc)
+            fstrl.append(filestr)
             itschunks.append(parlist[np.int(np.floor(k*mcx)):
                                      np.int(np.floor((k+1)*mcx))])
         itschunks.append(parlist[np.int(np.floor((multiproc-1)*mcx)):nmc])
 
         plist = []
-        for k in range(multiproc):
-            p = Process(target=_formproc, args=(itschunks[k], pqueue))
+        for fstr in fstrl:
+            p = Process(target=_formproc, args=(itschunks[k], fstr))
             plist.append(p)
             p.start()
 
         for p in plist:
             p.join()
 
-        ylist = []
-        for k in range(multiproc):
-            cylist = pqueue.get()
-            ylist.extend(cylist)
+        yarray = loadmat(fstrl[0])['ypart']
+        for k, fstr in enumerate(fstrl):
+            cychunk = loadmat(fstr)['ypart']
+            yarray = np.vstack([yarray, cychunk])
             if verbose:
-                estxy = np.average(np.array(ylist), axis=0)[0]
+                estxy = np.average(yarray, axis=0)[0]
                 print('mc:{0}/{1}: estxy[0]={2}'.
-                      format(len(ylist), nmc, estxy))
+                      format(np.floor((k+1)*mcx), nmc, estxy))
 
-        return ylist, np.average(np.array(ylist), axis=0), expvpara
+        return yarray, np.average(yarray, axis=0), expvpara
 
     else:
         ylist = []
@@ -70,12 +72,14 @@ def run_mc_sim(parlist, solfunc, chunks=10, multiproc=0,
             estxy = np.average(np.array(ylist), axis=0)[0]
             print('mc:{0}/{1}: estxy[0]={2}'.format(nmc, nmc, estxy))
 
-            return ylist, np.average(np.array(ylist), axis=0), expvpara
+            return (np.array(ylist), np.average(np.array(ylist), axis=0),
+                    expvpara)
 
         else:
             for cpar in parlist:
                 ylist.append((solfunc(cpar)).flatten())
-            return ylist, np.average(np.array(ylist), axis=0), expvpara
+            return (np.array(ylist), np.average(np.array(ylist), axis=0),
+                    expvpara)
 
 
 def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
@@ -84,17 +88,17 @@ def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
     """
     # compute the sols
     if multiproc > 1:
-        pqueue = Queue()
+        # pqueue = Queue()
 
-        def comppart(itspart, partnum, queue):
+        def comppart(itspart, filestr):
             locylist = []
             for absctpl in itspart:
-                locylist.append((solfunc(absctpl)).flatten().tolist()[0:1000])
-            queue.put((partnum, locylist))
+                locylist.append((solfunc(absctpl)).flatten().tolist())
+            savemat(filestr, dict(ypart=np.array(locylist)))
 
         lenits = abscissae.size**uncdims
         itspart = lenits/multiproc
-        print('itspart {0} : lenits {1}'.format(itspart, lenits))
+        # print('itspart {0} : lenits {1}'.format(itspart, lenits))
         itschunks = []
         for k in range(multiproc-1):
             itschunks.append(islice(product(abscissae, repeat=uncdims),
@@ -103,38 +107,43 @@ def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
         itschunks.append(islice(product(abscissae, repeat=uncdims),
                          np.int(np.floor((multiproc-1)*itspart)), lenits))
         plist = []
+        fstrl = []
         for k in range(multiproc):
-            p = Process(target=comppart, args=(itschunks[k], k, pqueue))
+            filestr = '_tmp_pce_chunk{0}of{1}'.format(k+1, multiproc)
+            p = Process(target=comppart, args=(itschunks[k], filestr))
             plist.append(p)
+            fstrl.append(filestr)
             p.start()
 
         for p in plist:
             p.join()
-        print(pqueue.get())
-        import ipdb
-        ipdb.set_trace()
+        # print(pqueue.get())
+        # import ipdb
+        # ipdb.set_trace()
 
-        thinglist, orderarray = [], np.zeros((multiproc, ))
-        for kk in range(multiproc):
-            thething = pqueue.get()
-            thinglist.append(thething[1])
-            orderarray[thething[0]] = kk
+        ychunkl = []
+        for fstr in fstrl:
+            cychunk = loadmat(fstr)['ypart']
+            ychunkl.append(cychunk)
 
-        pceylist = []
-        for kk in orderarray:
-            pceylist.extend(thinglist[np.int(kk)])
+        yarray = np.vstack(ychunkl)
+        ypcedims = [yarray.shape[1]]
+        ypcedims.extend([len(abscissae)]*uncdims)
+        ypcedims = tuple(ypcedims)
+        # arrange it in the tensor
+        # first dimension is the state, then comes the uncertainty
+        yrslttns = (yarray.T).reshape(ypcedims)
 
     else:
         pceylist = []
         for absctpl in product(abscissae, repeat=uncdims):
             pceylist.append((solfunc(absctpl)).flatten())
-
-    ypcedims = [pceylist[0].size]
-    ypcedims.extend([len(abscissae)]*uncdims)
-    ypcedims = tuple(ypcedims)
-    # arrange it in the tensor
-    # first dimension is the state, then comes the uncertainty
-    yrslttns = (np.array(pceylist).T).reshape(ypcedims)
+        ypcedims = [pceylist[0].size]
+        ypcedims.extend([len(abscissae)]*uncdims)
+        ypcedims = tuple(ypcedims)
+        # arrange it in the tensor
+        # first dimension is the state, then comes the uncertainty
+        yrslttns = (np.array(pceylist).T).reshape(ypcedims)
     return yrslttns
 
 

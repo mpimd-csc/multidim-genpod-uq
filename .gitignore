@@ -1,6 +1,7 @@
 *.vtu
 *.pvd
 *.xml.gz
+_tmp_*_chunk*
 
 pics/
 logs/

@@ -186,7 +186,7 @@ def simit(problem='circle', meshlevel=None,
                 redpcexpy = compredexpv(redysoltens)
                 dimsrpcexpyl.append(redpcexpy)
                 elt = time.time() - tstart
-                print('pce={0:2.0f}, poddim={2:2.0f}, exypce={1}, elt={3:.1f}'.
+                print('pce={0:2.0f}, poddim={2:2.0f}, exypce={1}, elt={3:.2f}'.
                       format(pcedim, redpcexpy-pcexpy, poddim, elt))
             rpcesxpyl.append(dimsrpcexpyl)
         if mcpod:
