@@ -89,7 +89,7 @@ def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
         def comppart(itspart, partnum, queue):
             locylist = []
             for absctpl in itspart:
-                locylist.append((solfunc(absctpl)).flatten())
+                locylist.append((solfunc(absctpl)).flatten().tolist()[0:1000])
             queue.put((partnum, locylist))
 
         lenits = abscissae.size**uncdims
@@ -110,6 +110,9 @@ def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
 
         for p in plist:
             p.join()
+        print(pqueue.get())
+        import ipdb
+        ipdb.set_trace()
 
         thinglist, orderarray = [], np.zeros((multiproc, ))
         for kk in range(multiproc):

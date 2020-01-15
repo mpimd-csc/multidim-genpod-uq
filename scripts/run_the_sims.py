@@ -31,6 +31,8 @@ nulb = 4e-4
 nuub = 6e-4
 nprocs = 2
 
+mcxpy, pcexpy = None, None
+
 
 options, rest = getopt.getopt(sys.argv[1:], '',
                               ['mesh=',
@@ -45,7 +47,9 @@ options, rest = getopt.getopt(sys.argv[1:], '',
                                'pcesnapdim=',
                                'mcsnap=',
                                'varinu=',
-                               'nprocs='
+                               'nprocs=',
+                               'mcxpy=',
+                               'pcexpy='
                                ])
 
 for opt, arg in options:
@@ -82,6 +86,10 @@ for opt, arg in options:
         nuub = nuabl[1]*10**(-nuabl[2])
     elif opt == '--nprocs':
         nprocs = np.int(arg)
+    elif opt == '--mcxpy':
+        mcxpy = np.float(arg)
+    elif opt == '--pcexpy':
+        pcexpy = np.float(arg)
 
 infostring = ('meshlevel      = {0}'.format(meshlevel) +
               '\npce            = {0}'.format(pceplease) +
@@ -118,15 +126,13 @@ print('******************')
 print(infostring)
 print('******************')
 
-mcxpy, pcexpy = None, None
-
-with Timer():
-    simit(mcruns=mcruns, pcedimlist=pcedimlist,
-          problem=problem, meshlevel=meshlevel,
-          plotplease=plotplease, basisfrom=basisfrom,
-          mcxpy=mcxpy, pcexpy=pcexpy, redmcruns=15000,
-          mcsnap=mcsnap, pcesnapdim=pcesnapdim, poddimlist=poddimlist,
-          multiproc=nprocs,
-          # basenu=basenu, varia=varia, varib=varib,
-          nulb=nulb, nuub=nuub,
-          mcplease=mcplease, pceplease=pceplease, mcpod=mcpod, pcepod=pcepod)
+# with Timer():
+simit(mcruns=mcruns, pcedimlist=pcedimlist,
+      problem=problem, meshlevel=meshlevel,
+      plotplease=plotplease, basisfrom=basisfrom,
+      mcxpy=mcxpy, pcexpy=pcexpy, redmcruns=15000,
+      mcsnap=mcsnap, pcesnapdim=pcesnapdim, poddimlist=poddimlist,
+      multiproc=nprocs,
+      # basenu=basenu, varia=varia, varib=varib,
+      nulb=nulb, nuub=nuub,
+      mcplease=mcplease, pceplease=pceplease, mcpod=mcpod, pcepod=pcepod)

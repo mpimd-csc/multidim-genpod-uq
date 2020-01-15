@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.sparse as sps
 import matplotlib.pyplot as plt
+import time
 
 import dolfin
 
@@ -111,6 +112,8 @@ def simit(problem='circle', meshlevel=None,
     mfl.extend([pcewmatfac]*uncdims)
 
     if basisfrom == 'pce':
+
+        tstart = time.time()
         ysoltens = mpu.run_pce_sim_separable(solfunc=get_sol,
                                              uncdims=uncdims,
                                              multiproc=multiproc,
@@ -118,6 +121,8 @@ def simit(problem='circle', meshlevel=None,
         # cysoltens = mpu.run_pce_sim_separable(solfunc=get_output,
         #                                       uncdims=uncdims,
         #                                       abscissae=abscissae)
+        elt = time.time() - tstart
+        print('{0}: Elapsed time: {1}'.format('snapshot computation',  elt))
         trainpcexpy = compexpv(ysoltens)
         # ctrainpcexpy = compexpv(cysoltens)
         # print(cmat.dot(trainpcexpy)-ctrainpcexpy)
@@ -149,12 +154,15 @@ def simit(problem='circle', meshlevel=None,
     cmpwpce = 'comp reduced mc and full pce'
 
     for poddim in poddimlist:
-        print('pcexpy: {0}'.format(pcexpy))
+        tstart = time.time()
         ypodvecs = get_pod_vecs(poddim)
         lyitVy = facmy.solve_Ft(ypodvecs)
         red_realize_sol, red_realize_output, red_probfems, red_plotit \
             = get_red_problem(lyitVy)
         red_cmat = red_probfems['cmat']
+        elt = time.time() - tstart
+        print('poddim:{2}: {0}: elt: {1}'.format('reduced model computation',
+                                                 elt, poddim))
 
         if checkredmod:
             nulist = [basenu]*uncdims
@@ -170,14 +178,16 @@ def simit(problem='circle', meshlevel=None,
                     setup_pce(distribution='uniform',
                               distrpars=dict(a=nua, b=nub),
                               pcedim=pcedim, uncdims=uncdims)
+                tstart = time.time()
                 redysoltens = mpu.\
                     run_pce_sim_separable(solfunc=red_realize_output,
                                           multiproc=multiproc,
                                           uncdims=uncdims, abscissae=abscissae)
                 redpcexpy = compredexpv(redysoltens)
                 dimsrpcexpyl.append(redpcexpy)
-                print('pcedim={0:2.0f}, poddim={2:2.0f}, exypce={1}'.
-                      format(pcedim, redpcexpy-pcexpy, poddim))
+                elt = time.time() - tstart
+                print('pce={0:2.0f}, poddim={2:2.0f}, exypce={1}, elt={3:.1f}'.
+                      format(pcedim, redpcexpy-pcexpy, poddim, elt))
             rpcesxpyl.append(dimsrpcexpyl)
         if mcpod:
             varinu = nulb + (nuub-nulb)*np.random.rand(mcruns, uncdims)
