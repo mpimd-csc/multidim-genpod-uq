@@ -224,7 +224,13 @@ def simit(problem='circle', meshlevel=None,
 
         tdict.update({tit: copy.deepcopy(loctdict)})
 
-    filestr = 'N{0}nu{1:.2e}--{2:.2e}.json'.format(meshlevel, nulb, nuub)
+    filestr = 'N{0}nu{1:.2e}--{2:.2e}'.format(meshlevel, nulb, nuub)
+    if pcepod:
+        filestr = filestr + '_pcepod'
+    if mcpod:
+        filestr = filestr + '_mcpod'
+    filestr = filestr + '_bf' + basisfrom + '.json'
+
     jsfile = open(filestr, mode='w')
     jsfile.write(json.dumps(tdict))
     print('output saved to ' + filestr)
