@@ -2,6 +2,8 @@ import numpy as np
 import scipy.sparse as sps
 import matplotlib.pyplot as plt
 import time
+import copy
+import json
 
 import dolfin
 
@@ -22,7 +24,7 @@ def simit(problem='circle', meshlevel=None,
           checkredmod=False, pcexpy=None, mcxpy=None, redmcruns=None,
           mcsnap=None, pcesnapdim=None, onlymeshtest=False,
           # basenu=5e-4, varia=-1e-4, varib=1e-4,
-          multiproc=0,
+          multiproc=0, timings=1,
           nulb=6e-4, nuub=8e-4,
           basisfrom='pce', poddimlist=[5, 10, 20]):
 
@@ -96,117 +98,136 @@ def simit(problem='circle', meshlevel=None,
         raise UserWarning('wont do the POD -- nothing compares')
 
     # ## CHAP genpod
-    pcedim = pcesnapdim
     mmat = problemfems['mmat']
-
-    abscissae, weights, compexpv = mpu.\
-        setup_pce(distribution='uniform',
-                  distrpars=dict(a=nua, b=nub),
-                  pcedim=pcedim, uncdims=uncdims)
     facmy = SparseFactorMassmat(mmat)
 
-    # pcewmat = sps.dia_matrix((weights, 0), shape=(pcedim, pcedim))
-    pcewmatfac = sps.dia_matrix((np.sqrt(weights), 0), shape=(pcedim, pcedim))
+    tdict = {}
 
-    mfl = [facmy.F]
-    mfl.extend([pcewmatfac]*uncdims)
+    for tit in range(timings):
+        if basisfrom == 'pce':
 
-    if basisfrom == 'pce':
+            trttstart = time.time()
+            trnabscissae, trnweights, trncompexpv = mpu.\
+                setup_pce(distribution='uniform',
+                          distrpars=dict(a=nua, b=nub),
+                          pcedim=pcesnapdim, uncdims=uncdims)
+            pcewmatfac = sps.dia_matrix((np.sqrt(trnweights), 0),
+                                        shape=(pcesnapdim, pcesnapdim))
 
-        tstart = time.time()
-        ysoltens = mpu.run_pce_sim_separable(solfunc=get_sol,
-                                             uncdims=uncdims,
-                                             multiproc=multiproc,
-                                             abscissae=abscissae)
-        # cysoltens = mpu.run_pce_sim_separable(solfunc=get_output,
-        #                                       uncdims=uncdims,
-        #                                       abscissae=abscissae)
-        elt = time.time() - tstart
-        print('{0}: Elapsed time: {1}'.format('snapshot computation',  elt))
-        trainpcexpy = compexpv(ysoltens)
-        # ctrainpcexpy = compexpv(cysoltens)
-        # print(cmat.dot(trainpcexpy)-ctrainpcexpy)
-        print('train pcedim={0:2.0f}, exypce={1}'.
-              format(pcedim, cmat.dot(trainpcexpy)-pcexpy))
+            mfl = [facmy.F]
+            mfl.extend([pcewmatfac]*uncdims)
+            ysoltens = mpu.run_pce_sim_separable(solfunc=get_sol,
+                                                 uncdims=uncdims,
+                                                 multiproc=multiproc,
+                                                 abscissae=trnabscissae)
+            # cysoltens = mpu.run_pce_sim_separable(solfunc=get_output,
+            #                                       uncdims=uncdims,
+            #                                       abscissae=abscissae)
+            trtelt = time.time() - trttstart
+            print('{0}: Elapsed time: {1}'.format('snapshot computation',
+                                                  trtelt))
+            trainpcexpy = trncompexpv(ysoltens)
+            # ctrainpcexpy = compexpv(cysoltens)
+            trainerror = (cmat.dot(trainpcexpy)-pcexpy).tolist()
+            print('train pce({0:2.0f}), error={1}'.format(pcesnapdim,
+                                                          trainerror))
 
-        def get_pod_vecs(poddim=None):
-            return tsu.modeone_massmats_svd(ysoltens, mfl, poddim)
+            def get_pod_vecs(poddim=None):
+                return tsu.modeone_massmats_svd(ysoltens, mfl, poddim)
 
-    elif basisfrom == 'mc':
-        # varinu = basenu+varia+(varib-varia)*np.random.rand(mcsnap, uncdims)
-        varinu = nulb + (nuub-nulb)*np.random.rand(mcruns, uncdims)
-        expvnu = np.average(varinu, axis=0)
-        varinulist = varinu.tolist()
-        mcout, _, _ = mpu.run_mc_sim(varinulist, get_sol, multiproc=multiproc)
-        pceymat = mcout.T
-        lypceymat = facmy.Ft*pceymat
-        print('POD basis by {0} random samplings'.format(mcsnap))
-
-        def get_pod_vecs(poddim=None):
-            ypodvecs = gpu.get_ksvvecs(sol=lypceymat, poddim=poddim,
-                                       plotsvs=plotplease, labl='SVs')
-            return ypodvecs
-
-    # lypceymat = pceymat
-    redsolfile = dolfin.File('results/redsol-N{0}pods.pvd'.format(meshlevel))
-    rmcxpyl, rpcesxpyl = [], []
-    cmpwmc = 'comp reduced mc and full mc'
-    cmpwpce = 'comp reduced mc and full pce'
-
-    for poddim in poddimlist:
-        tstart = time.time()
-        ypodvecs = get_pod_vecs(poddim)
-        lyitVy = facmy.solve_Ft(ypodvecs)
-        red_realize_sol, red_realize_output, red_probfems, red_plotit \
-            = get_red_problem(lyitVy)
-        red_cmat = red_probfems['cmat']
-        elt = time.time() - tstart
-        print('poddim:{2}: {0}: elt: {1}'.format('reduced model computation',
-                                                 elt, poddim))
-
-        if checkredmod:
-            nulist = [basenu]*uncdims
-            redv = red_realize_sol(nulist)
-            red_plotit(vvec=redv, pvdfile=redsolfile, plotplease=plotplease)
-            print('N{1}pod{2}red_y(basenu)={0}'.format(red_cmat.dot(redv),
-                                                       meshlevel, poddim))
-
-        if pcepod:
-            dimsrpcexpyl = []
-            for pcedim in pcedimlist:
-                abscissae, weights, compredexpv = mpu.\
-                    setup_pce(distribution='uniform',
-                              distrpars=dict(a=nua, b=nub),
-                              pcedim=pcedim, uncdims=uncdims)
-                tstart = time.time()
-                redysoltens = mpu.\
-                    run_pce_sim_separable(solfunc=red_realize_output,
-                                          multiproc=multiproc,
-                                          uncdims=uncdims, abscissae=abscissae)
-                redpcexpy = compredexpv(redysoltens)
-                dimsrpcexpyl.append(redpcexpy)
-                elt = time.time() - tstart
-                print('pce={0:2.0f}, poddim={2:2.0f}, exypce={1}, elt={3:.2f}'.
-                      format(pcedim, redpcexpy-pcexpy, poddim, elt))
-            rpcesxpyl.append(dimsrpcexpyl)
-        if mcpod:
+        elif basisfrom == 'mc':
             varinu = nulb + (nuub-nulb)*np.random.rand(mcruns, uncdims)
             expvnu = np.average(varinu, axis=0)
-            print('expected value of nu: ', expvnu)
             varinulist = varinu.tolist()
-            mcout, rmcxpy, expvnu = mpu.\
-                run_mc_sim(varinulist, red_realize_output, multiproc=multiproc)
-            cmpwmc += 'poddim={0:2.0f}, rmcxpy-mcxpy={1}'.\
-                format(poddim, rmcxpy-mcxpy)
-            try:
-                cmpwpce += 'poddim={0:2.0f}, rmcxpy-pcexpy={1}'.\
-                    format(poddim, rmcxpy-pcexpy)
-            except NameError:
-                pass
+            mcout, _, _ = mpu.run_mc_sim(varinulist, get_sol,
+                                         multiproc=multiproc)
+            pceymat = mcout.T
+            lypceymat = facmy.Ft*pceymat
+            print('POD basis by {0} random samplings'.format(mcsnap))
 
-            print('mcruns={0:2.0f}, poddim={2:2.0f}, rmcxpy-mcxpy={1}'.
-                  format(redmcruns, rmcxpy-mcxpy, poddim))
-            rmcxpyl.append(rmcxpy)
+            def get_pod_vecs(poddim=None):
+                ypodvecs = gpu.get_ksvvecs(sol=lypceymat, poddim=poddim,
+                                           plotsvs=plotplease, labl='SVs')
+                return ypodvecs
+
+        # lypceymat = pceymat
+        redsolfile = dolfin.File('results/rdsol-N{0}pod.pvd'.format(meshlevel))
+        cmpwmc = 'comp reduced mc and full mc'
+        cmpwpce = 'comp reduced mc and full pce'
+        loctdict = {'basisfrom': basisfrom,
+                    'traintime': trtelt,
+                    'trainerror': trainerror}
+
+        for poddim in poddimlist:
+            tstart = time.time()
+            ypodvecs = get_pod_vecs(poddim)
+            lyitVy = facmy.solve_Ft(ypodvecs)
+            red_realize_sol, red_realize_output, red_probfems, red_plotit \
+                = get_red_problem(lyitVy)
+            red_cmat = red_probfems['cmat']
+            elt = time.time() - tstart
+            print('poddim:{2}: {0}: elt: {1}'.format('reduced model comp',
+                                                     elt, poddim))
+
+            if checkredmod:
+                nulist = [basenu]*uncdims
+                redv = red_realize_sol(nulist)
+                red_plotit(vvec=redv, pvdfile=redsolfile,
+                           plotplease=plotplease)
+                print('N{1}pod{2}red_y(basenu)={0}'.format(red_cmat.dot(redv),
+                                                           meshlevel, poddim))
+
+            if pcepod:
+                errlist, eltlist = [], []
+                print('dim of reduced model: {0}'.format(poddim))
+                for pcedim in pcedimlist:
+                    abscissae, weights, compredexpv = mpu.\
+                        setup_pce(distribution='uniform',
+                                  distrpars=dict(a=nua, b=nub),
+                                  pcedim=pcedim, uncdims=uncdims)
+                    tstart = time.time()
+                    redysoltens = mpu.\
+                        run_pce_sim_separable(solfunc=red_realize_output,
+                                              multiproc=multiproc,
+                                              uncdims=uncdims,
+                                              abscissae=abscissae)
+                    redpcexpy = compredexpv(redysoltens)
+                    elt = time.time() - tstart
+                    err = (redpcexpy-pcexpy).tolist()
+                    errlist.append(err)
+                    eltlist.append(elt)
+                    print('pce={0:2.0f}, exypce={1}, elt={2:.2f}'.
+                          format(pcedim, err, elt))
+                loctdict.update({'pcepod': {'pcedims': pcedimlist,
+                                            'errors': errlist,
+                                            'elts': eltlist,
+                                            'refval': pcexpy}})
+
+            if mcpod:
+                varinu = nulb + (nuub-nulb)*np.random.rand(mcruns, uncdims)
+                expvnu = np.average(varinu, axis=0)
+                print('expected value of nu: ', expvnu)
+                varinulist = varinu.tolist()
+                (mcout, rmcxpy,
+                 expvnu) = mpu.run_mc_sim(varinulist, red_realize_output,
+                                          multiproc=multiproc)
+                cmpwmc += 'poddim={0:2.0f}, rmcxpy-mcxpy={1}'.\
+                    format(poddim, rmcxpy-mcxpy)
+                try:
+                    cmpwpce += 'poddim={0:2.0f}, rmcxpy-pcexpy={1}'.\
+                        format(poddim, rmcxpy-pcexpy)
+                except NameError:
+                    pass
+
+                print('mcruns={0:2.0f}, poddim={2:2.0f}, rmcxpy-mcxpy={1}'.
+                      format(redmcruns, rmcxpy-mcxpy, poddim))
+
+        tdict.update({tit: copy.deepcopy(loctdict)})
+
+    filestr = 'N{0}nu{1:.2e}--{2:.2e}.json'.format(meshlevel, nulb, nuub)
+    jsfile = open(filestr, mode='w')
+    jsfile.write(json.dumps(tdict))
+    print('output saved to ' + filestr)
 
     plt.show()
 
