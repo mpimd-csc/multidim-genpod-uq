@@ -16,7 +16,7 @@ VARINU='[3,7]e-3'
 PCEXPY=0.88102114
 # value of PCE(5) for MESH=10 and VARINU='[3,7]e-4'
 NPROCS=4
-TIMINGS=5
+TIMINGS=2
 LOGFILE=alldump
 echo 'tail -f logs/'$LOGFILE
 

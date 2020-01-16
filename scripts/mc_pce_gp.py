@@ -158,6 +158,8 @@ def simit(problem='circle', meshlevel=None,
                     'traintime': trtelt,
                     'trainerror': trainerror}
 
+        pcepoddict = {}
+        # mcpoddict = {}
         for poddim in poddimlist:
             tstart = time.time()
             ypodvecs = get_pod_vecs(poddim)
@@ -198,7 +200,7 @@ def simit(problem='circle', meshlevel=None,
                     eltlist.append(elt)
                     print('pce={0:2.0f}, exypce={1}, elt={2:.2f}'.
                           format(pcedim, err, elt))
-                loctdict.update({'pcepod': {'pcedims': pcedimlist,
+                pcepoddict.update({poddim: {'pcedims': pcedimlist,
                                             'errors': errlist,
                                             'elts': eltlist,
                                             'refval': pcexpy}})
@@ -221,6 +223,8 @@ def simit(problem='circle', meshlevel=None,
 
                 print('mcruns={0:2.0f}, poddim={2:2.0f}, rmcxpy-mcxpy={1}'.
                       format(redmcruns, rmcxpy-mcxpy, poddim))
+        if pcepod:
+            loctdict.update({'pcepod': copy.deepcopy(pcepoddict)})
 
         tdict.update({tit: copy.deepcopy(loctdict)})
 
