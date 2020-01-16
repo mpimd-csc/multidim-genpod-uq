@@ -1,5 +1,6 @@
 from itertools import product, islice
 from multiprocessing import Process
+import os
 
 import numpy as np
 from scipy.io import savemat, loadmat
@@ -25,11 +26,14 @@ def run_mc_sim(parlist, solfunc, chunks=10, multiproc=0,
 
     nmc = len(parlist)
     if multiproc > 1:
+        mpid = os.getpid()
         mcx = nmc/multiproc
 
-        itschunks, fstrl = [], ['_tmp_mc_chunk{0}of{1}'.format(1, multiproc)]
+        itschunks = []
+        fstrl = ['_tmp_mc_chunk{0}of{1}pid{2}'.format(1, multiproc, mpid)]
         for k in range(multiproc-1):
-            filestr = '_tmp_mc_chunk{0}of{1}'.format(k+2, multiproc)
+            filestr = '_tmp_mc_chunk{0}of{1}pid{2}'.format(k+2,
+                                                           multiproc, mpid)
             fstrl.append(filestr)
             itschunks.append(parlist[np.int(np.floor(k*mcx)):
                                      np.int(np.floor((k+1)*mcx))])
