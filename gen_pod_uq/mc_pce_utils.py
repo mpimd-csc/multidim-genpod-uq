@@ -17,7 +17,7 @@ def run_mc_sim(parlist, solfunc, chunks=10, multiproc=0,
     def _compallsols(paralist):
         locylist = []
         for cpara in paralist:
-            locylist.append(solfunc(cpara))
+            locylist.append(solfunc(cpara).flatten())
         return locylist
 
     def _formproc(paralist, filestr):

@@ -136,6 +136,7 @@ def simit(problem='circle', meshlevel=None,
                 return tsu.modeone_massmats_svd(ysoltens, mfl, poddim)
 
         elif basisfrom == 'mc':
+            trttstart = time.time()
             varinu = nulb + (nuub-nulb)*np.random.rand(mcruns, uncdims)
             expvnu = np.average(varinu, axis=0)
             varinulist = varinu.tolist()
@@ -143,7 +144,11 @@ def simit(problem='circle', meshlevel=None,
                                          multiproc=multiproc)
             pceymat = mcout.T
             lypceymat = facmy.Ft*pceymat
+            trtelt = time.time() - trttstart
             print('POD basis by {0} random samplings'.format(mcsnap))
+            trainerror = mcxpy - np.average(cmat.dot(pceymat), axis=1)
+            trainerror = trainerror.tolist()
+            print('Error in expv from POD basis: {0}'.format(trainerror))
 
             def get_pod_vecs(poddim=None):
                 ypodvecs = gpu.get_ksvvecs(sol=lypceymat, poddim=poddim,
@@ -159,7 +164,7 @@ def simit(problem='circle', meshlevel=None,
                     'trainerror': trainerror}
 
         pcepoddict = {}
-        # mcpoddict = {}
+        mcpoddict = {}
         for poddim in poddimlist:
             tstart = time.time()
             ypodvecs = get_pod_vecs(poddim)
@@ -210,9 +215,12 @@ def simit(problem='circle', meshlevel=None,
                 expvnu = np.average(varinu, axis=0)
                 print('expected value of nu: ', expvnu)
                 varinulist = varinu.tolist()
+                mcptstart = time.time()
                 (mcout, rmcxpy,
                  expvnu) = mpu.run_mc_sim(varinulist, red_realize_output,
                                           multiproc=multiproc)
+                mcpelt = time.time() - mcptstart
+                mcperr = rmcxpy - mcxpy
                 cmpwmc += 'poddim={0:2.0f}, rmcxpy-mcxpy={1}'.\
                     format(poddim, rmcxpy-mcxpy)
                 try:
@@ -223,8 +231,14 @@ def simit(problem='circle', meshlevel=None,
 
                 print('mcruns={0:2.0f}, poddim={2:2.0f}, rmcxpy-mcxpy={1}'.
                       format(redmcruns, rmcxpy-mcxpy, poddim))
+                mcpoddict.update({poddim: {'mcruns': mcruns,
+                                           'error': mcperr.tolist(),
+                                           'elt': mcpelt,
+                                           'refval': mcxpy.tolist()}})
         if pcepod:
             loctdict.update({'pcepod': copy.deepcopy(pcepoddict)})
+        if pcepod:
+            loctdict.update({'mcpod': copy.deepcopy(mcpoddict)})
 
         tdict.update({tit: copy.deepcopy(loctdict)})
 
