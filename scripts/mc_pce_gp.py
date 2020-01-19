@@ -94,8 +94,6 @@ def simit(problem='circle', meshlevel=None,
 
     if not (pcepod or mcpod):
         return
-    if pcepod and pcexpy is None or mcpod and mcxpy is None:
-        raise UserWarning('wont do the POD -- nothing compares')
 
     # ## CHAP genpod
     mmat = problemfems['mmat']
@@ -104,8 +102,8 @@ def simit(problem='circle', meshlevel=None,
     tdict = {}
 
     for tit in range(timings):
+        loctdict = {'basisfrom': basisfrom}
         if basisfrom == 'pce':
-
             trttstart = time.time()
             trnabscissae, trnweights, trncompexpv = mpu.\
                 setup_pce(distribution='uniform',
@@ -126,11 +124,17 @@ def simit(problem='circle', meshlevel=None,
             trtelt = time.time() - trttstart
             print('{0}: Elapsed time: {1}'.format('snapshot computation',
                                                   trtelt))
-            trainpcexpy = trncompexpv(ysoltens)
-            # ctrainpcexpy = compexpv(cysoltens)
-            trainerror = (cmat.dot(trainpcexpy)-pcexpy).tolist()
-            print('train pce({0:2.0f}), error={1}'.format(pcesnapdim,
-                                                          trainerror))
+            trainpcexpy = cmat.dot(trncompexpv(ysoltens))
+            print('estimated expected value (pce): {0}'.format(trainpcexpy))
+            loctdict.update({'training-pce-expv': trainpcexpy.tolist(),
+                             'traintime': trtelt})
+
+            if pcexpy is not None:
+                trnrpcexpy = (trainpcexpy-pcexpy)
+                print('-> difference expv (pce): {0}'.format(trnrpcexpy))
+            if mcxpy is not None:
+                trnrmcexpy = mcxpy - trainpcexpy
+                print('-> difference mc estimate: {0}'.format(trnrmcexpy))
 
             def get_pod_vecs(poddim=None):
                 return tsu.modeone_massmats_svd(ysoltens, mfl, poddim)
@@ -142,26 +146,27 @@ def simit(problem='circle', meshlevel=None,
             varinulist = varinu.tolist()
             mcout, _, _ = mpu.run_mc_sim(varinulist, get_sol,
                                          multiproc=multiproc)
-            pceymat = mcout.T
-            lypceymat = facmy.Ft*pceymat
+            lymcmat = facmy.Ft*mcout.T
             trtelt = time.time() - trttstart
             print('POD basis by {0} random samplings'.format(mcsnap))
-            trainerror = mcxpy - np.average(cmat.dot(pceymat), axis=1)
-            trainerror = trainerror.tolist()
-            print('Error in expv from POD basis: {0}'.format(trainerror))
+            snpshmean = np.average(cmat.dot(mcout.T), axis=1)
+            print('estimated mean of the samplings: {0}'.format(snpshmean))
+            loctdict.update({'training-mc-estmean': snpshmean.tolist(),
+                             'traintime': trtelt})
+            if pcexpy is not None:
+                trnrpcexpy = pcexpy - snpshmean
+                print('-> difference expv (pce): {0}'.format(trnrpcexpy))
+            if mcxpy is not None:
+                trnrmcexpy = mcxpy - np.average(cmat.dot(mcout.T), axis=1)
+                print('-> difference mc estimate: {0}'.format(trnrmcexpy))
 
             def get_pod_vecs(poddim=None):
-                ypodvecs = gpu.get_ksvvecs(sol=lypceymat, poddim=poddim,
+                ypodvecs = gpu.get_ksvvecs(sol=lymcmat, poddim=poddim,
                                            plotsvs=plotplease, labl='SVs')
                 return ypodvecs
 
         # lypceymat = pceymat
         redsolfile = dolfin.File('results/rdsol-N{0}pod.pvd'.format(meshlevel))
-        cmpwmc = 'comp reduced mc and full mc'
-        cmpwpce = 'comp reduced mc and full pce'
-        loctdict = {'basisfrom': basisfrom,
-                    'traintime': trtelt,
-                    'trainerror': trainerror}
 
         pcepoddict = {}
         mcpoddict = {}
@@ -185,7 +190,7 @@ def simit(problem='circle', meshlevel=None,
                                                            meshlevel, poddim))
 
             if pcepod:
-                errlist, eltlist = [], []
+                pcereslist, eltlist = [], []
                 print('dim of reduced model: {0}'.format(poddim))
                 for pcedim in pcedimlist:
                     abscissae, weights, compredexpv = mpu.\
@@ -200,15 +205,14 @@ def simit(problem='circle', meshlevel=None,
                                               abscissae=abscissae)
                     redpcexpy = compredexpv(redysoltens)
                     elt = time.time() - tstart
-                    err = (redpcexpy-pcexpy).tolist()
-                    errlist.append(err)
+                    pcereslist.append(redpcexpy.tolist())
                     eltlist.append(elt)
-                    print('pce={0:2.0f}, exypce={1}, elt={2:.2f}'.
-                          format(pcedim, err, elt))
+                    if pcexpy is not None:
+                        print('pce={0:2.0f}, exypce={1}, elt={2:.2f}'.
+                              format(pcedim, redpcexpy-pcexpy, elt))
                 pcepoddict.update({poddim: {'pcedims': pcedimlist,
-                                            'errors': errlist,
-                                            'elts': eltlist,
-                                            'refval': pcexpy}})
+                                            'pceres': pcereslist,
+                                            'elts': eltlist}})
 
             if mcpod:
                 varinu = nulb + (nuub-nulb)*np.random.rand(mcruns, uncdims)
@@ -220,24 +224,15 @@ def simit(problem='circle', meshlevel=None,
                  expvnu) = mpu.run_mc_sim(varinulist, red_realize_output,
                                           multiproc=multiproc)
                 mcpelt = time.time() - mcptstart
-                mcperr = rmcxpy - mcxpy
-                cmpwmc += 'poddim={0:2.0f}, rmcxpy-mcxpy={1}'.\
-                    format(poddim, rmcxpy-mcxpy)
-                try:
-                    cmpwpce += 'poddim={0:2.0f}, rmcxpy-pcexpy={1}'.\
-                        format(poddim, rmcxpy-pcexpy)
-                except NameError:
-                    pass
-
-                print('mcruns={0:2.0f}, poddim={2:2.0f}, rmcxpy-mcxpy={1}'.
-                      format(redmcruns, rmcxpy-mcxpy, poddim))
+                if mcxpy is not None:
+                    print('mcruns={0:2.0f}, poddim={2:2.0f}, rmcxpy-mcxpy={1}'.
+                          format(redmcruns, rmcxpy-mcxpy, poddim))
                 mcpoddict.update({poddim: {'mcruns': mcruns,
-                                           'error': mcperr.tolist(),
-                                           'elt': mcpelt,
-                                           'refval': mcxpy.tolist()}})
+                                           'mcres': rmcxpy.tolist(),
+                                           'elt': mcpelt}})
         if pcepod:
             loctdict.update({'pcepod': copy.deepcopy(pcepoddict)})
-        if pcepod:
+        if mcpod:
             loctdict.update({'mcpod': copy.deepcopy(mcpoddict)})
 
         tdict.update({tit: copy.deepcopy(loctdict)})
