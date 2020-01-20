@@ -114,17 +114,18 @@ def simit(problem='circle', meshlevel=None,
 
             mfl = [facmy.F]
             mfl.extend([pcewmatfac]*uncdims)
-            ysoltens = mpu.run_pce_sim_separable(solfunc=get_sol,
-                                                 uncdims=uncdims,
-                                                 multiproc=multiproc,
-                                                 abscissae=trnabscissae)
+            trainsoltens = mpu.run_pce_sim_separable(solfunc=get_sol,
+                                                     uncdims=uncdims,
+                                                     multiproc=multiproc,
+                                                     abscissae=trnabscissae)
             # cysoltens = mpu.run_pce_sim_separable(solfunc=get_output,
             #                                       uncdims=uncdims,
             #                                       abscissae=abscissae)
             trtelt = time.time() - trttstart
             print('{0}: Elapsed time: {1}'.format('snapshot computation',
                                                   trtelt))
-            trainpcexpy = cmat.dot(trncompexpv(ysoltens))
+            trainexpv = trncompexpv(trainsoltens)
+            trainpcexpy = cmat.dot(trainexpv)
             print('estimated expected value (pce): {0}'.format(trainpcexpy))
             loctdict.update({'training-pce-expv': trainpcexpy.tolist(),
                              'traintime': trtelt})
@@ -137,7 +138,7 @@ def simit(problem='circle', meshlevel=None,
                 print('-> difference mc estimate: {0}'.format(trnrmcexpy))
 
             def get_pod_vecs(poddim=None):
-                return tsu.modeone_massmats_svd(ysoltens, mfl, poddim)
+                return tsu.modeone_massmats_svd(trainsoltens, mfl, poddim)
 
         elif basisfrom == 'mc':
             trttstart = time.time()
@@ -149,9 +150,10 @@ def simit(problem='circle', meshlevel=None,
             lymcmat = facmy.Ft*mcout.T
             trtelt = time.time() - trttstart
             print('POD basis by {0} random samplings'.format(mcsnap))
-            snpshmean = np.average(cmat.dot(mcout.T), axis=1)
-            print('estimated mean of the samplings: {0}'.format(snpshmean))
-            loctdict.update({'training-mc-estmean': snpshmean.tolist(),
+            snpshmean = np.average(mcout.T, axis=1)
+            snpshymean = cmat.dot(snpshmean)
+            print('estimated mean of the samplings: {0}'.format(snpshymean))
+            loctdict.update({'training-mc-estmean': snpshymean.tolist(),
                              'traintime': trtelt})
             if pcexpy is not None:
                 trnrpcexpy = pcexpy - snpshmean
@@ -170,6 +172,8 @@ def simit(problem='circle', meshlevel=None,
 
         pcepoddict = {}
         mcpoddict = {}
+        crmeltlist = []
+        rmprjerrs = []
         for poddim in poddimlist:
             tstart = time.time()
             ypodvecs = get_pod_vecs(poddim)
@@ -177,9 +181,19 @@ def simit(problem='circle', meshlevel=None,
             red_realize_sol, red_realize_output, red_probfems, red_plotit \
                 = get_red_problem(lyitVy)
             red_cmat = red_probfems['cmat']
-            elt = time.time() - tstart
+            crmelt = time.time() - tstart
+            crmeltlist.append(crmelt)
+
             print('poddim:{2}: {0}: elt: {1}'.format('reduced model comp',
-                                                     elt, poddim))
+                                                     crmelt, poddim))
+            if basisfrom == 'pce':
+                cndsdexpv = lyitVy.T.dot(mmat.dot(trainexpv))
+                prjerror = trainpcexpy - red_cmat.dot(cndsdexpv)
+            elif basisfrom == 'mc':
+                cndsshm = lyitVy.T.dot(mmat.dot(snpshmean))
+                prjerror = snpshymean - red_cmat.dot(cndsshm)
+
+            rmprjerrs.append(prjerror.tolist())
 
             if checkredmod:
                 nulist = [basenu]*uncdims
@@ -234,6 +248,8 @@ def simit(problem='circle', meshlevel=None,
             loctdict.update({'pcepod': copy.deepcopy(pcepoddict)})
         if mcpod:
             loctdict.update({'mcpod': copy.deepcopy(mcpoddict)})
+        loctdict.update({'comp-redmod-elts': crmeltlist,
+                         'redmod-prj-errs': rmprjerrs})
 
         tdict.update({tit: copy.deepcopy(loctdict)})
 
