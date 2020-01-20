@@ -142,7 +142,7 @@ def simit(problem='circle', meshlevel=None,
 
         elif basisfrom == 'mc':
             trttstart = time.time()
-            varinu = nulb + (nuub-nulb)*np.random.rand(mcruns, uncdims)
+            varinu = nulb + (nuub-nulb)*np.random.rand(mcsnap, uncdims)
             expvnu = np.average(varinu, axis=0)
             varinulist = varinu.tolist()
             mcout, _, _ = mpu.run_mc_sim(varinulist, get_sol,
