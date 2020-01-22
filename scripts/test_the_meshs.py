@@ -3,11 +3,13 @@ from mc_pce_gp import simit
 
 problem = 'cylinder'
 plotplease = False
-meshlevellist = np.arange(5, 10)
+meshlevellist = np.arange(5, 12)
+meshlevellist = np.arange(12, 13)
 
 dofslist, ylist = [], []
 for meshlevel in meshlevellist:
     dofs, outpt = simit(problem=problem, meshlevel=meshlevel,
+                        nulb=4e-4, nuub=4e-4,
                         plotplease=plotplease, onlymeshtest=True)
     dofslist.append(dofs)
     ylist.append(outpt)

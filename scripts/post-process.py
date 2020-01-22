@@ -7,8 +7,9 @@ filedir = ''
 filedir = '../mechthild-logs/mechthildlogs/'
 jsfstr = 'N{0}nu3.00e-03--7.00e-03_pcepod_mcpod_bfmc.json'.format(N)
 jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod_mcpod_bfpce.json'.format(N)
-mcref = 1.
+mcref = 0.881759
 pceref = 0.88102114
+# mcref = pceref
 
 ddct = dou.load_json_dicts(filedir+jsfstr)
 basisfrom = ddct['0']['basisfrom']
@@ -45,9 +46,11 @@ for timit in tims:
 pcepodresarray = np.array(pcepodreslist)
 pceerrarray = pceref - pcepodresarray
 trainpceexpv = ddct['0']['training-pce-expv']
+print(poddims)
+print(pcedims)
 print('***pce errrors***')
 cpu.print_nparray_tex(np.median(pceerrarray, axis=0),
-                      formatit='math', fstr='.4e')
+                      formatit='math', fstr='.2e')
 
 print('***training errror***')
 print('{0:.4e}'.format(pceref-trainpceexpv[0]))
@@ -75,6 +78,8 @@ print('*** with basis from {0} ***'.format(basisfrom))
 
 poddims = list((ddct['0']['mcpod']).keys())
 mcruns = ddct['0']['mcpod'][poddims[0]]['mcruns']
+print('*** mc runs ***')
+print(mcruns)
 
 tims = list(ddct.keys())
 
@@ -98,8 +103,12 @@ for timit in tims:
 
 mcpodresarray = np.array(mcpodreslist)
 mcerrarray = mcref - mcpodresarray
-print('***mc errrors***')
+print('***mc errrors median (out of {0})***'.format(len(tims)))
 cpu.print_nparray_tex(np.median(mcerrarray, axis=0),
+                      formatit='math', fstr='.4e')
+
+print('***mc errrors min (out of {0})***'.format(len(tims)))
+cpu.print_nparray_tex(np.min(mcerrarray, axis=0),
                       formatit='math', fstr='.4e')
 
 print('*** training time (min out of {0})***'.format(len(tims)))
