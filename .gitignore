@@ -1,2 +1,10 @@
 *.vtu
 *.pvd
+*.xml.gz
+_tmp_*_chunk*
+
+pics/
+logs/
+editha-logs/
+mesh/3D-mshs/
+mesh/plots/
