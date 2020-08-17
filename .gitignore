@@ -2,9 +2,11 @@
 *.pvd
 *.xml.gz
 _tmp_*_chunk*
+*.json
 
 pics/
 logs/
 editha-logs/
 mesh/3D-mshs/
 mesh/plots/
+bu-mechthildlogs/
