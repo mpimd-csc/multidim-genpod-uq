@@ -8,6 +8,12 @@ from scipy.io import savemat, loadmat
 import spacetime_galerkin_pod.chaos_expansion_utils as ceu
 
 
+def solfunc_to_variance(solfunc, expv):
+    def sfvariance(para):
+        return (solfunc(para) - expv)**2
+    return sfvariance
+
+
 def run_mc_sim(parlist, solfunc, chunks=10, multiproc=0,
                comp_para_ev=True, verbose=False, ret_ev=True):
     expvpara = None
@@ -168,4 +174,14 @@ def setup_pce(distribution='uniform', distrpars={}, pcedim=None, uncdims=None):
             expv += cw*maty[:, idx]
         return scalefac*expv
 
-    return abscissae, weights, comp_expv
+    def comp_vrnc(ytens, expv):
+        ydim = ytens.shape[0]
+        vrnc = 0
+        matysqrd = np.square(ytens.reshape((ydim, -1)))
+    # for kk, cw in enumerate(weights):
+        for idx, wtpl in enumerate(product(weights, repeat=uncdims)):
+            cw = (np.array(wtpl)).prod()
+            vrnc += cw*matysqrd[:, idx]
+        return scalefac*vrnc - expv**2
+
+    return abscissae, weights, comp_expv, comp_vrnc

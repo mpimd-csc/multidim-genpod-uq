@@ -26,3 +26,7 @@ very different.
  * rewrote mesh to better control refinement
  * convergence of the results in the range of 1e-5 only for ML>10 = #dof~200.000
 
+## 2020-08-17 23:32:28+02:00
+
+ * test script `test_pce_mc.py`
+ * pce very exact -- mc horribly slow convergence
