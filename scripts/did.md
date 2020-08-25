@@ -30,3 +30,12 @@ very different.
 
  * test script `test_pce_mc.py`
  * pce very exact -- mc horribly slow convergence
+ * but works well -- will include this in the pub
+
+## 2020-08-25 10:45:31+02:00
+
+ * TODO: rerun big sims to also have the variance
+ * TODO: already prepare for code pub
+ * [ ] `spacetime_galerkin_pod` to `pip`
+ * [ ] add the pips for the dependencies
+ * [ ] prop this to mechthild
