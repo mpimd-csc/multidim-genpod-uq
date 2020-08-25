@@ -45,9 +45,9 @@ def simit(uncdims=1, mcsims=5, pcedims=[3],
                                              multiproc=nprocs,
                                              abscissae=abscissae)
         pcexpy = compexpv(ysoltens)
-        pcvrnc = compvrnc(ysoltens, pcexpy)
+        pcexpysqrd = compexpv(np.square(ysoltens))
         pcexps.append(pcexpy)
-        pcevrs.append(pcvrnc)
+        pcevrs.append(pcexpysqrd-pcexpy**2)
 
     mcexps, mcevrs = [], []
     for mcruns in mcrunslist:

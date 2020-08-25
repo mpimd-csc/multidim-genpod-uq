@@ -11,7 +11,7 @@ jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod{1}_bfpce.json'.format(N, podpcebas)
 # jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod_mcpod_bfmc.json'.format(N)
 mcref = 0.881759
 pceref = 0.88159
-pcevrncref = 0.
+pceeyyref = 0.
 mcref = pceref
 
 mcpod = False
@@ -35,29 +35,30 @@ trntimelist = []
 crmlist = []
 rmprjelist = []
 pcepodreslist = []
-pcepodvrncslist = []
+pcepodeyyslist = []
 for timit in tims:
     trntimelist.append(ddct[timit]['traintime'])
     pcepodtimlist = []
     lpcepodreslist = []
-    lpcepodvrncslist = []
+    lpcepodeyyslist = []
     for cpd in poddims:
         pcepodtimlist.append(ddct[timit]['pcepod'][cpd]['elts'])
         cpceres = np.array(ddct[timit]['pcepod'][cpd]['pceres'])
-        cpcvrnc = np.array(ddct[timit]['pcepod'][cpd]['pcepodvrncs'])
+        cpceyys = np.array(ddct[timit]['pcepod'][cpd]['pcepodeyys'])
         lpcepodreslist.append(cpceres.flatten())
-        lpcepodvrncslist.append(cpcvrnc.flatten())
+        lpcepodeyyslist.append(cpceyys.flatten())
     teltlist.append(pcepodtimlist)
     pcepodreslist.append(lpcepodreslist)
-    pcepodvrncslist.append(lpcepodvrncslist)
+    pcepodeyyslist.append(lpcepodeyyslist)
     crmlist.append(ddct[timit]['comp-redmod-elts'])
     rmprjelist.append(np.array(ddct[timit]['redmod-prj-errs']).flatten())
 
 pcepodresarray = np.array(pcepodreslist)
 pceerrarray = pceref - pcepodresarray
 
-pcepodvrncsarray = np.array(pcepodvrncslist)
-pcevrncserrarray = pcevrncref - pcepodvrncsarray
+pcepodeyyarray = np.array(pcepodeyyslist)
+pcepodvrncserrarray = pcepodeyyarray - pcepodeyyarray**2 -\
+        (pceeyyref - pceref**2)
 
 if basisfrom == 'pce':
     trainpceexpv = ddct['0']['training-pce-expv']
@@ -71,7 +72,7 @@ cpu.print_nparray_tex(np.median(pceerrarray, axis=0),
                       formatit='math', fstr='.2e')
 
 print('***pce errrors V(y)***')
-cpu.print_nparray_tex(np.median(pcevrncserrarray, axis=0),
+cpu.print_nparray_tex(np.median(pcepodvrncserrarray, axis=0),
                       formatit='math', fstr='.2e')
 
 print('*** training time (min out of {0})***'.format(len(tims)))

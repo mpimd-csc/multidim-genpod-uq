@@ -91,10 +91,9 @@ def simit(problem='circle', meshlevel=None,
                                                  multiproc=multiproc,
                                                  abscissae=abscissae)
             pcexpy = compexpv(ysoltens)
-            pcvrnc = mpu.pce_comp_vrnc(ysoltens, pcexpy, weights=weights,
-                                       uncdims=uncdims)
+            pcexpysqrd = compexpv(np.square(ysoltens))
             print('PCE({0}): E(y): {1}'.format(pcedim, pcexpy))
-            print('PCE({0}): V(y): {1}'.format(pcedim, pcvrnc))
+            print('PCE({0}): V(y): {1}'.format(pcedim, pcexpysqrd-pcexpy**2))
 
     if not (pcepod or mcpod):
         return
@@ -208,7 +207,7 @@ def simit(problem='circle', meshlevel=None,
                                                            meshlevel, poddim))
 
             if pcepod:
-                pcereslist, pcepodvrncs, eltlist = [], [], []
+                pcereslist, pcepodeysqrd, eltlist = [], [], []
                 print('dim of reduced model: {0}'.format(poddim))
                 for pcedim in pcedimlist:
                     abscissae, weights, compredexpv, compredvrnc = mpu.\
@@ -223,22 +222,20 @@ def simit(problem='circle', meshlevel=None,
                                               abscissae=abscissae)
                     redpcexpy = compredexpv(redysoltens)
                     elt = time.time() - tstart
-                    redpcvrnc = mpu.pce_comp_vrnc(ysoltens, redpcexpy,
-                                                  weights=weights,
-                                                  uncdims=uncdims)
+                    redpcexpeysqrd = compredexpv(np.square(redysoltens))
                     pcereslist.append(redpcexpy.tolist())
-                    pcepodvrncs.append(redpcvrnc.tolist())
+                    pcepodeysqrd.append(redpcexpeysqrd.tolist())
                     eltlist.append(elt)
                     if pcexpy is not None:
                         print('pce={0:2.0f}, exypce={1}, elt={2:.2f}'.
                               format(pcedim, redpcexpy-pcexpy, elt))
                     if pcvrnc is not None:
                         print('pce={0:2.0f}, evrnc={1}'.
-                              format(pcedim, redpcvrnc-pcvrnc))
+                              format(pcedim, redpcexpeysqrd-pcexpy**2-pcvrnc))
 
                 pcepoddict.update({poddim: {'pcedims': pcedimlist,
                                             'pceres': pcereslist,
-                                            'pcepodvrncs': pcepodvrncs,
+                                            'pcepodeyys': pcepodeysqrd,
                                             'elts': eltlist}})
 
             if mcpod:
