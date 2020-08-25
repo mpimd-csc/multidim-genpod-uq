@@ -21,7 +21,8 @@ from cyl_subsec import get_problem as cylinder
 def simit(problem='circle', meshlevel=None,
           mcruns=None, pcedimlist=None, plotplease=False,
           mcplease=False, pceplease=False, mcpod=False, pcepod=False,
-          checkredmod=False, pcexpy=None, mcxpy=None, redmcruns=None,
+          checkredmod=False, pcexpy=None, pcvrnc=0.,
+          mcxpy=None, redmcruns=None,
           mcsnap=None, pcesnapdim=None, onlymeshtest=False,
           # basenu=5e-4, varia=-1e-4, varib=1e-4,
           multiproc=0, timings=1,
@@ -80,7 +81,7 @@ def simit(problem='circle', meshlevel=None,
     # ## CHAP Polynomial Chaos Expansion
     if pceplease:
         for pcedim in pcedimlist:
-            abscissae, weights, compexpv, compvrnc = mpu.\
+            abscissae, weights, compexpv, _ = mpu.\
                 setup_pce(distribution='uniform',
                           distrpars=dict(a=nua, b=nub),
                           pcedim=pcedim, uncdims=uncdims)
@@ -90,7 +91,10 @@ def simit(problem='circle', meshlevel=None,
                                                  multiproc=multiproc,
                                                  abscissae=abscissae)
             pcexpy = compexpv(ysoltens)
+            pcvrnc = mpu.pce_comp_vrnc(ysoltens, pcexpy, weights=weights,
+                                       uncdims=uncdims)
             print('PCE({0}): E(y): {1}'.format(pcedim, pcexpy))
+            print('PCE({0}): V(y): {1}'.format(pcedim, pcvrnc))
 
     if not (pcepod or mcpod):
         return
@@ -204,7 +208,7 @@ def simit(problem='circle', meshlevel=None,
                                                            meshlevel, poddim))
 
             if pcepod:
-                pcereslist, eltlist = [], []
+                pcereslist, pcepodvrncs, eltlist = [], [], []
                 print('dim of reduced model: {0}'.format(poddim))
                 for pcedim in pcedimlist:
                     abscissae, weights, compredexpv, compredvrnc = mpu.\
@@ -219,13 +223,22 @@ def simit(problem='circle', meshlevel=None,
                                               abscissae=abscissae)
                     redpcexpy = compredexpv(redysoltens)
                     elt = time.time() - tstart
+                    redpcvrnc = mpu.pce_comp_vrnc(ysoltens, redpcexpy,
+                                                  weights=weights,
+                                                  uncdims=uncdims)
                     pcereslist.append(redpcexpy.tolist())
+                    pcepodvrncs.append(redpcvrnc.tolist())
                     eltlist.append(elt)
                     if pcexpy is not None:
                         print('pce={0:2.0f}, exypce={1}, elt={2:.2f}'.
                               format(pcedim, redpcexpy-pcexpy, elt))
+                    if pcvrnc is not None:
+                        print('pce={0:2.0f}, evrnc={1}'.
+                              format(pcedim, redpcvrnc-pcvrnc))
+
                 pcepoddict.update({poddim: {'pcedims': pcedimlist,
                                             'pceres': pcereslist,
+                                            'pcepodvrncs': pcepodvrncs,
                                             'elts': eltlist}})
 
             if mcpod:

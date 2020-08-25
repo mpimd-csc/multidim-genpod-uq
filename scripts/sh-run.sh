@@ -1,10 +1,10 @@
 source addpypath.sh
 
-MESH=10
+MESH=3
 MC=0
-PCE=0
-PCEDIMS='2'  # -3-4-5'
-PODDIMS='5-10-15-20'
+PCE=1
+PCEDIMS='2-3'  # -3-4-5'
+PODDIMS='3-6-9-12-15-16'
 PCEPOD=1
 MCPOD=0
 BASISFROM=mc
@@ -29,6 +29,6 @@ python3 run_the_sims.py --mesh $MESH \
     --pcepod $PCEPOD --pcesnapdim $PCESNAPDIM --pcexpy $PCEXPY \
     --varinu $VARINU \
     --mcpod $MCPOD --mcsnap $MCSNAP # \
-    >> logs/$LOGFILE
+    # >> logs/$LOGFILE
     # --mcpod 1 \
     # --mc 1000 \

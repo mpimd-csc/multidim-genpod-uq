@@ -185,3 +185,15 @@ def setup_pce(distribution='uniform', distrpars={}, pcedim=None, uncdims=None):
         return scalefac*vrnc - expv**2
 
     return abscissae, weights, comp_expv, comp_vrnc
+
+
+def pce_comp_vrnc(ytens, expv, weights=None, uncdims=None, scalefac=None):
+    if scalefac is None:
+        scalefac = (1./weights.sum())**uncdims
+    ydim = ytens.shape[0]
+    vrnc = 0
+    matysqrd = np.square(ytens.reshape((ydim, -1)))
+    for idx, wtpl in enumerate(product(weights, repeat=uncdims)):
+        cw = (np.array(wtpl)).prod()
+        vrnc += cw*matysqrd[:, idx]
+    return scalefac*vrnc - expv**2
