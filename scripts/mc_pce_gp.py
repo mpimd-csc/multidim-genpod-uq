@@ -80,7 +80,7 @@ def simit(problem='circle', meshlevel=None,
     # ## CHAP Polynomial Chaos Expansion
     if pceplease:
         for pcedim in pcedimlist:
-            abscissae, weights, compexpv = mpu.\
+            abscissae, weights, compexpv, compvrnc = mpu.\
                 setup_pce(distribution='uniform',
                           distrpars=dict(a=nua, b=nub),
                           pcedim=pcedim, uncdims=uncdims)
@@ -105,7 +105,7 @@ def simit(problem='circle', meshlevel=None,
         loctdict = {'basisfrom': basisfrom}
         if basisfrom == 'pce':
             trttstart = time.time()
-            trnabscissae, trnweights, trncompexpv = mpu.\
+            trnabscissae, trnweights, trncompexpv, trncomvrnc = mpu.\
                 setup_pce(distribution='uniform',
                           distrpars=dict(a=nua, b=nub),
                           pcedim=pcesnapdim, uncdims=uncdims)
@@ -207,7 +207,7 @@ def simit(problem='circle', meshlevel=None,
                 pcereslist, eltlist = [], []
                 print('dim of reduced model: {0}'.format(poddim))
                 for pcedim in pcedimlist:
-                    abscissae, weights, compredexpv = mpu.\
+                    abscissae, weights, compredexpv, compredvrnc = mpu.\
                         setup_pce(distribution='uniform',
                                   distrpars=dict(a=nua, b=nub),
                                   pcedim=pcedim, uncdims=uncdims)

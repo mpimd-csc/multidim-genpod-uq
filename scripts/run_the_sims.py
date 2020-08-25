@@ -20,13 +20,13 @@ pcepod = False
 # mcplease = True
 pceplease = True
 # plotplease = True
-# pcepod = True
+pcepod = True
 # mcpod = True
 
 basisfrom = 'mc'
 basisfrom = 'pce'
 problem = 'cylinder'
-meshlevel = 1
+meshlevel = 10
 nulb = 4e-4
 nuub = 6e-4
 nprocs = 2
