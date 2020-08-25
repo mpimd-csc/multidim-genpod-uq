@@ -8,9 +8,9 @@ import json
 import dolfin
 
 # import spacetime_galerkin_pod.chaos_expansion_utils as ceu
-import spacetime_galerkin_pod.ten_sor_utils as tsu
-import spacetime_galerkin_pod.gen_pod_utils as gpu
-from spacetime_galerkin_pod.ldfnp_ext_cholmod import SparseFactorMassmat
+import multidim_galerkin_pod.ten_sor_utils as tsu
+import multidim_galerkin_pod.gen_pod_utils as gpu
+from multidim_galerkin_pod.ldfnp_ext_cholmod import SparseFactorMassmat
 
 import gen_pod_uq.mc_pce_utils as mpu
 

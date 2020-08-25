@@ -5,7 +5,7 @@ import os
 import numpy as np
 from scipy.io import savemat, loadmat
 
-import spacetime_galerkin_pod.chaos_expansion_utils as ceu
+import multidim_galerkin_pod.chaos_expansion_utils as ceu
 
 
 def solfunc_to_variance(solfunc, expv):
