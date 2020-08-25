@@ -75,16 +75,16 @@ print('***pce errrors V(y)***')
 cpu.print_nparray_tex(np.median(pcepodvrncserrarray, axis=0),
                       formatit='math', fstr='.2e')
 
-print('*** training time (min out of {0})***'.format(len(tims)))
+print('*** training time (min out of {0}) ***'.format(len(tims)))
 cpu.print_nparray_tex((np.array(trntimelist)).min(),
                       formatit='texttt', fstr='.2f')
 
 print('*** poddims and ' +
-      'comp red mod (min out of {0})***'.format(len(tims)))
+      'comp red mod (min out of {0}) ***'.format(len(tims)))
 print(poddims)
 cpu.print_nparray_tex((np.array(crmlist)).min(axis=0),
                       formatit='texttt', fstr='.2f')
-print('*** comp red projection error (med out of {0})***'.format(len(tims)))
+print('*** comp red projection error (med out of {0}) ***'.format(len(tims)))
 print(np.median(np.array(rmprjelist), axis=0))
 
 teltarray = np.array(teltlist)
