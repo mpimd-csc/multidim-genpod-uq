@@ -330,6 +330,10 @@ def simit(problem='circle', meshlevel=None,
             pxexpxdct['podpcexpx'].update({pcepoddiffdim: podpcexpx.tolist()})
             print('appended the pod{0}-pce-Ex from: '.format(pcepoddiffdim),
                   pcepoddiffstr)
+        ppdpvdfile = dolfin.File('results/pce{2}pod{3}dif-nu{1:0.2e}-N{0}.pvd'.
+                                 format(meshlevel, basenu, pcedimlist[-1],
+                                        pcepoddiffdim))
+        plotit(vvec=basev, pvdfile=ppdpvdfile, plotplease=True)
 
     plt.show()
 
