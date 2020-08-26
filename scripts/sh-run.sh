@@ -19,6 +19,7 @@ PCEXPY=0.88102114
 NPROCS=4
 TIMINGS=1
 LOGFILE=alldump
+PCEPLOTDIFFDIM=9
 echo 'tail -f logs/'$LOGFILE
 
 python3 run_the_sims.py --mesh $MESH \
@@ -28,7 +29,8 @@ python3 run_the_sims.py --mesh $MESH \
     --poddims $PODDIMS --podbase $BASISFROM \
     --pcepod $PCEPOD --pcesnapdim $PCESNAPDIM --pcexpy $PCEXPY \
     --varinu $VARINU \
-    --mcpod $MCPOD --mcsnap $MCSNAP # \
+    --mcpod $MCPOD --mcsnap $MCSNAP \
+    --plotpcepoddifddim $PCEPLOTDIFFDIM # \
     # >> logs/$LOGFILE
     # --mcpod 1 \
     # --mc 1000 \

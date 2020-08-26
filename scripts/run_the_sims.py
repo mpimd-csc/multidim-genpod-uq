@@ -55,7 +55,7 @@ options, rest = getopt.getopt(sys.argv[1:], '',
                                'mcxpy=',
                                'pcexpy=',
                                'timings=',
-                               'plpcdfdm='
+                               'plotpcepoddifddim='
                                ])
 
 for opt, arg in options:
@@ -98,7 +98,7 @@ for opt, arg in options:
         pcexpy = np.float(arg)
     elif opt == '--timings':
         timings = np.int(arg)
-    elif opt == '--plpcdfdm':
+    elif opt == '--plotpcepoddifddim':
         pcepoddiffdim = np.int(arg)
         if pcepoddiffdim > 0:
             plotpcepoddiff = True
