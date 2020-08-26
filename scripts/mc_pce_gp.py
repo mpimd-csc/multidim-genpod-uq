@@ -333,7 +333,7 @@ def simit(problem='circle', meshlevel=None,
         ppdpvdfile = dolfin.File('results/pce{2}pod{3}dif-nu{1:0.2e}-N{0}.pvd'.
                                  format(meshlevel, basenu, pcedimlist[-1],
                                         pcepoddiffdim))
-        plotit(vvec=basev, pvdfile=ppdpvdfile, plotplease=True)
+        plotit(vvec=pcexpx-podpcexpx, pvdfile=ppdpvdfile, plotplease=True)
 
     plt.show()
 
