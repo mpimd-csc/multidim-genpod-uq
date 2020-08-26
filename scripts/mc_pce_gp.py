@@ -20,7 +20,7 @@ from circle_subsec import get_problem
 from cyl_subsec import get_problem as cylinder
 
 plotpcepoddiff = True
-pcepoddiffdim = 9
+pcepoddiffdim = 8
 
 
 def simit(problem='circle', meshlevel=None,
@@ -113,6 +113,7 @@ def simit(problem='circle', meshlevel=None,
         try:
             pxexpxdct = dou.load_json_dicts(pcepoddiffstr)
             pcexpx = np.array(pxexpxdct['pcexpx'])
+            print('loaded the pce-Ex from: ', pcepoddiffstr)
         except IOError:
             abscissae, weights, compexpv, _ = mpu.\
                 setup_pce(distribution='uniform',
@@ -127,6 +128,7 @@ def simit(problem='circle', meshlevel=None,
             jsfile.write(json.dumps({'pcexpx': pcexpx.tolist(),
                                      'podpcexpx': {}}))
             jsfile.close()
+            print('saved the pce-Ex to: ', pcepoddiffstr)
 
     if not (pcepod or mcpod):
         return
@@ -307,6 +309,8 @@ def simit(problem='circle', meshlevel=None,
         pcexpx = np.array(pxexpxdct['pcexpx'])
         try:
             podpcexpx = np.array(pxexpxdct['podpcexpx'][pcepoddiffdim])
+            print('loaded the pod{0}-pce-Ex from: '.format(pcepoddiffdim),
+                  pcepoddiffstr)
         except KeyError:
             ypodvecs = get_pod_vecs(pcepoddiffdim)
             lyitVy = facmy.solve_Ft(ypodvecs)
@@ -324,6 +328,8 @@ def simit(problem='circle', meshlevel=None,
                                       abscissae=abscissae)
             podpcexpx = compredexpv(redxsoltens)
             pxexpxdct['podpcexpx'].update({pcepoddiffdim: podpcexpx.tolist()})
+            print('appended the pod{0}-pce-Ex from: '.format(pcepoddiffdim),
+                  pcepoddiffstr)
 
     plt.show()
 
