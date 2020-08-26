@@ -103,6 +103,7 @@ def simit(problem='circle', meshlevel=None,
             pcexpy = compexpv(ysoltens)
             pcexpysqrd = compexpv(np.square(ysoltens))
             print('PCE({0}): E(y): {1}'.format(pcedim, pcexpy))
+            print('PCE({0}): E(yy): {1}'.format(pcedim, pcexpysqrd))
             print('PCE({0}): V(y): {1}'.format(pcedim, pcexpysqrd-pcexpy**2))
 
     if plotpcepoddiff:
@@ -326,7 +327,7 @@ def simit(problem='circle', meshlevel=None,
                                       abscissae=abscissae)
             podpcexpx = compredexpv(redxsoltens)
             pxexpxdct['podpcexpx'].update({pcepoddiffdim: podpcexpx.tolist()})
-            print('appended the pod{0}-pce-Ex from: '.format(pcepoddiffdim),
+            print('appended the pod{0}-pce-Ex to: '.format(pcepoddiffdim),
                   pcepoddiffstr)
         ppdpvdfile = dolfin.File('results/pce{2}pod{3}dif-nu{1:0.2e}-N{0}.pvd'.
                                  format(meshlevel, basenu, pcedimlist[-1],
