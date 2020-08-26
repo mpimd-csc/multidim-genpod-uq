@@ -265,9 +265,10 @@ def simit(problem='circle', meshlevel=None,
                     if pcexpy is not None:
                         print('pce={0:2.0f}, exypce={1}, elt={2:.2f}'.
                               format(pcedim, redpcexpy-pcexpy, elt))
-                    if pcvrnc is not None:
-                        print('pce={0:2.0f}, evrnc={1}'.
-                              format(pcedim, redpcexpeysqrd-pcexpy**2-pcvrnc))
+                        if pcvrnc is not None:
+                            print('pce={0:2.0f}, evrnc={1}'.
+                                  format(pcedim,
+                                         redpcexpeysqrd-pcexpy**2-pcvrnc))
 
                 pcepoddict.update({poddim: {'pcedims': pcedimlist,
                                             'pceres': pcereslist,
