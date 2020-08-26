@@ -32,6 +32,9 @@ nuub = 6e-4
 nprocs = 2
 timings = 1
 
+plotpcepoddiff = False
+pcepoddiffdim = 9
+
 mcxpy, pcexpy = None, None
 
 
@@ -51,7 +54,8 @@ options, rest = getopt.getopt(sys.argv[1:], '',
                                'nprocs=',
                                'mcxpy=',
                                'pcexpy=',
-                               'timings='
+                               'timings=',
+                               'plpcdfdm='
                                ])
 
 for opt, arg in options:
@@ -94,6 +98,10 @@ for opt, arg in options:
         pcexpy = np.float(arg)
     elif opt == '--timings':
         timings = np.int(arg)
+    elif opt == '--plpcdfdm':
+        pcepoddiffdim = np.int(arg)
+        if pcepoddiffdim > 0:
+            plotpcepoddiff = True
 
 infostring = ('meshlevel      = {0}'.format(meshlevel) +
               '\npce            = {0}'.format(pceplease) +
@@ -138,5 +146,6 @@ with Timer():
           mcsnap=mcsnap, pcesnapdim=pcesnapdim, poddimlist=poddimlist,
           multiproc=nprocs, timings=timings,
           # basenu=basenu, varia=varia, varib=varib,
+          plotpcepoddiff=plotpcepoddiff, pcepoddiffdim=pcepoddiffdim,
           nulb=nulb, nuub=nuub,
           mcplease=mcplease, pceplease=pceplease, mcpod=mcpod, pcepod=pcepod)

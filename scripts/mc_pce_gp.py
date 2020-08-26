@@ -19,9 +19,6 @@ import dolfin_navier_scipy.data_output_utils as dou
 from circle_subsec import get_problem
 from cyl_subsec import get_problem as cylinder
 
-plotpcepoddiff = True
-pcepoddiffdim = 8
-
 
 def simit(problem='circle', meshlevel=None,
           mcruns=None, pcedimlist=None, plotplease=False,
@@ -30,6 +27,7 @@ def simit(problem='circle', meshlevel=None,
           mcxpy=None, redmcruns=None,
           mcsnap=None, pcesnapdim=None, onlymeshtest=False,
           # basenu=5e-4, varia=-1e-4, varib=1e-4,
+          plotpcepoddiff=False, pcepoddiffdim=9,
           multiproc=0, timings=1,
           nulb=6e-4, nuub=8e-4,
           basisfrom='pce', poddimlist=[5, 10, 20]):
