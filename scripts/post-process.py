@@ -1,17 +1,26 @@
+import sys
+
 import dolfin_navier_scipy.data_output_utils as dou
 import numpy as np
 import mat_lib_plots.conv_plot_utils as cpu
 
-N = 3
+N = 10
 podpcebas = 2
+ranbasruns = 10
 filedir = ''
 # filedir = '../mechthild-logs/mechthildlogs/'
+jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod{1}_bfmc.json'.format(N, podpcebas)
 jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod{1}_bfpce.json'.format(N, podpcebas)
+jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod{1}_bfpce.json'.format(N, podpcebas)
+jsfstr = 'N10nu3.00e-04--7.00e-04_pcepod_bfmc16_runs10.json'
+jsfstr = 'N10nu3.00e-04--7.00e-04_pcepod_bfmc16_runs5.json'
 # jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod_mcpod_bfpce.json'.format(N)
 # jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod_mcpod_bfmc.json'.format(N)
-mcref = 0.881759
-pceref = 0.88159
-pceeyyref = 0.
+if len(sys.argv) == 2:
+    jsfstr = sys.argv[-1]
+
+pceref = 0.8810211  # value from PCE[5]
+pcevrncref = 0.00907079  # value from PCE[5]
 mcref = pceref
 
 mcpod = False
@@ -53,12 +62,11 @@ for timit in tims:
     crmlist.append(ddct[timit]['comp-redmod-elts'])
     rmprjelist.append(np.array(ddct[timit]['redmod-prj-errs']).flatten())
 
-pcepodresarray = np.array(pcepodreslist)
+pcepodresarray = np.median(np.array(pcepodreslist), axis=0)
 pceerrarray = pceref - pcepodresarray
 
-pcepodeyyarray = np.array(pcepodeyyslist)
-pcepodvrncserrarray = pcepodeyyarray - pcepodeyyarray**2 -\
-        (pceeyyref - pceref**2)
+pcepodeyyarray = np.median(np.array(pcepodeyyslist), axis=0)
+pcepodvrncserrarray = pcepodeyyarray - np.square(pcepodresarray) - pcevrncref
 
 if basisfrom == 'pce':
     trainpceexpv = ddct['0']['training-pce-expv']
@@ -67,13 +75,11 @@ if basisfrom == 'pce':
 
 print(poddims)
 print(pcedims)
-print('***pce errrors E(y)***')
-cpu.print_nparray_tex(np.median(pceerrarray, axis=0),
-                      formatit='math', fstr='.2e')
+print('*** pce errrors E(y) - med out of {0}'.format(len(tims)) + '***')
+cpu.print_nparray_tex(pceerrarray, formatit='math', fstr='.2e')
 
-print('***pce errrors V(y)***')
-cpu.print_nparray_tex(np.median(pcepodvrncserrarray, axis=0),
-                      formatit='math', fstr='.2e')
+print('*** pce errrors V(y) - med out of {0}'.format(len(tims)) + '***')
+cpu.print_nparray_tex(pcepodvrncserrarray, formatit='math', fstr='.2e')
 
 print('*** training time (min out of {0}) ***'.format(len(tims)))
 cpu.print_nparray_tex((np.array(trntimelist)).min(),
@@ -89,7 +95,7 @@ print(np.median(np.array(rmprjelist), axis=0))
 
 teltarray = np.array(teltlist)
 
-print('*** pce elts ***')
+print('*** pce elts (min out of {0}) ***'.format(len(tims)))
 cpu.print_nparray_tex(teltarray.min(axis=0), formatit='texttt', fstr='.2f')
 
 

@@ -52,10 +52,14 @@ def simit(problem='circle', meshlevel=None,
 
     filestr = 'N{0}nu{1:.2e}--{2:.2e}'.format(meshlevel, nulb, nuub)
     if pcepod:
-        filestr = filestr + '_pcepod{0}'.format(pcesnapdim)
+        filestr = filestr + '_pcepod'
     if mcpod:
-        filestr = filestr + '_mcpod{0}'.format(mcsnap)
-    filestr = filestr + '_bf' + basisfrom + '.json'
+        filestr = filestr + '_mcpod'
+    if basisfrom == 'pce':
+        bssstr = basisfrom + '{0}'.format(pcesnapdim)
+    elif basisfrom == 'mc':
+        bssstr = basisfrom + '{0}_runs{1}'.format(mcsnap, timings)
+    filestr = filestr + '_bf' + bssstr + '.json'
 
     if onlymeshtest or plotplease:
         basenulist = [basenu]*uncdims
