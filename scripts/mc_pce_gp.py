@@ -104,6 +104,8 @@ def simit(problem='circle', meshlevel=None,
 
     tdict = {}
 
+    np.random.seed(1)  # seed for the random `mc` basis
+
     for tit in range(timings):
         loctdict = {'basisfrom': basisfrom}
         if basisfrom == 'pce':

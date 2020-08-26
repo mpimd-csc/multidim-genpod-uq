@@ -1,2 +1,1 @@
-cat ~/favit
-rsync --delete -avz mpi:temp/mechthildlogs .
+rsync --delete -avz mechthild.mpi-magdeburg.mpg.de:19-genpod-uq/scripts/job-files .
