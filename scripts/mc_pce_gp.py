@@ -14,8 +14,13 @@ from multidim_galerkin_pod.ldfnp_ext_cholmod import SparseFactorMassmat
 
 import gen_pod_uq.mc_pce_utils as mpu
 
+import dolfin_navier_scipy.data_output_utils as dou
+
 from circle_subsec import get_problem
 from cyl_subsec import get_problem as cylinder
+
+plotpcepoddiff = True
+pcepoddiffdim = 9
 
 
 def simit(problem='circle', meshlevel=None,
@@ -46,6 +51,13 @@ def simit(problem='circle', meshlevel=None,
     print('maxinu: {0}'.format(nub))
 
     cmat = problemfems['cmat']
+
+    filestr = 'N{0}nu{1:.2e}--{2:.2e}'.format(meshlevel, nulb, nuub)
+    if pcepod:
+        filestr = filestr + '_pcepod{0}'.format(pcesnapdim)
+    if mcpod:
+        filestr = filestr + '_mcpod{0}'.format(mcsnap)
+    filestr = filestr + '_bf' + basisfrom + '.json'
 
     if onlymeshtest or plotplease:
         basenulist = [basenu]*uncdims
@@ -94,6 +106,27 @@ def simit(problem='circle', meshlevel=None,
             pcexpysqrd = compexpv(np.square(ysoltens))
             print('PCE({0}): E(y): {1}'.format(pcedim, pcexpy))
             print('PCE({0}): V(y): {1}'.format(pcedim, pcexpysqrd-pcexpy**2))
+
+    if plotpcepoddiff:
+        pcedim = pcedimlist[-1]
+        pcepoddiffstr = 'pcepoddiff{0}_'.format(pcedim) + filestr
+        try:
+            pxexpxdct = dou.load_json_dicts(pcepoddiffstr)
+            pcexpx = np.array(pxexpxdct['pcexpx'])
+        except IOError:
+            abscissae, weights, compexpv, _ = mpu.\
+                setup_pce(distribution='uniform',
+                          distrpars=dict(a=nua, b=nub),
+                          pcedim=pcedim, uncdims=uncdims)
+            xsoltens = mpu.run_pce_sim_separable(solfunc=get_sol,
+                                                 uncdims=uncdims,
+                                                 multiproc=multiproc,
+                                                 abscissae=abscissae)
+            pcexpx = compexpv(xsoltens)
+            jsfile = open(pcepoddiffstr, mode='w')
+            jsfile.write(json.dumps({'pcexpx': pcexpx.tolist(),
+                                     'podpcexpx': {}}))
+            jsfile.close()
 
     if not (pcepod or mcpod):
         return
@@ -265,16 +298,32 @@ def simit(problem='circle', meshlevel=None,
 
         tdict.update({tit: copy.deepcopy(loctdict)})
 
-    filestr = 'N{0}nu{1:.2e}--{2:.2e}'.format(meshlevel, nulb, nuub)
-    if pcepod:
-        filestr = filestr + '_pcepod{0}'.format(pcesnapdim)
-    if mcpod:
-        filestr = filestr + '_mcpod{0}'.format(mcsnap)
-    filestr = filestr + '_bf' + basisfrom + '.json'
-
     jsfile = open(filestr, mode='w')
     jsfile.write(json.dumps(tdict))
     print('output saved to ' + filestr)
+
+    if plotpcepoddiff:
+        pxexpxdct = dou.load_json_dicts(pcepoddiffstr)
+        pcexpx = np.array(pxexpxdct['pcexpx'])
+        try:
+            podpcexpx = np.array(pxexpxdct['podpcexpx'][pcepoddiffdim])
+        except KeyError:
+            ypodvecs = get_pod_vecs(pcepoddiffdim)
+            lyitVy = facmy.solve_Ft(ypodvecs)
+            red_realize_sol, red_realize_output, red_probfems, red_plotit \
+                = get_red_problem(lyitVy)
+            red_cmat = red_probfems['cmat']
+            abscissae, weights, compredexpv, compredvrnc = mpu.\
+                setup_pce(distribution='uniform',
+                          distrpars=dict(a=nua, b=nub),
+                          pcedim=pcedimlist[-1], uncdims=uncdims)
+            redxsoltens = mpu.\
+                run_pce_sim_separable(solfunc=red_realize_sol,
+                                      multiproc=multiproc,
+                                      uncdims=uncdims,
+                                      abscissae=abscissae)
+            podpcexpx = compredexpv(redxsoltens)
+            pxexpxdct['podpcexpx'].update({pcepoddiffdim: podpcexpx.tolist()})
 
     plt.show()
 
