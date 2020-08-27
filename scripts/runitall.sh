@@ -32,6 +32,8 @@ python3 run_the_sims.py --mesh $MESH \
     --poddims $PODDIMS --podbase $BASISFROM \
     --pcepod $PCEPOD --pcesnapdim $PCESNAPDIM --pcexpy $PCEXPY \
     --varinu $VARINU
+# Postprocessing
+python3 post-process.py N10nu3.00e-04--7.00e-04_pcepod_bfpce2.json
 
 # ## POD Approximation with the random basis
 PCEDIMS='2-3-4-5'
@@ -40,7 +42,7 @@ PCEPOD=1
 BASISFROM=mc
 PCESNAPDIM=2
 NPCESNAP=$(($PCESNAPDIM**4))
-MCSNAP=$((5*1*$NPCESNAP))
+MCSNAP=$((1*$NPCESNAP))
 TIMINGS=5  # here the 5 is needed to compute the median
 PCEXPY=0.88102114  
 # value of PCE(5) for MESH=10 and VARINU='[3,7]e-4'
@@ -52,6 +54,7 @@ python3 run_the_sims.py --mesh $MESH \
     --mcsnap $MCSNAP \
     --pcepod $PCEPOD --pcexpy $PCEXPY \
     --varinu $VARINU
+python3 post-process.py N10nu3.00e-04--7.00e-04_pcepod_bfmc16_runs5.json
 # ## the results with 10 runs
 TIMINGS=10
 python3 run_the_sims.py --mesh $MESH \
@@ -61,3 +64,15 @@ python3 run_the_sims.py --mesh $MESH \
     --mcsnap $MCSNAP \
     --pcepod $PCEPOD --pcexpy $PCEXPY \
     --varinu $VARINU
+python3 post-process.py N10nu3.00e-04--7.00e-04_pcepod_bfmc16_runs10.json
+# ## the results with 80 snapshots
+TIMINGS=5
+MCSNAP=$((5*$NPCESNAP))
+python3 run_the_sims.py --mesh $MESH \
+    --pcedims $PCEDIMS \
+    --nprocs $NPROCS --timings $TIMINGS \
+    --poddims $PODDIMS --podbase $BASISFROM \
+    --mcsnap $MCSNAP \
+    --pcepod $PCEPOD --pcexpy $PCEXPY \
+    --varinu $VARINU
+python3 post-process.py N10nu3.00e-04--7.00e-04_pcepod_bfmc80_runs5.json

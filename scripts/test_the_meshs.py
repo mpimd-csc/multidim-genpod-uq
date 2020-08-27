@@ -4,7 +4,6 @@ from mc_pce_gp import simit
 problem = 'cylinder'
 plotplease = False
 meshlevellist = np.arange(5, 12)
-meshlevellist = np.arange(12, 13)
 
 dofslist, ylist = [], []
 for meshlevel in meshlevellist:
