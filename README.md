@@ -1,6 +1,8 @@
 Galerkin POD for PDEs with Uncertainties
 ---
 
+[![DOI](https://zenodo.org/badge/291024430.svg)](https://zenodo.org/badge/latestdoi/291024430)
+
 This is the code of the numerical experiments in our paper
 
 > Benner, Heiland (2020): *Space and Chaos-expansion Galerkin POD Low-order
