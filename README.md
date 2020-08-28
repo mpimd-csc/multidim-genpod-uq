@@ -8,7 +8,9 @@ This is the code of the numerical experiments in our paper
 
 ## Installation
 
-Install the dependencies via
+Install `dolfin` and `gmesh`.
+
+Then install the python dependencies via
 
 ```
 pip install dolfin-navier-scipy==1.0.0
@@ -23,6 +25,13 @@ Then clone/download/unzip this repository
 The source are in `gen_pod_uq` and the files for the simulations in `scripts`.
 
 ## Rerun the simulations
+
+### Generate the mesh
+```
+cd mesh
+mkdir 3D-mshs
+source maketheme-3D.sh
+```
 
 ### Results of the PCE and POD approximations
 
