@@ -8,10 +8,10 @@
 
 % Specify your Project name,  website and Version control repository
 \mymodulename{genpod-uq}
-\myurl{https://project.web.page}
-\myrepo{https://my.repo}
-\mylicense{e.g.\ MIT, GPL, BSD, etc.}
-\mycopyrightholders{A, B, C}
+\myurl{https://doi.org/10.5281/zenodo.4005723}
+\myrepo{https://gitlab.mpi-magdeburg.mpg.de/heiland/19-genpod-uq}
+\mylicense{MIT}
+\mycopyrightholders{Jan Heiland}
 
 \begin{document}
 
@@ -31,23 +31,26 @@
 %% the Core features and the description of the Documentation. For Followup
 %% versions a Changelog item may be helpful.
 \begin{scope}
-  \item[Main scope:]
-	% Optimal control of linearized Navier-Stokes Equations via differential
-	% Riccati equations
-  \item[Core features:]
-	% \begin{itemize}
-	% \item Low-rank Newton ADI method to solve the large scale constrained
-	% 	 ('Index 2') Riccati equation
-	% \item Implicit Euler's method for time integration
-	% \end{itemize}
-	% \insitem{Subfunctions:}
-	% \begin{itemize}
-	% \item Helper functions for the linear algebra
-	% \end{itemize}
-  \item[Documentation:]
-	% \begin{itemize}
-	% \item Preprint MPIMD-XXXX
-	% \end{itemize}
+
+  \item[Main scope:]~
+
+    Application of multidimensional Galerkin POD for Uncertainty Quantification
+    in PDEs with multivariate random parameters.
+  \item[Core features:]~
+    \begin{itemize}
+      \item Setup of a 3D convection-diffusion problem with multivariate
+        uncertainties in the diffusion coefficient
+      \item Computation and evaluation of polynomial chaos expansion (PCE)
+        approximations
+      \item Galerkin POD based on PCE and random snapshots
+      \item Testing of the approximations
+    \end{itemize}
+    
+  \item[Documentation:]~
+
+	\begin{itemize}
+    \item Preprint \href{http://arxiv.org/abs/2009.01055}{arxiv:2009.01055}
+	\end{itemize}
 \end{scope}
 
 %% List of all developers.
@@ -56,7 +59,6 @@
 % Thisis just a block with one name and signature  per line
 \begin{developers}
     \notapplicable{} % in case the applicants were tho only contributors.
-	\signatureline{Marc Miller} % use on of these per person
 \end{developers}
 
 %% List of all people who contributed knwoledge and ideas rather than active
@@ -68,19 +70,19 @@
 %% This is a description-type list environment, where each feature is an item
 %% and the item text is the list of signature lines.
 \begin{affected}
-  \featureitem{use of UL-Factorization}
-    \signatureline{Tammy Davis jr.}
-    % \item[other feature]~\newline
+  % \featureitem{None}
+    % \signatureline{Tammy Davis jr.}
+    \item[None]~\newline
     %   \signatureline{other name}
 \end{affected}
   
 %% The person that helped you pick a reasonable license or approved your
 %% choice. 
 \begin{licexpert}
-	\signatureline{Ada Lovelace}
+	% \signatureline{Ada Lovelace}
 	% \signatureline{Jens Saak}
 	% \signatureline{Martin K\"ohler}
-    % \signatureline{Christian Himpe}
+  \signatureline{Christian Himpe}
 	% \signatureline{Jan Heiland}
 \end{licexpert}
 
