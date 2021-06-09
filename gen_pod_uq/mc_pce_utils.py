@@ -14,7 +14,7 @@ def solfunc_to_variance(solfunc, expv):
     return sfvariance
 
 
-def run_mc_sim(parlist, solfunc, chunks=10, multiproc=0,
+def run_mc_sim(parlist, solfunc, chunks=12, multiproc=0,
                comp_para_ev=True, verbose=False, ret_ev=True):
     expvpara = None
     if comp_para_ev:

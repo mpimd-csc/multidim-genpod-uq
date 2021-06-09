@@ -183,8 +183,8 @@ def get_problem(meshlevel=1):
         red_lplclist = []
         red_lplcrhslist = []
         for kk in range(Nrgs):
-            red_lplclist.append((podmat.T).dot(lplclist[kk].dot(podmat)))
-            red_lplcrhslist.append((podmat.T).dot(lplcrhslist[kk]))
+            red_lplclist.append(podmat.T @ lplclist[kk] @ podmat)
+            red_lplcrhslist.append(podmat.T @ lplcrhslist[kk])
 
         red_convrhs = podmat.T.dot(convrhs)
         red_convmat = podmat.T.dot(convmat.dot(podmat))

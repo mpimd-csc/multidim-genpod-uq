@@ -39,3 +39,11 @@ very different.
  * [ ] `spacetime_galerkin_pod` to `pip`
  * [ ] add the pips for the dependencies
  * [ ] prop this to mechthild
+
+# Adding some RB Functionality for the revision
+
+## 2021-06-09 14:22:24+02:00
+
+ * can use the MC routines to compute the truth snapshots 
+ * TODO: check if the list represents the param list
+ * DONE: it does!!!

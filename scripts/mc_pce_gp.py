@@ -23,6 +23,7 @@ from cyl_subsec import get_problem as cylinder
 def simit(problem='circle', meshlevel=None,
           mcruns=None, pcedimlist=None, plotplease=False,
           mcplease=False, pceplease=False, mcpod=False, pcepod=False,
+          rbparams={},
           checkredmod=False, pcexpy=None, pcvrnc=0.,
           mcxpy=None, redmcruns=None,
           mcsnap=None, pcesnapdim=None, onlymeshtest=False,
@@ -49,8 +50,10 @@ def simit(problem='circle', meshlevel=None,
     print('maxinu: {0}'.format(nub))
 
     cmat = problemfems['cmat']
+    mmat = problemfems['mmat']
 
     filestr = 'N{0}nu{1:.2e}--{2:.2e}'.format(meshlevel, nulb, nuub)
+    rbplease = False
     if pcepod:
         filestr = filestr + '_pcepod'
     if mcpod:
@@ -59,6 +62,10 @@ def simit(problem='circle', meshlevel=None,
         bssstr = basisfrom + '{0}'.format(pcesnapdim)
     elif basisfrom == 'mc':
         bssstr = basisfrom + '{0}_runs{1}'.format(mcsnap, timings)
+    elif basisfrom == 'rb':
+        bssstr = basisfrom + '_' + rbparams['samplemethod'] + \
+                '{0}_runs{1}'.format(rbparams['nsample'], timings)
+        rbplease = True
     filestr = filestr + '_bf' + bssstr + '.json'
 
     if onlymeshtest or plotplease:
@@ -70,6 +77,46 @@ def simit(problem='circle', meshlevel=None,
         plotit(vvec=basev, pvdfile=basepvdfile, plotplease=plotplease)
         if onlymeshtest:
             return problemfems['mmat'].shape[0], cmat.dot(basev)
+
+    if rbplease:
+        if rbparams['samplemethod'] == 'random':
+            rbtrainnu = nulb + \
+                (nuub-nulb)*np.random.rand(rbparams['nsample'], uncdims)
+        else:
+            raise NotImplementedError()
+
+        print('computing all values for the RB train set ...')
+        rbtrainset, _, _ = mpu.run_mc_sim(rbtrainnu, get_sol, verbose=True,
+                                          multiproc=multiproc)
+        print('... done!')
+
+        def getmaxparam(cp_get_sol, dffun):
+            mxdiff, mxdfpara, mxdfprid = 0, None, None
+            diffl = []
+            for cprid, cpara in enumerate(rbtrainnu):
+                cdiff = dffun(cp_get_sol(cpara),
+                              rbtrainset[cprid].reshape((-1, 1)))
+                if cdiff > mxdiff:
+                    mxdfpara, mxdfprid = cpara, cprid
+                diffl.append(cdiff)
+            return mxdfpara, rbtrainset[mxdfprid].reshape((-1, 1))
+
+        def dffun(vone, vtwo):
+            diffv = vone-vtwo
+            return np.sqrt(diffv.T @ mmat @ diffv)
+
+        rbbas = rbtrainset[0].reshape((-1, 1))
+
+        for rbdim in range(rbparams['N']-1):
+            crb_red_realize_sol, _, _, _ = get_red_problem(rbbas)
+
+            def _compun(para):
+                return rbbas @ crb_red_realize_sol(para)
+            mxdfpara, mxdfsol = getmaxparam(_compun, dffun=dffun)
+            rbbas = np.hstack([rbbas, mxdfsol])
+
+        import ipdb
+        ipdb.set_trace()
 
     # ## CHAP Monte Carlo
     if mcplease:
@@ -345,9 +392,10 @@ def simit(problem='circle', meshlevel=None,
 
 if __name__ == '__main__':
     problem = 'cylinder'
-    meshlevel = 6
+    meshlevel = 4
     mcruns = 10  # 200
     pcedimlist = [2, 3, 4]  # , 3, 4, 5]  # , 7]
+    multiproc = 4
     mcplease = False
     pceplease = False
     plotplease = False
@@ -356,12 +404,16 @@ if __name__ == '__main__':
     # ## make it come true
     # mcplease = True
     pceplease = True
-    plotplease = True
+    # plotplease = True
     # pcepod = True
     # mcpod = True
     basisfrom = 'mc'
     basisfrom = 'pce'
+    basisfrom = 'rb'
+    rbparams = dict(samplemethod='random', nsample=4, N=2)
+
     simit(mcruns=mcruns, pcedimlist=pcedimlist, problem=problem,
           meshlevel=meshlevel,
-          plotplease=plotplease, basisfrom=basisfrom,
+          plotplease=plotplease, basisfrom=basisfrom, multiproc=multiproc,
+          rbparams=rbparams,
           mcplease=mcplease, pceplease=pceplease, mcpod=mcpod, pcepod=pcepod)
