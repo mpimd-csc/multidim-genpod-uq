@@ -12,17 +12,14 @@ This is the code of the numerical experiments in our paper
 
 Install `dolfin` and `gmesh`.
 
-Then install the python dependencies via
+Then clone this repo and install the package with dependencies via
 
 ```
-pip install dolfin-navier-scipy==1.0.0
-pip install sadptprj-riclyap-adi==1.0.0
-pip install multidim-galerkin-pod==1.0.2
+pip install -e .  # make sure you use Python 3
 ```
+
 if the installation of `multim-galerkin-pod` fails because of `scikit-sparse`
-use `pip install --no-deps multidim-galerkin-pod==1.0.2` instead. 
-
-Then clone/download/unzip this repository
+try `pip install --no-deps multidim-galerkin-pod==1.0.2` instead. 
 
 The source are in `gen_pod_uq` and the files for the simulations in `scripts`.
 
@@ -48,7 +45,6 @@ You may want to comment out some parts.
 
 ```
 cd scripts
-source addpypath.sh
 python3 test_the_meshs.py
 ```
 
@@ -56,7 +52,6 @@ python3 test_the_meshs.py
 
 ```
 cd scripts
-source addpypath.sh
 python3 test_pce_mc.py
 ```
 
