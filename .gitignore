@@ -9,3 +9,4 @@ logs/
 mesh/3D-mshs/
 mesh/plots/
 mechthild-logs/
+gen_pod_uq.egg-info/
