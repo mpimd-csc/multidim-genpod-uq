@@ -85,6 +85,10 @@ def simit(problem='circle', meshlevel=None,
         else:
             raise NotImplementedError()
 
+        # ## BLUNT implementation of RB
+        # We precompute all solutions at the training parameters
+        # to find *the max* without an estimator
+        # (at least, we can use this solutions than to setup the RB)
         print('computing all values for the RB train set ...')
         rbtrainset, _, _ = mpu.run_mc_sim(rbtrainnu, get_sol, verbose=True,
                                           multiproc=multiproc)
@@ -96,8 +100,11 @@ def simit(problem='circle', meshlevel=None,
             for cprid, cpara in enumerate(rbtrainnu):
                 cdiff = dffun(cp_get_sol(cpara),
                               rbtrainset[cprid].reshape((-1, 1)))
+                # print(f'err: {cdiff} -- para val {cpara}')
                 if cdiff > mxdiff:
+                    print(f'new-max: err: {cdiff} -- para val {cpara}')
                     mxdfpara, mxdfprid = cpara, cprid
+                    mxdiff = cdiff
                 diffl.append(cdiff)
             return mxdfpara, rbtrainset[mxdfprid].reshape((-1, 1))
 
@@ -113,10 +120,10 @@ def simit(problem='circle', meshlevel=None,
             def _compun(para):
                 return rbbas @ crb_red_realize_sol(para)
             mxdfpara, mxdfsol = getmaxparam(_compun, dffun=dffun)
+            # print('returned: ', mxdfpara)
+            # rbcheck = get_sol(mxdfpara)
+            # print('right vec?: ', dffun(rbcheck, mxdfsol))
             rbbas = np.hstack([rbbas, mxdfsol])
-
-        import ipdb
-        ipdb.set_trace()
 
     # ## CHAP Monte Carlo
     if mcplease:
@@ -156,6 +163,13 @@ def simit(problem='circle', meshlevel=None,
             print('PCE({0}): E(y): {1}'.format(pcedim, pcexpy))
             print('PCE({0}): E(yy): {1}'.format(pcedim, pcexpysqrd))
             print('PCE({0}): V(y): {1}'.format(pcedim, pcexpysqrd-pcexpy**2))
+
+    if rbplease:
+        rbey = np.mean(cmat @ rbbas)
+        print(f'RB({rbparams["N"]}): E(y): {rbey}')
+
+    import ipdb
+    ipdb.set_trace()
 
     if plotpcepoddiff:
         pcedim = pcedimlist[-1]
@@ -394,7 +408,7 @@ if __name__ == '__main__':
     problem = 'cylinder'
     meshlevel = 4
     mcruns = 10  # 200
-    pcedimlist = [2, 3, 4]  # , 3, 4, 5]  # , 7]
+    pcedimlist = [2]  # , 3, 4]  # , 3, 4, 5]  # , 7]
     multiproc = 4
     mcplease = False
     pceplease = False
@@ -410,7 +424,7 @@ if __name__ == '__main__':
     basisfrom = 'mc'
     basisfrom = 'pce'
     basisfrom = 'rb'
-    rbparams = dict(samplemethod='random', nsample=4, N=2)
+    rbparams = dict(samplemethod='random', nsample=8, N=4)
 
     simit(mcruns=mcruns, pcedimlist=pcedimlist, problem=problem,
           meshlevel=meshlevel,

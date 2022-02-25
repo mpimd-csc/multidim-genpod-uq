@@ -47,3 +47,11 @@ very different.
  * can use the MC routines to compute the truth snapshots 
  * TODO: check if the list represents the param list
  * DONE: it does!!!
+ * basic RB functionality -- enriching the basis -- like working
+   * TODO: need check with the errors and whether the right vecs are returned
+   * DONE!
+
+## 2021-07-26 08:10:18+02:00
+
+ * RB works like very well now
+ * NEXT: use the RB to comp Ey and so on
