@@ -55,3 +55,11 @@ very different.
 
  * RB works like very well now
  * NEXT: use the RB to comp Ey and so on
+
+## 2022-03-01 21:03:50+01:00
+
+ * Will use the RB with PCE like with genpod
+ * TODO: compute an M-ortho basis of every RB 
+    * to do the projection
+    * to be inline with genpod
+ * TODO: clean up code

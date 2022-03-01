@@ -5,6 +5,9 @@ import time
 import copy
 import json
 
+import logging
+from rich.logging import RichHandler
+
 import dolfin
 
 # import spacetime_galerkin_pod.chaos_expansion_utils as ceu
@@ -45,9 +48,7 @@ def simit(problem='circle', meshlevel=None,
 
     nua, nub = nulb, nuub
     basenu = .5*(nua+nub)
-    print('basenu: {0}'.format(basenu))
-    print('mininu: {0}'.format(nua))
-    print('maxinu: {0}'.format(nub))
+    logging.info(f'nu in [{nua}, {nub}], median: {basenu}')
 
     cmat = problemfems['cmat']
     mmat = problemfems['mmat']
@@ -78,10 +79,11 @@ def simit(problem='circle', meshlevel=None,
         if onlymeshtest:
             return problemfems['mmat'].shape[0], cmat.dot(basev)
 
-    if rbplease:
+    if rbplease or basisfrom == 'rb':
         if rbparams['samplemethod'] == 'random':
             rbtrainnu = nulb + \
                 (nuub-nulb)*np.random.rand(rbparams['nsample'], uncdims)
+            logging.info(f'RB with {rbparams["nsample"]} random training pnts')
         else:
             raise NotImplementedError()
 
@@ -89,10 +91,10 @@ def simit(problem='circle', meshlevel=None,
         # We precompute all solutions at the training parameters
         # to find *the max* without an estimator
         # (at least, we can use this solutions than to setup the RB)
-        print('computing all values for the RB train set ...')
+        logging.info('computing all values for the RB train set ...')
         rbtrainset, _, _ = mpu.run_mc_sim(rbtrainnu, get_sol, verbose=True,
                                           multiproc=multiproc)
-        print('... done!')
+        logging.info('... done!')
 
         def getmaxparam(cp_get_sol, dffun):
             mxdiff, mxdfpara, mxdfprid = 0, None, None
@@ -102,10 +104,13 @@ def simit(problem='circle', meshlevel=None,
                               rbtrainset[cprid].reshape((-1, 1)))
                 # print(f'err: {cdiff} -- para val {cpara}')
                 if cdiff > mxdiff:
-                    print(f'new-max: err: {cdiff} -- para val {cpara}')
+                    logging.debug(f'new-max: err: {cdiff.flatten()[0]:2e} \n' +
+                                  f'-- pv: {cpara}')
                     mxdfpara, mxdfprid = cpara, cprid
                     mxdiff = cdiff
                 diffl.append(cdiff)
+            logging.info(f'found max err: {mxdiff.flatten()[0]:2e} \n' +
+                         f'-- at: {mxdfpara}')
             return mxdfpara, rbtrainset[mxdfprid].reshape((-1, 1))
 
         def dffun(vone, vtwo):
@@ -115,6 +120,8 @@ def simit(problem='circle', meshlevel=None,
         rbbas = rbtrainset[0].reshape((-1, 1))
 
         for rbdim in range(rbparams['N']-1):
+            logging.info('*** RB: Greedy iteration ' +
+                         f'{rbdim+1}/{rbparams["N"]-1} ***')
             crb_red_realize_sol, _, _, _ = get_red_problem(rbbas)
 
             def _compun(para):
@@ -164,12 +171,12 @@ def simit(problem='circle', meshlevel=None,
             print('PCE({0}): E(yy): {1}'.format(pcedim, pcexpysqrd))
             print('PCE({0}): V(y): {1}'.format(pcedim, pcexpysqrd-pcexpy**2))
 
-    if rbplease:
-        rbey = np.mean(cmat @ rbbas)
-        print(f'RB({rbparams["N"]}): E(y): {rbey}')
+    # if rbplease:
+    #     rbey = np.mean(cmat @ rbbas)
+    #     print(f'RB({rbparams["N"]}): E(y): {rbey}')
 
-    import ipdb
-    ipdb.set_trace()
+    # import ipdb
+    # ipdb.set_trace()
 
     if plotpcepoddiff:
         pcedim = pcedimlist[-1]
@@ -207,7 +214,7 @@ def simit(problem='circle', meshlevel=None,
 
     for tit in range(timings):
         loctdict = {'basisfrom': basisfrom}
-        if basisfrom == 'pce':
+        if basisfrom == 'pce' or basisfrom == 'rb':
             trttstart = time.time()
             trnabscissae, trnweights, trncompexpv, trncomvrnc = mpu.\
                 setup_pce(distribution='uniform',
@@ -271,6 +278,11 @@ def simit(problem='circle', meshlevel=None,
                                            plotsvs=plotplease, labl='SVs')
                 return ypodvecs
 
+        elif basisfrom == 'rb':
+            def get_pod_vecs(poddim=None):
+                ypodvecs = rbbas[:, :poddim]
+                return ypodvecs
+
         # lypceymat = pceymat
         redsolfile = dolfin.File('results/rdsol-N{0}pod.pvd'.format(meshlevel))
 
@@ -281,7 +293,10 @@ def simit(problem='circle', meshlevel=None,
         for poddim in poddimlist:
             tstart = time.time()
             ypodvecs = get_pod_vecs(poddim)
-            lyitVy = facmy.solve_Ft(ypodvecs)
+            if basisfrom == 'rb':
+                lyitVy = ypodvecs
+            else:
+                lyitVy = facmy.solve_Ft(ypodvecs)
             red_realize_sol, red_realize_output, red_probfems, red_plotit \
                 = get_red_problem(lyitVy)
             red_cmat = red_probfems['cmat']
@@ -293,6 +308,9 @@ def simit(problem='circle', meshlevel=None,
             if basisfrom == 'pce':
                 cndsdexpv = lyitVy.T.dot(mmat.dot(trainexpv))
                 prjerror = trainpcexpy - red_cmat.dot(cndsdexpv)
+            elif basisfrom == 'rb':
+                # cndsdexpv = lyitVy.T.dot(mmat.dot(trainexpv))
+                prjerror = trainpcexpy - red_cmat.dot(trainexpv)
             elif basisfrom == 'mc':
                 cndsshm = lyitVy.T.dot(mmat.dot(snpshmean))
                 prjerror = snpshymean - red_cmat.dot(cndsshm)
@@ -405,10 +423,14 @@ def simit(problem='circle', meshlevel=None,
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO, handlers=[RichHandler()],
+                        format='%(message)s',
+                        datefmt="[%X]",
+                        )
     problem = 'cylinder'
     meshlevel = 4
     mcruns = 10  # 200
-    pcedimlist = [2]  # , 3, 4]  # , 3, 4, 5]  # , 7]
+    pcedimlist = [2]  # , 3]  # , 3, 4]  # , 3, 4, 5]  # , 7]
     multiproc = 4
     mcplease = False
     pceplease = False
@@ -419,15 +441,15 @@ if __name__ == '__main__':
     # mcplease = True
     pceplease = True
     # plotplease = True
-    # pcepod = True
+    pcepod = True
     # mcpod = True
     basisfrom = 'mc'
     basisfrom = 'pce'
     basisfrom = 'rb'
-    rbparams = dict(samplemethod='random', nsample=8, N=4)
+    rbparams = dict(samplemethod='random', nsample=25, N=20)
 
     simit(mcruns=mcruns, pcedimlist=pcedimlist, problem=problem,
           meshlevel=meshlevel,
           plotplease=plotplease, basisfrom=basisfrom, multiproc=multiproc,
-          rbparams=rbparams,
+          rbparams=rbparams, pcesnapdim=2,
           mcplease=mcplease, pceplease=pceplease, mcpod=mcpod, pcepod=pcepod)
