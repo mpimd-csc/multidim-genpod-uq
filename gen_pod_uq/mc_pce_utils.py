@@ -15,6 +15,7 @@ def solfunc_to_variance(solfunc, expv):
 
 
 def run_mc_sim(parlist, solfunc, chunks=12, multiproc=0,
+               tmpddir='_tmp_data_chunks/',
                comp_para_ev=True, verbose=False, ret_ev=True):
     expvpara = None
     if comp_para_ev:
@@ -36,10 +37,9 @@ def run_mc_sim(parlist, solfunc, chunks=12, multiproc=0,
         mcx = nmc/multiproc
 
         itschunks = []
-        fstrl = ['_tmp_mc_chunk{0}of{1}pid{2}'.format(1, multiproc, mpid)]
+        fstrl = [tmpddir + f'_tmp_mc_chunk{1}of{multiproc}pid{mpid}']
         for k in range(multiproc-1):
-            filestr = '_tmp_mc_chunk{0}of{1}pid{2}'.format(k+2,
-                                                           multiproc, mpid)
+            filestr = tmpddir + f'_tmp_mc_chunk{k+2}of{multiproc}pid{mpid}'
             fstrl.append(filestr)
             itschunks.append(parlist[np.int(np.floor(k*mcx)):
                                      np.int(np.floor((k+1)*mcx))])
@@ -93,7 +93,7 @@ def run_mc_sim(parlist, solfunc, chunks=12, multiproc=0,
 
 
 def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
-                          multiproc=0):
+                          tmpddir='_tmp_data_chunks/', multiproc=0):
     """ pce simulation for all PCE dimensions being the same
     """
     # compute the sols
@@ -119,7 +119,7 @@ def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
         plist = []
         fstrl = []
         for k in range(multiproc):
-            filestr = '_tmp_pce_chunk{0}of{1}'.format(k+1, multiproc)
+            filestr = tmpddir + '_tmp_pce_chunk{0}of{1}'.format(k+1, multiproc)
             p = Process(target=comppart, args=(itschunks[k], filestr))
             plist.append(p)
             fstrl.append(filestr)
