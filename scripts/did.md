@@ -59,7 +59,13 @@ very different.
 ## 2022-03-01 21:03:50+01:00
 
  * Will use the RB with PCE like with genpod
- * TODO: compute an M-ortho basis of every RB 
+ * DONE: compute an M-ortho basis of every RB 
     * to do the projection
     * to be inline with genpod
  * TODO: clean up code
+
+## 2022-03-03 20:51:07+01:00
+
+ * TODO: do some caching
+    * save `expvals` and `variances` for all `(N, nua, nub)`
+    * define `pcesnapshotdim` separately (independent from `pceplease`)

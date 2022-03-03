@@ -27,14 +27,14 @@ def simit(problem='circle', meshlevel=None,
           mcruns=None, pcedimlist=None, plotplease=False,
           mcplease=False, pceplease=False, mcpod=False, pcepod=False,
           rbparams={},
-          checkredmod=False, pcexpy=None, pcvrnc=0.,
+          checkredmod=False, pcexpy=None, pcvrnc=None,
           mcxpy=None, redmcruns=None,
           mcsnap=None, pcesnapdim=None, onlymeshtest=False,
           # basenu=5e-4, varia=-1e-4, varib=1e-4,
           plotpcepoddiff=False, pcepoddiffdim=9,
           multiproc=0, timings=1,
           nulb=6e-4, nuub=8e-4,
-          basisfrom='pce', poddimlist=[5, 10, 20]):
+          basisfrom='pce', poddimlist=[5, 8, 12]):
 
     if problem == 'cylinder':
         (get_sol, get_output, problemfems, plotit,
@@ -53,12 +53,12 @@ def simit(problem='circle', meshlevel=None,
     cmat = problemfems['cmat']
     mmat = problemfems['mmat']
 
-    filestr = 'N{0}nu{1:.2e}--{2:.2e}'.format(meshlevel, nulb, nuub)
-    rbplease = False
+    prbsetupstr = 'N{0}nu{1:.2e}--{2:.2e}'.format(meshlevel, nulb, nuub)
+
     if pcepod:
-        filestr = filestr + '_pcepod'
+        filestr = prbsetupstr + '_pcepod'
     if mcpod:
-        filestr = filestr + '_mcpod'
+        filestr = prbsetupstr + '_mcpod'
     if basisfrom == 'pce':
         bssstr = basisfrom + '{0}'.format(pcesnapdim)
     elif basisfrom == 'mc':
@@ -167,16 +167,14 @@ def simit(problem='circle', meshlevel=None,
                                                  abscissae=abscissae)
             pcexpy = compexpv(ysoltens)
             pcexpysqrd = compexpv(np.square(ysoltens))
+            pcvrnc = pcexpysqrd-pcexpy**2
             print('PCE({0}): E(y): {1}'.format(pcedim, pcexpy))
             print('PCE({0}): E(yy): {1}'.format(pcedim, pcexpysqrd))
-            print('PCE({0}): V(y): {1}'.format(pcedim, pcexpysqrd-pcexpy**2))
+            print('PCE({0}): V(y): {1}'.format(pcedim, pcvrnc))
 
     # if rbplease:
     #     rbey = np.mean(cmat @ rbbas)
     #     print(f'RB({rbparams["N"]}): E(y): {rbey}')
-
-    # import ipdb
-    # ipdb.set_trace()
 
     if plotpcepoddiff:
         pcedim = pcedimlist[-1]
@@ -209,12 +207,20 @@ def simit(problem='circle', meshlevel=None,
     facmy = SparseFactorMassmat(mmat)
 
     tdict = {}
+    try:
+        truthexpy = pcexpy
+    except UnboundLocalError:
+        truthexpy = None
+    try:
+        truthvrnc = pcvrnc
+    except UnboundLocalError:
+        truthvrnc = None
 
     np.random.seed(1)  # seed for the random `mc` basis
 
     for tit in range(timings):
         loctdict = {'basisfrom': basisfrom}
-        if basisfrom == 'pce' or basisfrom == 'rb':
+        if basisfrom == 'pce':
             trttstart = time.time()
             trnabscissae, trnweights, trncompexpv, trncomvrnc = mpu.\
                 setup_pce(distribution='uniform',
@@ -233,8 +239,7 @@ def simit(problem='circle', meshlevel=None,
             #                                       uncdims=uncdims,
             #                                       abscissae=abscissae)
             trtelt = time.time() - trttstart
-            print('{0}: Elapsed time: {1}'.format('snapshot computation',
-                                                  trtelt))
+            logging.info(f'Snapshot computation: Elapsed time: {trtelt}')
             trainexpv = trncompexpv(trainsoltens)
             trainpcexpy = cmat.dot(trainexpv)
             print('estimated expected value (pce): {0}'.format(trainpcexpy))
@@ -260,10 +265,10 @@ def simit(problem='circle', meshlevel=None,
                                          multiproc=multiproc)
             lymcmat = facmy.Ft*mcout.T
             trtelt = time.time() - trttstart
-            print('POD basis by {0} random samplings'.format(mcsnap))
+            logging.info('POD basis by {0} random samplings'.format(mcsnap))
             snpshmean = np.average(mcout.T, axis=1)
             snpshymean = cmat.dot(snpshmean)
-            print('estimated mean of the samplings: {0}'.format(snpshymean))
+            logging.info('estimated mean of the samplings: {snpshymean}')
             loctdict.update({'training-mc-estmean': snpshymean.tolist(),
                              'traintime': trtelt})
             if pcexpy is not None:
@@ -279,9 +284,24 @@ def simit(problem='circle', meshlevel=None,
                 return ypodvecs
 
         elif basisfrom == 'rb':
+            lymrbvecs = facmy.Ft*rbbas
+
             def get_pod_vecs(poddim=None):
-                ypodvecs = rbbas[:, :poddim]
+                ''' return the first `poddim` RB vectors
+
+                orthogonal wrt `M` inner product
+
+                to have the reduction and projection defined
+                in line with `pcepod`
+                '''
+                ypodvecs = gpu.get_ksvvecs(sol=lymrbvecs[:, :poddim],
+                                           poddim=poddim,
+                                           plotsvs=plotplease, labl='SVs')
+                # no reduction, just orthogonalization
                 return ypodvecs
+
+        else:
+            raise NotImplementedError()
 
         # lypceymat = pceymat
         redsolfile = dolfin.File('results/rdsol-N{0}pod.pvd'.format(meshlevel))
@@ -293,10 +313,10 @@ def simit(problem='circle', meshlevel=None,
         for poddim in poddimlist:
             tstart = time.time()
             ypodvecs = get_pod_vecs(poddim)
-            if basisfrom == 'rb':
-                lyitVy = ypodvecs
-            else:
-                lyitVy = facmy.solve_Ft(ypodvecs)
+            # if basisfrom == 'rb':
+            #     lyitVy = ypodvecs
+            # else:
+            lyitVy = facmy.solve_Ft(ypodvecs)
             red_realize_sol, red_realize_output, red_probfems, red_plotit \
                 = get_red_problem(lyitVy)
             red_cmat = red_probfems['cmat']
@@ -305,17 +325,16 @@ def simit(problem='circle', meshlevel=None,
 
             print('poddim:{2}: {0}: elt: {1}'.format('reduced model comp',
                                                      crmelt, poddim))
-            if basisfrom == 'pce':
+            if basisfrom == 'pce':  # or basisfrom == 'rb':
                 cndsdexpv = lyitVy.T.dot(mmat.dot(trainexpv))
                 prjerror = trainpcexpy - red_cmat.dot(cndsdexpv)
-            elif basisfrom == 'rb':
-                # cndsdexpv = lyitVy.T.dot(mmat.dot(trainexpv))
-                prjerror = trainpcexpy - red_cmat.dot(trainexpv)
+                rmprjerrs.append(prjerror.tolist())
             elif basisfrom == 'mc':
                 cndsshm = lyitVy.T.dot(mmat.dot(snpshmean))
                 prjerror = snpshymean - red_cmat.dot(cndsshm)
-
-            rmprjerrs.append(prjerror.tolist())
+                rmprjerrs.append(prjerror.tolist())
+            else:
+                pass
 
             if checkredmod:
                 nulist = [basenu]*uncdims
@@ -345,19 +364,17 @@ def simit(problem='circle', meshlevel=None,
                     pcereslist.append(redpcexpy.tolist())
                     pcepodeysqrd.append(redpcexpeysqrd.tolist())
                     eltlist.append(elt)
-                    if pcexpy is not None:
-                        print('pce={0:2.0f}, exypce={1}, elt={2:.2f}'.
-                              format(pcedim, redpcexpy-pcexpy, elt))
-                        if pcvrnc is not None:
-                            print('pce={0:2.0f}, evrnc={1}'.
-                                  format(pcedim,
-                                         redpcexpeysqrd-pcexpy**2-pcvrnc))
+                    if truthexpy is not None:
+                        logging.info(f'pce={pcedim:2.0f}: ' + f'elt={elt:.2f}')
+                        logging.info(f'e_xpvl={(redpcexpy-truthexpy)[0]:.3e}')
+                        if truthvrnc is not None:
+                            evrnc = redpcexpeysqrd - redpcexpy**2 - truthvrnc
+                            logging.info(f'e_vrnc={evrnc[0]:.3e}')
 
                 pcepoddict.update({poddim: {'pcedims': pcedimlist,
                                             'pceres': pcereslist,
                                             'pcepodeyys': pcepodeysqrd,
                                             'elts': eltlist}})
-
             if mcpod:
                 varinu = nulb + (nuub-nulb)*np.random.rand(mcruns, uncdims)
                 expvnu = np.average(varinu, axis=0)
@@ -385,7 +402,7 @@ def simit(problem='circle', meshlevel=None,
 
     jsfile = open(filestr, mode='w')
     jsfile.write(json.dumps(tdict))
-    print('output saved to ' + filestr)
+    logging.info('output saved to ' + filestr)
 
     if plotpcepoddiff:
         pxexpxdct = dou.load_json_dicts(pcepoddiffstr)
@@ -430,7 +447,7 @@ if __name__ == '__main__':
     problem = 'cylinder'
     meshlevel = 4
     mcruns = 10  # 200
-    pcedimlist = [2]  # , 3]  # , 3, 4]  # , 3, 4, 5]  # , 7]
+    pcedimlist = [2, 4]  # , 3, 4]  # , 3, 4, 5]  # , 7]
     multiproc = 4
     mcplease = False
     pceplease = False
@@ -446,7 +463,7 @@ if __name__ == '__main__':
     basisfrom = 'mc'
     basisfrom = 'pce'
     basisfrom = 'rb'
-    rbparams = dict(samplemethod='random', nsample=25, N=20)
+    rbparams = dict(samplemethod='random', nsample=50, N=20)
 
     simit(mcruns=mcruns, pcedimlist=pcedimlist, problem=problem,
           meshlevel=meshlevel,
