@@ -25,15 +25,18 @@ from cyl_subsec import get_problem as cylinder
 
 def simit(problem='circle', meshlevel=None,
           mcruns=None, pcedimlist=None, plotplease=False,
-          mcplease=False, pceplease=False, mcpod=False, pcepod=False,
+          mcplease=False, pceplease=False, rbplease=False,
+          mcpod=False, pcepod=False,
           rbparams={},
           checkredmod=False, pcexpy=None, pcvrnc=None,
           mcxpy=None, redmcruns=None,
-          mcsnap=None, pcesnapdim=None, onlymeshtest=False,
+          mcsnap=None, onlymeshtest=False,
+          trainpcedim=None, targetpcedim=None,
           # basenu=5e-4, varia=-1e-4, varib=1e-4,
           plotpcepoddiff=False, pcepoddiffdim=9,
           multiproc=0, timings=1,
           nulb=6e-4, nuub=8e-4,
+          databasemoments='cached-data/computed-moments.json',
           basisfrom='pce', poddimlist=[5, 8, 12]):
 
     if problem == 'cylinder':
@@ -60,7 +63,7 @@ def simit(problem='circle', meshlevel=None,
     if mcpod:
         filestr = prbsetupstr + '_mcpod'
     if basisfrom == 'pce':
-        bssstr = basisfrom + '{0}'.format(pcesnapdim)
+        bssstr = basisfrom + '{0}'.format(trainpcedim)
     elif basisfrom == 'mc':
         bssstr = basisfrom + '{0}_runs{1}'.format(mcsnap, timings)
     elif basisfrom == 'rb':
@@ -153,24 +156,69 @@ def simit(problem='circle', meshlevel=None,
             plt.plot(mcout, '.')
             plt.show()
 
+    def put_mmnts_db(pcedim=None, expv=None, vrnc=None):
+
+        with open(databasemoments, 'r+') as fjs:
+            try:
+                dbmmnts = json.load(fjs)
+            except json.JSONDecodeError:
+                dbmmnts = {}
+
+        try:
+            subdict = dbmmnts[f'{meshlevel}'][f'{nua}{nub}']['uniform']
+        except KeyError:
+            dbmmnts.update({f'{meshlevel}': {f'{nua}{nub}':
+                                             {'uniform': {}}}})
+            subdict = dbmmnts[f'{meshlevel}'][f'{nua}{nub}']['uniform']
+        subdict.update({f'{pcedim}': {'expv': expv.flatten()[0],
+                                      'vrnc': vrnc.flatten()[0]}})
+
+        with open(databasemoments, 'w') as fjs:
+            fjs.write(json.dumps(dbmmnts))
+
+        return
+
+    def get_mmnts_db(pcedim):
+        with open(databasemoments, 'r+') as fjs:
+            try:
+                dbmmnts = json.load(fjs)
+            except json.JSONDecodeError:
+                dbmmnts = {}
+        try:
+            subdict = dbmmnts[f'{meshlevel}'][f'{nua}{nub}']['uniform']
+            pcexpy = subdict[f'{pcedim}']['expv']
+            pcvrnc = subdict[f'{pcedim}']['vrnc']
+            return pcexpy, pcvrnc, True
+        except KeyError as e:
+            logging.debug(e, exc_info=True)
+            return None, None, False
+
     # ## CHAP Polynomial Chaos Expansion
     if pceplease:
         for pcedim in pcedimlist:
-            abscissae, weights, compexpv, _ = mpu.\
-                setup_pce(distribution='uniform',
-                          distrpars=dict(a=nua, b=nub),
-                          pcedim=pcedim, uncdims=uncdims)
-            # abscarray, weightsarray = np.array(abscissae), np.array(weights)
-            ysoltens = mpu.run_pce_sim_separable(solfunc=get_output,
-                                                 uncdims=uncdims,
-                                                 multiproc=multiproc,
-                                                 abscissae=abscissae)
-            pcexpy = compexpv(ysoltens)
-            pcexpysqrd = compexpv(np.square(ysoltens))
-            pcvrnc = pcexpysqrd-pcexpy**2
-            print('PCE({0}): E(y): {1}'.format(pcedim, pcexpy))
-            print('PCE({0}): E(yy): {1}'.format(pcedim, pcexpysqrd))
-            print('PCE({0}): V(y): {1}'.format(pcedim, pcvrnc))
+            pcexpy, pcvrnc, esth = get_mmnts_db(pcedim=pcedim)
+            if esth:
+                logging.info('PCE({0}): E(y): {1}'.format(pcedim, pcexpy))
+                logging.info('PCE({0}): V(y): {1}'.format(pcedim, pcvrnc))
+                logging.debug('loaded from ' + databasemoments)
+            else:
+                logging.info(f'Computing: PCE({pcedim})')
+
+                abscissae, weights, compexpv, _ = mpu.\
+                    setup_pce(distribution='uniform',
+                              distrpars=dict(a=nua, b=nub),
+                              pcedim=pcedim, uncdims=uncdims)
+                ysoltens = mpu.run_pce_sim_separable(solfunc=get_output,
+                                                     uncdims=uncdims,
+                                                     multiproc=multiproc,
+                                                     abscissae=abscissae)
+                pcexpy = compexpv(ysoltens)
+                pcexpysqrd = compexpv(np.square(ysoltens))
+                pcvrnc = pcexpysqrd-pcexpy**2
+                print('PCE({0}): E(y): {1}'.format(pcedim, pcexpy))
+                print('PCE({0}): E(yy): {1}'.format(pcedim, pcexpysqrd))
+                print('PCE({0}): V(y): {1}'.format(pcedim, pcvrnc))
+                put_mmnts_db(pcedim=pcedim, expv=pcexpy, vrnc=pcvrnc)
 
     # if rbplease:
     #     rbey = np.mean(cmat @ rbbas)
@@ -225,9 +273,9 @@ def simit(problem='circle', meshlevel=None,
             trnabscissae, trnweights, trncompexpv, trncomvrnc = mpu.\
                 setup_pce(distribution='uniform',
                           distrpars=dict(a=nua, b=nub),
-                          pcedim=pcesnapdim, uncdims=uncdims)
+                          pcedim=trainpcedim, uncdims=uncdims)
             pcewmatfac = sps.dia_matrix((np.sqrt(trnweights), 0),
-                                        shape=(pcesnapdim, pcesnapdim))
+                                        shape=(trainpcedim, trainpcedim))
 
             mfl = [facmy.F]
             mfl.extend([pcewmatfac]*uncdims)
@@ -445,7 +493,7 @@ if __name__ == '__main__':
                         datefmt="[%X]",
                         )
     problem = 'cylinder'
-    meshlevel = 4
+    meshlevel = 5
     mcruns = 10  # 200
     pcedimlist = [2, 4]  # , 3, 4]  # , 3, 4, 5]  # , 7]
     multiproc = 4
@@ -461,12 +509,12 @@ if __name__ == '__main__':
     pcepod = True
     # mcpod = True
     basisfrom = 'mc'
-    basisfrom = 'pce'
     basisfrom = 'rb'
+    basisfrom = 'pce'
     rbparams = dict(samplemethod='random', nsample=50, N=20)
 
     simit(mcruns=mcruns, pcedimlist=pcedimlist, problem=problem,
           meshlevel=meshlevel,
           plotplease=plotplease, basisfrom=basisfrom, multiproc=multiproc,
-          rbparams=rbparams, pcesnapdim=2,
+          rbparams=rbparams, trainpcedim=2, targetpcedim=5,
           mcplease=mcplease, pceplease=pceplease, mcpod=mcpod, pcepod=pcepod)
