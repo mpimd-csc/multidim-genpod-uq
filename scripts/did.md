@@ -76,3 +76,8 @@ very different.
            * `pcedim`
              * `expv`
              * `vrnc`
+
+## 2022-03-23 14:52:35+01:00
+
+ * TODO: define/comp the `rb` experiments
+ * TODO: add support for `beta-dist` see Notion note for the formulas
