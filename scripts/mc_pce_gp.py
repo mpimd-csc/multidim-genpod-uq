@@ -69,7 +69,7 @@ def simit(problem='circle', meshlevel=None,
     elif basisfrom == 'rb':
         bssstr = basisfrom + '_' + rbparams['samplemethod'] + \
                 '{0}_runs{1}'.format(rbparams['nsample'], timings)
-        rbplease = True
+        # rbplease = True
     filestr = filestr + '_bf' + bssstr + '.json'
 
     if onlymeshtest or plotplease:
@@ -83,57 +83,64 @@ def simit(problem='circle', meshlevel=None,
             return problemfems['mmat'].shape[0], cmat.dot(basev)
 
     if rbplease or basisfrom == 'rb':
-        if rbparams['samplemethod'] == 'random':
-            rbtrainnu = nulb + \
-                (nuub-nulb)*np.random.rand(rbparams['nsample'], uncdims)
-            logging.info(f'RB with {rbparams["nsample"]} random training pnts')
-        else:
-            raise NotImplementedError()
 
-        # ## BLUNT implementation of RB
-        # We precompute all solutions at the training parameters
-        # to find *the max* without an estimator
-        # (at least, we can use this solutions than to setup the RB)
-        logging.info('computing all values for the RB train set ...')
-        rbtrainset, _, _ = mpu.run_mc_sim(rbtrainnu, get_sol, verbose=True,
-                                          multiproc=multiproc)
-        logging.info('... done!')
+        def get_rbbas(nsamples=rbparams['nsample'], nrbvecs=rbparams['N']):
+            if rbparams['samplemethod'] == 'random':
+                rbtrainnu = nulb + \
+                    (nuub-nulb)*np.random.rand(nsamples, uncdims)
+                logging.info(f'RB with {nsamples} random training points')
+            else:
+                raise NotImplementedError()
+            # ## BLUNT implementation of RB
+            # We precompute all solutions at the training parameters
+            # to find *the max* without an estimator
+            # (at least, we can use this solutions than to setup the RB)
+            logging.info('computing all values for the RB train set ...')
+            rbtrainset, _, _ = mpu.run_mc_sim(rbtrainnu, get_sol, verbose=True,
+                                              multiproc=multiproc)
+            logging.info('... done!')
 
-        def getmaxparam(cp_get_sol, dffun):
-            mxdiff, mxdfpara, mxdfprid = 0, None, None
-            diffl = []
-            for cprid, cpara in enumerate(rbtrainnu):
-                cdiff = dffun(cp_get_sol(cpara),
-                              rbtrainset[cprid].reshape((-1, 1)))
-                # print(f'err: {cdiff} -- para val {cpara}')
-                if cdiff > mxdiff:
-                    logging.debug(f'new-max: err: {cdiff.flatten()[0]:2e} \n' +
-                                  f'-- pv: {cpara}')
-                    mxdfpara, mxdfprid = cpara, cprid
-                    mxdiff = cdiff
-                diffl.append(cdiff)
-            logging.info(f'found max err: {mxdiff.flatten()[0]:2e} \n' +
-                         f'-- at: {mxdfpara}')
-            return mxdfpara, rbtrainset[mxdfprid].reshape((-1, 1))
+            def _getmaxparam(cp_get_sol, dffun):
+                mxdiff, mxdfpara, mxdfprid = 0, None, None
+                diffl = []
+                for cprid, cpara in enumerate(rbtrainnu):
+                    cdiff = dffun(cp_get_sol(cpara),
+                                  rbtrainset[cprid].reshape((-1, 1)))
+                    # print(f'err: {cdiff} -- para val {cpara}')
+                    if cdiff > mxdiff:
+                        logging.debug(f'n-max: err: {cdiff.flatten()[0]:2e}' +
+                                      f' \n-- pv: {cpara}')
+                        mxdfpara, mxdfprid = cpara, cprid
+                        mxdiff = cdiff
+                    diffl.append(cdiff)
+                logging.info(f'found max err: {mxdiff.flatten()[0]:2e} \n' +
+                             f'-- at: {mxdfpara}')
+                return mxdfpara, rbtrainset[mxdfprid].reshape((-1, 1))
 
-        def dffun(vone, vtwo):
-            diffv = vone-vtwo
-            return np.sqrt(diffv.T @ mmat @ diffv)
+            def _dffun(vone, vtwo):
+                diffv = vone-vtwo
+                return np.sqrt(diffv.T @ mmat @ diffv)
 
-        rbbas = rbtrainset[0].reshape((-1, 1))
+            rbbas = rbtrainset[0].reshape((-1, 1))
 
-        for rbdim in range(rbparams['N']-1):
-            logging.info('*** RB: Greedy iteration ' +
-                         f'{rbdim+1}/{rbparams["N"]-1} ***')
-            crb_red_realize_sol, _, _, _ = get_red_problem(rbbas)
+            for rbdim in range(nrbvecs-1):
+                logging.info('*** RB: Greedy iteration ' +
+                             f'{rbdim+1}/{nrbvecs-1} ***')
+                crb_red_realize_sol, _, _, _ = get_red_problem(rbbas)
 
-            def _compun(para):
-                return rbbas @ crb_red_realize_sol(para)
-            mxdfpara, mxdfsol = getmaxparam(_compun, dffun=dffun)
-            # print('returned: ', mxdfpara)
-            # rbcheck = get_sol(mxdfpara)
-            # print('right vec?: ', dffun(rbcheck, mxdfsol))
-            rbbas = np.hstack([rbbas, mxdfsol])
+                def _compun(para):
+                    return rbbas @ crb_red_realize_sol(para)
+                mxdfpara, mxdfsol = _getmaxparam(_compun, dffun=_dffun)
+                # print('returned: ', mxdfpara)
+                # rbcheck = get_sol(mxdfpara)
+                # print('right vec?: ', dffun(rbcheck, mxdfsol))
+                rbbas = np.hstack([rbbas, mxdfsol])
+
+            return rbbas
+
+        if rbplease:
+            rbbas = get_rbbas(nsamples=rbparams['nsample'],
+                              nrbvecs=rbparams['N'])
 
     # ## CHAP Monte Carlo
     if mcplease:
@@ -263,6 +270,7 @@ def simit(problem='circle', meshlevel=None,
         truthvrnc = pcvrnc
     except UnboundLocalError:
         truthvrnc = None
+    tdict = dict(truthvrnc=truthvrnc, truthexpy=truthexpy)
 
     np.random.seed(1)  # seed for the random `mc` basis
 
@@ -333,7 +341,14 @@ def simit(problem='circle', meshlevel=None,
                 return ypodvecs
 
         elif basisfrom == 'rb':
+            trttstart = time.time()
+            rbbas = get_rbbas(nsamples=rbparams['nsample'],
+                              nrbvecs=poddimlist[-1])
+            trtelt = time.time() - trttstart
+            logging.info(f"RB basis from {rbparams['nsample']} random samples")
             lymrbvecs = facmy.Ft*rbbas
+
+            loctdict.update({'traintime': trtelt})
 
             def get_pod_vecs(poddim=None):
                 ''' return the first `poddim` RB vectors
@@ -498,6 +513,7 @@ if __name__ == '__main__':
     mcruns = 10  # 200
     pcedimlist = [2, 4, 5]  # , 3, 4]  # , 3, 4, 5]  # , 7]
     multiproc = 2
+    timings = 3
     mcplease = False
     pceplease = False
     plotplease = False
@@ -512,10 +528,10 @@ if __name__ == '__main__':
     basisfrom = 'mc'
     basisfrom = 'pce'
     basisfrom = 'rb'
-    rbparams = dict(samplemethod='random', nsample=32, N=16)
+    rbparams = dict(samplemethod='random', nsample=16, N=16)
 
     simit(mcruns=mcruns, pcedimlist=pcedimlist, problem=problem,
-          meshlevel=meshlevel,
+          meshlevel=meshlevel, timings=timings,
           plotplease=plotplease, basisfrom=basisfrom, multiproc=multiproc,
           rbparams=rbparams, trainpcedim=2, targetpcedim=5,
           mcplease=mcplease, pceplease=pceplease, mcpod=mcpod, pcepod=pcepod)

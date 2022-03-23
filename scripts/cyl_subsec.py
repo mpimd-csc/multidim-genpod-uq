@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import scipy.sparse as sps
 import scipy.sparse.linalg as spsla
@@ -44,7 +46,7 @@ def get_problem(meshlevel=1):
     #     Expression("sin(2*pi*(pow(x[0],2)+pow(x[1],2)))*sin(pi*2*x[0])",
     #                degree=1)
 
-    print('we use zero boundary conditions!')
+    logging.debug('we use zero boundary conditions!')
     bcexp = dolfin.Expression("0", degree=1)
 
     distrhsexp = dolfin.\
@@ -149,7 +151,7 @@ def get_problem(meshlevel=1):
         obsopmat = sps.csc_matrix(obsop)[:, ininds]
         obsoplist.append(obsopmat/obsopmat.sum())
     arer = obsopmat.sum() - .25*np.pi*(0.5*0.5 - 0.4*0.4)
-    print('meshlevel: {0}: error obs domain: {1}'.format(meshlevel, arer))
+    logging.info(f'meshlevel: {meshlevel}: error obs domain: {arer}')
 
     cmat = sps.vstack(obsoplist)
     cmat = sps.csc_matrix(cmat.sum(0))
