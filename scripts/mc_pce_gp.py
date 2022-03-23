@@ -510,9 +510,9 @@ if __name__ == '__main__':
     pcepod = True
     # mcpod = True
     basisfrom = 'mc'
-    basisfrom = 'rb'
     basisfrom = 'pce'
-    rbparams = dict(samplemethod='random', nsample=50, N=20)
+    basisfrom = 'rb'
+    rbparams = dict(samplemethod='random', nsample=32, N=16)
 
     simit(mcruns=mcruns, pcedimlist=pcedimlist, problem=problem,
           meshlevel=meshlevel,
