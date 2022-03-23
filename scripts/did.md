@@ -66,7 +66,7 @@ very different.
 
 ## 2022-03-03 20:51:07+01:00
 
- * TODO: do some caching
+ * DONE: do some caching
    * save `expvals` and `variances` for all `(N, nua, nub)`
    * define `pcesnapshotdim` separately (independent from `pceplease`)
    * one big json...

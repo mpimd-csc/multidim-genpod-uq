@@ -279,6 +279,7 @@ def simit(problem='circle', meshlevel=None,
 
             mfl = [facmy.F]
             mfl.extend([pcewmatfac]*uncdims)
+            logging.info('Snapshot computation started...')
             trainsoltens = mpu.run_pce_sim_separable(solfunc=get_sol,
                                                      uncdims=uncdims,
                                                      multiproc=multiproc,
@@ -495,8 +496,8 @@ if __name__ == '__main__':
     problem = 'cylinder'
     meshlevel = 5
     mcruns = 10  # 200
-    pcedimlist = [2, 4]  # , 3, 4]  # , 3, 4, 5]  # , 7]
-    multiproc = 4
+    pcedimlist = [2, 4, 5]  # , 3, 4]  # , 3, 4, 5]  # , 7]
+    multiproc = 2
     mcplease = False
     pceplease = False
     plotplease = False
