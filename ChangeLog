@@ -1,0 +1,156 @@
+CHANGES
+=======
+
+v0.0.2
+------
+
+* jobfiles too
+* added \_\_pycache\_\_ to gitig
+* more sims
+* upd did
+* some fixes in the data handling -- logging
+* some training
+* trying
+* looks like value caching working
+* rozza rocks
+* tmp data to dedicated directory
+* looks like ok
+* upd gitig
+* cont
+* basic RB functions like working
+* now with setup.py
+* done with psf
+* zenodo badge
+* upd readme
+* the raw data
+* rmd old file
+* pubsoftform
+* Add license
+* upd gitig
+* added README
+* preparing for code pub
+* added a script for all results
+* so much update
+* bug fix
+* gonna log E(yy) too
+* scripting the plot diffs
+* scripting the pce pod diff plot
+* get the vecs the right dimension
+* fix
+* and do the diff plot
+* some more verbosity
+* going plot diffs
+* now seeding for the mc-basis
+* beauti
+* now comp only E(yy) -- and the variance later
+* testing postprocess
+* going variances
+* repro pce[2] results
+* fixed a naming -- mgp==1.0.1 seems to work
+* upd did
+* lil sims well scripted
+* towards checking variances
+* test the pce vs the mc
+* done cleanup
+* clean up repo
+* upds
+* pp and need another run
+* mrgd
+* woe
+* comp things
+* many files
+* post processing
+* major error
+* post process script
+* all there for ppc
+* now pod results independent of ref vals
+* data collection for mcpod and mc-basis
+* now also all poddim data
+* added pid for mc sims cached data
+* more informative json str
+* now with timing runs and json storing the results and timings
+* mc tested
+* now saving to file rather than multiprocessing.Queue
+* timing but cannot queue too large objects
+* now multiproc for mc tooo
+* more evenly distributed iterations per process -- timings
+* can now script any number of processes
+* back to normal sh
+* now with multiproc for pce -- stil hardcoded
+* now also scripting the nus
+* now ref vals by now
+* testing the convergence
+* clean the repo
+* mrg fixs
+* mrgd
+* new meshes
+* done and restruc (now with structure)
+* looking good -- need control lines for the inner boundary too
+* 2 segs go
+* now scripting poddims too
+* trying to have fine mesh only at the corners
+* now also scripting pcedims
+* less visc more vari
+* new meshes -- refining at the corners
+* other range -- fix for nonzero left boundary
+* simming
+* script+=mcpod, now reporting training pcexpy
+* now conv in z direc
+* major bug fix
+* now aborting if no comp vals
+* mrgd
+* fixes
+* fixes
+* minor upds
+* more scripting
+* typo fixes
+* more scripting
+* scripting
+* scripting
+* scripting
+* other refinement -- better convergence
+* output info
+* now with cline options
+* need to do go with rhs -- refined observervation domain
+* with the boundary -- complete failure
+* redid the plotting -- pod with rhs only works kinda
+* trying
+* not working -- gonna try zero Dirichlets and rhs
+* 3D sim like working
+* 3D problem setup
+* starting the cylinder problem
+* proper naming
+* mesh works -- now solving
+* maybe extrusion is a bad idea -- gonna try without
+* dbgng
+* updates
+* make the 3D mesh please
+* just extruded
+* some-sims
+* upd
+* pypath
+* rename
+* loooking good
+* nice results -- no need for syncing >?
+* restruc done -- need to check the red mod
+* clean up
+* redo
+* simulating
+* looks all good -- need to do statistics of mc-pod -- pce-pod with lower error
+* fwd pce like working -- now genpod
+* the new module
+* on n on
+* started refac of pce
+* dolfin la backend
+* trying around
+* restructs
+* looks like good -- gonna do a refac
+* pod vecs
+* multidim pce works
+* mc for several uncertain segs working
+* mc vs pce
+* monte carlo for estimated value
+* no outsrcd like problem setup
+* can now solve a single prob
+* sanity checks pass
+* the mesh and mesh functions
