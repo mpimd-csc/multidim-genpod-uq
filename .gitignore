@@ -14,3 +14,5 @@ __pycache__
 scripts/job-files
 
 ChangeLog
+build/
+dist/
