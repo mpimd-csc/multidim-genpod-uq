@@ -17,6 +17,7 @@ jsfstr = 'N10nu3.00e-04--7.00e-04_pcepod_bfmc16_runs10.json'
 jsfstr = 'N10nu3.00e-04--7.00e-04_pcepod_bfmc16_runs5.json'
 jsfstr = 'N5nu6.00e-04--8.00e-04_pcepod_bfrb_random16_runs1.json'
 jsfstr = 'N5nu6.00e-04--8.00e-04_pcepod_bfrb_random16_runs3.json'
+jsfstr = 'N5nu6.00e-04--8.00e-04_pcepod_bfpce2.json'
 # jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod_mcpod_bfpce.json'.format(N)
 # jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod_mcpod_bfmc.json'.format(N)
 if len(sys.argv) == 2:

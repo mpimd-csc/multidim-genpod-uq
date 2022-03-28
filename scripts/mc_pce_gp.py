@@ -526,8 +526,8 @@ if __name__ == '__main__':
     pcepod = True
     # mcpod = True
     basisfrom = 'mc'
-    basisfrom = 'pce'
     basisfrom = 'rb'
+    basisfrom = 'pce'
     rbparams = dict(samplemethod='random', nsample=16, N=16)
 
     simit(mcruns=mcruns, pcedimlist=pcedimlist, problem=problem,
