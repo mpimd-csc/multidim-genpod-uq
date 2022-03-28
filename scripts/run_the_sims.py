@@ -143,7 +143,7 @@ with Timer():
           problem=problem, meshlevel=meshlevel,
           plotplease=plotplease, basisfrom=basisfrom,
           mcxpy=mcxpy, pcexpy=pcexpy, redmcruns=15000,
-          mcsnap=mcsnap, pcesnapdim=pcesnapdim, poddimlist=poddimlist,
+          mcsnap=mcsnap, trainpcedim=pcesnapdim, poddimlist=poddimlist,
           multiproc=nprocs, timings=timings,
           # basenu=basenu, varia=varia, varib=varib,
           plotpcepoddiff=plotpcepoddiff, pcepoddiffdim=pcepoddiffdim,
