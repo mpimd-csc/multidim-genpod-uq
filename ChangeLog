@@ -1,6 +1,12 @@
 CHANGES
 =======
 
+v0.0.3
+------
+
+* upd gitignore
+* now packaging with pbr
+
 v0.0.2
 ------
 
