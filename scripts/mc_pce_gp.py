@@ -60,8 +60,10 @@ def simit(problem='circle', meshlevel=None,
 
     if pcepod:
         filestr = prbsetupstr + '_pcepod'
-    if mcpod:
+    elif mcpod:
         filestr = prbsetupstr + '_mcpod'
+    else:
+        filestr = prbsetupstr
     if basisfrom == 'pce':
         bssstr = basisfrom + '{0}'.format(trainpcedim)
     elif basisfrom == 'mc':
@@ -69,7 +71,8 @@ def simit(problem='circle', meshlevel=None,
     elif basisfrom == 'rb':
         bssstr = basisfrom + '_' + rbparams['samplemethod'] + \
                 '{0}_runs{1}'.format(rbparams['nsample'], timings)
-        # rbplease = True
+    else:
+        pass
     filestr = filestr + '_bf' + bssstr + '.json'
 
     if onlymeshtest or plotplease:
