@@ -264,15 +264,11 @@ def simit(problem='circle', meshlevel=None,
     mmat = problemfems['mmat']
     facmy = SparseFactorMassmat(mmat)
 
-    tdict = {}
-    try:
-        truthexpy = pcexpy
-    except UnboundLocalError:
-        truthexpy = None
-    try:
-        truthvrnc = pcvrnc
-    except UnboundLocalError:
-        truthvrnc = None
+    truthexpy, truthvrnc, esth = get_mmnts_db(pcedim=pcedimlist)
+    if esth:
+        logging.info(f'truth: PCE({pcedimlist[-1]}): E(y): {truthexpy}')
+        logging.info(f'truth: PCE({pcedimlist[-1]}): V(y): {truthvrnc}')
+        logging.debug('loaded from ' + databasemoments)
     tdict = dict(truthvrnc=truthvrnc, truthexpy=truthexpy)
 
     np.random.seed(1)  # seed for the random `mc` basis
