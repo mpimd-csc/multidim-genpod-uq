@@ -264,7 +264,7 @@ def simit(problem='circle', meshlevel=None,
     mmat = problemfems['mmat']
     facmy = SparseFactorMassmat(mmat)
 
-    truthexpy, truthvrnc, esth = get_mmnts_db(pcedim=pcedimlist)
+    truthexpy, truthvrnc, esth = get_mmnts_db(pcedim=pcedimlist[-1])
     if esth:
         logging.info(f'truth: PCE({pcedimlist[-1]}): E(y): {truthexpy}')
         logging.info(f'truth: PCE({pcedimlist[-1]}): V(y): {truthvrnc}')

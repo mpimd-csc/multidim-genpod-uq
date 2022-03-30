@@ -6,6 +6,14 @@ import re
 from mc_pce_gp import simit
 from dolfin_navier_scipy.data_output_utils import Timer
 
+import logging
+from rich.logging import RichHandler
+
+logging.basicConfig(level=logging.INFO, handlers=[RichHandler()],
+                    format='%(message)s',
+                    datefmt="[%X]",
+                    )
+
 mcruns = 1000  # 200
 pcedimlist = [3, 4, 5]  # , 3, 4, 5]  # , 7]
 pcesnapdim = 3
@@ -26,10 +34,10 @@ pcepod = True
 basisfrom = 'mc'
 basisfrom = 'pce'
 problem = 'cylinder'
-meshlevel = 10
-nulb = 4e-4
-nuub = 6e-4
-nprocs = 2
+meshlevel = 6
+nulb = 3e-4
+nuub = 7e-4
+nprocs = 4
 timings = 1
 
 plotpcepoddiff = False
