@@ -270,7 +270,8 @@ def simit(problem='circle', meshlevel=None,
         logging.info(f'truth: PCE({pcedimlist[-1]}): V(y): {truthvrnc}')
         logging.debug('loaded from ' + databasemoments)
     else:
-        logging.info('no truthvalues loaded')
+        logging.info('no truthvalues loaded -- tried with ' + databasemoments)
+        logging.debug(f'for with pcedim={pcedimlist[-1]}')
     tdict = dict(truthvrnc=truthvrnc, truthexpy=truthexpy)
 
     np.random.seed(1)  # seed for the random `mc` basis
