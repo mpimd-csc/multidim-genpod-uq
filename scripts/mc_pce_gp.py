@@ -174,12 +174,12 @@ def simit(problem='circle', meshlevel=None,
             except json.JSONDecodeError:
                 dbmmnts = {}
 
+        nukey = f'{nua:.1e}to{nub:.1e}'
         try:
-            subdict = dbmmnts[f'{meshlevel}'][f'{nua}{nub}']['uniform']
+            subdict = dbmmnts[f'{meshlevel}'][nukey]['uniform']
         except KeyError:
-            dbmmnts.update({f'{meshlevel}': {f'{nua}{nub}':
-                                             {'uniform': {}}}})
-            subdict = dbmmnts[f'{meshlevel}'][f'{nua}{nub}']['uniform']
+            dbmmnts.update({f'{meshlevel}': {nukey: {'uniform': {}}}})
+            subdict = dbmmnts[f'{meshlevel}'][nukey]['uniform']
         subdict.update({f'{pcedim}': {'expv': expv.flatten()[0],
                                       'vrnc': vrnc.flatten()[0]}})
 
@@ -194,8 +194,9 @@ def simit(problem='circle', meshlevel=None,
                 dbmmnts = json.load(fjs)
             except json.JSONDecodeError:
                 dbmmnts = {}
+        nukey = f'{nua:.1e}to{nub:.1e}'
         try:
-            subdict = dbmmnts[f'{meshlevel}'][f'{nua}{nub}']['uniform']
+            subdict = dbmmnts[f'{meshlevel}'][nukey]['uniform']
             pcexpy = subdict[f'{pcedim}']['expv']
             pcvrnc = subdict[f'{pcedim}']['vrnc']
             return pcexpy, pcvrnc, True
