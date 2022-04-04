@@ -1,5 +1,5 @@
-import getopt
-import sys
+# import getopt
+import argparse
 import numpy as np
 import re
 
@@ -19,6 +19,7 @@ pcedimlist = [3, 4, 5]  # , 3, 4, 5]  # , 7]
 pcesnapdim = 3
 mcsnap = 3**5*2
 poddimlist = [5, 10, 20]
+
 mcplease = False
 pceplease = False
 plotplease = False
@@ -45,101 +46,86 @@ pcepoddiffdim = 9
 
 mcxpy, pcexpy = None, None
 
+prsr = argparse.ArgumentParser()
+prsr.add_argument("--mesh", type=int, help="mesh level", default=meshlevel)
+prsr.add_argument("--pcepod", type=bool, help="do POD PCE", default=pcepod)
+prsr.add_argument("--mcpod", type=bool, help="do POD MC", default=mcpod)
+prsr.add_argument("--mc", type=bool, help="do FOM MC", default=mcplease)
+prsr.add_argument("--mcruns", type=bool, help="#MC samples", default=mcruns)
+prsr.add_argument("--rombase", type=str,
+                  help="what basis for the ROM", default=basisfrom)
+prsr.add_argument("--pce", type=bool, help="do a FOM PCE", default=pceplease)
+prsr.add_argument("--pcedims", type=str,
+                  help="dimensions of the FOM/ROM PCE", default=None)
+prsr.add_argument("--poddims", type=str, help="dimensions ROM", default=None)
+prsr.add_argument("--pcesnapdim", type=int,
+                  help="dimensions of training PCE", default=pcesnapdim)
+prsr.add_argument("--mcsnap", type=int,
+                  help="dimensions of training MC", default=mcsnap)
+prsr.add_argument("--rbsnap", type=int,
+                  help="dimensions of training set for RB", default=None)
+prsr.add_argument("--varinu", type=str, help="range of the nu's", default=None)
+prsr.add_argument("--nprocs", type=int,
+                  help="number of parallel threads", default=nprocs)
+prsr.add_argument("--timings", type=int,
+                  help="number of runs for timing", default=timings)
 
-options, rest = getopt.getopt(sys.argv[1:], '',
-                              ['mesh=',
-                               'mc=',
-                               'mcruns=',
-                               'pce=',
-                               'pcedims=',
-                               'poddims=',
-                               'podbase=',
-                               'pcepod=',
-                               'mcpod=',
-                               'pcesnapdim=',
-                               'mcsnap=',
-                               'varinu=',
-                               'nprocs=',
-                               'mcxpy=',
-                               'pcexpy=',
-                               'timings=',
-                               'plotpcepoddifddim='
-                               ])
+args = prsr.parse_args()
 
-for opt, arg in options:
-    if opt == '--mesh':
-        meshlevel = np.int(arg)
-    elif opt == '--pcepod':
-        pcepod = np.bool(np.int(arg))
-    elif opt == '--mcpod':
-        mcpod = np.bool(np.int(arg))
-    elif opt == '--mc':
-        mcplease = np.bool(np.int(arg))
-    elif opt == '--mcruns':
-        mcruns = np.int(arg)
-        if mcruns < 10:
-            raise UserWarning('minimal number for mcruns is 10')
-    elif opt == '--podbase':
-        basisfrom = np.str(arg)
-    elif opt == '--pce':
-        pceplease = np.bool(np.int(arg))
-    elif opt == '--pcedims':
-        nmstrl = re.findall('\\d+', arg)
-        pcedimlist = [np.int(xstr) for xstr in nmstrl]
-    elif opt == '--poddims':
-        poddstrl = re.findall('\\d+', arg)
-        poddimlist = [np.int(xstr) for xstr in poddstrl]
-    elif opt == '--pcesnapdim':
-        pcesnapdim = np.int(arg)
-    elif opt == '--mcsnap':
-        mcsnap = np.int(arg)
-    elif opt == '--varinu':
-        nuabstrl = re.findall('\\d+', arg)
-        nuabl = [np.int(xstr) for xstr in nuabstrl]
-        nulb = nuabl[0]*10**(-nuabl[2])
-        nuub = nuabl[1]*10**(-nuabl[2])
-    elif opt == '--nprocs':
-        nprocs = np.int(arg)
-    elif opt == '--mcxpy':
-        mcxpy = np.float(arg)
-    elif opt == '--pcexpy':
-        pcexpy = np.float(arg)
-    elif opt == '--timings':
-        timings = np.int(arg)
-    elif opt == '--plotpcepoddifddim':
-        pcepoddiffdim = np.int(arg)
-        if pcepoddiffdim > 0:
-            plotpcepoddiff = True
+if args.pcedims is not None:
+    nmstrl = re.findall('\\d+', args.pcedims)
+    pcedimlist = [np.int(xstr) for xstr in nmstrl]
+else:
+    pass
 
-infostring = ('meshlevel      = {0}'.format(meshlevel) +
-              '\npce            = {0}'.format(pceplease) +
-              '\nmc             = {0}'.format(mcplease) +
-              '\nmcpod          = {0}'.format(mcpod) +
-              '\npcepod         = {0}'.format(pcepod)
+if args.poddims is not None:
+    poddstrl = re.findall('\\d+', args.poddims)
+    poddimlist = [np.int(xstr) for xstr in poddstrl]
+else:
+    pass
+
+if args.varinu is not None:
+    nuabstrl = re.findall('\\d+', args.varinu)
+    nuabl = [np.int(xstr) for xstr in nuabstrl]
+    nulb = nuabl[0]*10**(-nuabl[2])
+    nuub = nuabl[1]*10**(-nuabl[2])
+else:
+    pass
+if args.mcruns < 10:
+    raise UserWarning('minimal number for mcruns is 10')
+else:
+    pass
+
+infostring = ('meshlevel      = {0}'.format(args.mesh) +
+              '\npce            = {0}'.format(args.pce) +
+              '\nmc             = {0}'.format(args.mc) +
+              '\nmcpod          = {0}'.format(args.mcpod) +
+              '\npcepod         = {0}'.format(args.pcepod) +
+              f'\nbasisfrom      = {args.rombase}'
               )
 
-if mcplease:
+if args.mc:
     infostring = (infostring +
-                  '\nmcruns         = {0}'.format(mcruns))
+                  '\nmcruns         = {0}'.format(args.mcruns))
 
-if pceplease or pcepod:
+if args.pce or args.pcepod:
     infostring = (infostring +
                   '\npcedims        = {0}'.format(pcedimlist))
 
-if mcpod or pcepod:
+if args.mcpod or args.pcepod:
     infostring = (infostring +
                   '\npoddimlist     = {0}'.format(poddimlist) +
-                  '\nbasisfrom      = {0}'.format(basisfrom))
-    if basisfrom == 'mc':
+                  '\nbasisfrom      = {0}'.format(args.rombase))
+    if args.rombase == 'mc':
         infostring = (infostring +
-                      '\nmc snapshots   = {0}'.format(mcsnap) +
-                      '\nred mc runs    = {0}'.format(mcruns))
-    elif basisfrom == 'pce':
+                      '\nmc snapshots   = {0}'.format(args.mcsnap) +
+                      '\nred mc runs    = {0}'.format(args.mcruns))
+    elif args.rombase == 'pce':
         infostring = (infostring +
-                      '\ntrain pce dim  = {0}'.format(pcesnapdim))
-    elif basisfrom == 'rb':
+                      '\ntrain pce dim  = {0}'.format(args.pcesnapdim))
+    elif args.rombase == 'rb':
         infostring = (infostring +
-                      '\ntrain rb dim  = {0}'.format(rbtraindim))
+                      '\ntrain rb dim  = {0}'.format(args.rbsnap))
     else:
         pass
 else:
@@ -151,19 +137,21 @@ if nprocs > 1:
 else:
     pass
 
-
 print('******************')
 print(infostring)
 print('******************')
 
 with Timer():
-    simit(mcruns=mcruns, pcedimlist=pcedimlist,
-          problem=problem, meshlevel=meshlevel,
-          plotplease=plotplease, basisfrom=basisfrom,
-          mcxpy=mcxpy, pcexpy=pcexpy, redmcruns=15000,
-          mcsnap=mcsnap, trainpcedim=pcesnapdim, poddimlist=poddimlist,
-          multiproc=nprocs, timings=timings,
-          # basenu=basenu, varia=varia, varib=varib,
-          plotpcepoddiff=plotpcepoddiff, pcepoddiffdim=pcepoddiffdim,
+    simit(mcruns=args.mcruns, pcedimlist=pcedimlist,
+          problem=problem, meshlevel=args.mesh,
+          plotplease=plotplease, basisfrom=args.rombase,
+          # mcxpy=args.mcxpy, pcexpy=args.pcexpy,
+          redmcruns=15000,
+          mcsnap=args.mcsnap, trainpcedim=args.pcesnapdim,
+          poddimlist=poddimlist,
+          rbparams=dict(samplemethod='random', nsample=args.rbsnap),
+          multiproc=args.nprocs, timings=args.timings,
+          # plotpcepoddiff=args.plotpcepoddiff, pcepoddiffdim=pcepoddiffdim,
           nulb=nulb, nuub=nuub,
-          mcplease=mcplease, pceplease=pceplease, mcpod=mcpod, pcepod=pcepod)
+          mcplease=args.mc, pceplease=args.pce,
+          mcpod=args.mcpod, pcepod=args.pcepod)
