@@ -134,12 +134,22 @@ if mcpod or pcepod:
         infostring = (infostring +
                       '\nmc snapshots   = {0}'.format(mcsnap) +
                       '\nred mc runs    = {0}'.format(mcruns))
-    if basisfrom == 'pce':
+    elif basisfrom == 'pce':
         infostring = (infostring +
                       '\ntrain pce dim  = {0}'.format(pcesnapdim))
+    elif basisfrom == 'rb':
+        infostring = (infostring +
+                      '\ntrain rb dim  = {0}'.format(rbtraindim))
+    else:
+        pass
+else:
+    pass
+
 if nprocs > 1:
     infostring = (infostring +
                   '\nnprocs         = {0}'.format(nprocs))
+else:
+    pass
 
 
 print('******************')
