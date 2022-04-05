@@ -1,9 +1,10 @@
 from itertools import product, islice
 from multiprocessing import Process
 import os
+import logging
 
 import numpy as np
-from scipy.io import savemat, loadmat
+from scipy.io import savemat, loadmat, matlab
 
 import multidim_galerkin_pod.chaos_expansion_utils as ceu
 
@@ -133,8 +134,12 @@ def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
 
         ychunkl = []
         for fstr in fstrl:
-            cychunk = loadmat(fstr)['ypart']
-            ychunkl.append(cychunk)
+            try:
+                cychunk = loadmat(fstr)['ypart']
+                ychunkl.append(cychunk)
+            except matlab.miobaseMatReadError as e:
+                logging.debug(e, exc_info=True)
+                pass
 
         yarray = np.vstack(ychunkl)
         ypcedims = [yarray.shape[1]]
