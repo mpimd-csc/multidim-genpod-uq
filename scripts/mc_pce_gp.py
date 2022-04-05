@@ -47,7 +47,7 @@ def simit(problem='circle', meshlevel=None,
         get_sol, get_output, problemfems, get_red_problem = get_problem()
         uncdims = 5
 
-    logging.info('Problem dimension: ', problemfems['mmat'].shape[0])
+    logging.info('Problem dimension: {0}'.format(problemfems['mmat'].shape[0]))
 
     nua, nub = nulb, nuub
     basenu = .5*(nua+nub)
