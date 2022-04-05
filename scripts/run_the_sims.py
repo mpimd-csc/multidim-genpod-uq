@@ -27,7 +27,7 @@ mcpod = False
 pcepod = False
 # ## make it come true
 # mcplease = True
-pceplease = True
+# pceplease = True
 # plotplease = True
 pcepod = True
 # mcpod = True
@@ -48,13 +48,17 @@ mcxpy, pcexpy = None, None
 
 prsr = argparse.ArgumentParser()
 prsr.add_argument("--mesh", type=int, help="mesh level", default=meshlevel)
-prsr.add_argument("--pcepod", type=bool, help="do POD PCE", default=pcepod)
-prsr.add_argument("--mcpod", type=bool, help="do POD MC", default=mcpod)
-prsr.add_argument("--mc", type=bool, help="do FOM MC", default=mcplease)
-prsr.add_argument("--mcruns", type=bool, help="#MC samples", default=mcruns)
+prsr.add_argument("--pcepod", type=lambda x: bool(int(x)),
+                  help="do POD PCE", default=pcepod)
+prsr.add_argument("--mcpod", type=lambda x: bool(int(x)),
+                  help="do POD MC", default=mcpod)
+prsr.add_argument("--mc", type=lambda x: bool(int(x)),
+                  help="do FOM MC", default=mcplease)
+prsr.add_argument("--mcruns", type=int, help="#MC samples", default=mcruns)
 prsr.add_argument("--rombase", type=str,
                   help="what basis for the ROM", default=basisfrom)
-prsr.add_argument("--pce", type=bool, help="do a FOM PCE", default=pceplease)
+prsr.add_argument("--pce", type=lambda x: bool(int(x)),
+                  help="do a FOM PCE", default=pceplease)
 prsr.add_argument("--pcedims", type=str,
                   help="dimensions of the FOM/ROM PCE", default=None)
 prsr.add_argument("--poddims", type=str, help="dimensions ROM", default=None)
@@ -71,6 +75,7 @@ prsr.add_argument("--timings", type=int,
                   help="number of runs for timing", default=timings)
 
 args = prsr.parse_args()
+logging.info(args)
 
 if args.pcedims is not None:
     nmstrl = re.findall('\\d+', args.pcedims)
@@ -91,6 +96,7 @@ if args.varinu is not None:
     nuub = nuabl[1]*10**(-nuabl[2])
 else:
     pass
+
 if args.mcruns < 10:
     raise UserWarning('minimal number for mcruns is 10')
 else:
@@ -125,7 +131,7 @@ if args.mcpod or args.pcepod:
                       '\ntrain pce dim  = {0}'.format(args.pcesnapdim))
     elif args.rombase == 'rb':
         infostring = (infostring +
-                      '\ntrain rb dim  = {0}'.format(args.rbsnap))
+                      '\ntrain rb dim   = {0}'.format(args.rbsnap))
     else:
         pass
 else:
@@ -137,9 +143,9 @@ if nprocs > 1:
 else:
     pass
 
-print('******************')
-print(infostring)
-print('******************')
+logging.info('******************')
+logging.info(infostring)
+logging.info('******************')
 
 with Timer():
     simit(mcruns=args.mcruns, pcedimlist=pcedimlist,

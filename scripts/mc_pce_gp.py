@@ -47,7 +47,7 @@ def simit(problem='circle', meshlevel=None,
         get_sol, get_output, problemfems, get_red_problem = get_problem()
         uncdims = 5
 
-    print(problemfems['mmat'].shape[0])
+    logging.info('Problem dimension: ', problemfems['mmat'].shape[0])
 
     nua, nub = nulb, nuub
     basenu = .5*(nua+nub)
@@ -87,7 +87,7 @@ def simit(problem='circle', meshlevel=None,
 
     if rbplease or basisfrom == 'rb':
 
-        def get_rbbas(nsamples=rbparams['nsample'], nrbvecs=rbparams['N']):
+        def get_rbbas(nsamples=None, nrbvecs=None):
             if rbparams['samplemethod'] == 'random':
                 rbtrainnu = nulb + \
                     (nuub-nulb)*np.random.rand(nsamples, uncdims)
@@ -507,7 +507,7 @@ def simit(problem='circle', meshlevel=None,
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, handlers=[RichHandler()],
+    logging.basicConfig(level=logging.DEBUG, handlers=[RichHandler()],
                         format='%(message)s',
                         datefmt="[%X]",
                         )
