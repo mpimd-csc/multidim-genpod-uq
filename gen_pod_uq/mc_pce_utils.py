@@ -16,8 +16,22 @@ def solfunc_to_variance(solfunc, expv):
 
 
 def get_nu_sample(distribution='uniform', uncdims=1, nulb=0, nuub=1):
-    def nusample(nsamples):
-        return nulb + (nuub-nulb)*np.random.rand(nsamples, uncdims)
+    if distribution == 'uniform':
+        def nusample(nsamples):
+            return nulb + (nuub-nulb)*np.random.rand(nsamples, uncdims)
+    else:
+        dstp = distribution.split('-')
+        wghtfnc = dstp[0]
+        if wghtfnc == 'beta':
+            alpha = dstp[1]
+            beta = dstp[2]
+
+            def nusample(nsamples):
+                return nulb + \
+                    (nuub-nulb)*np.random.beta(a=alpha, b=beta,
+                                               size=(nsamples, uncdims))
+        else:
+            raise NotImplementedError()
     return nusample
 
 
@@ -119,10 +133,11 @@ def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
         itschunks = []
         for k in range(multiproc-1):
             itschunks.append(islice(product(abscissae, repeat=uncdims),
-                             np.int(np.floor(k*itspart)),
-                             np.int(np.floor((k+1)*itspart))))
+                                    np.int(np.floor(k*itspart)),
+                                    np.int(np.floor((k+1)*itspart))))
         itschunks.append(islice(product(abscissae, repeat=uncdims),
-                         np.int(np.floor((multiproc-1)*itspart)), lenits))
+                                np.int(np.floor((multiproc-1)*itspart)),
+                                lenits))
         plist = []
         fstrl = []
         for k in range(multiproc):
