@@ -15,6 +15,12 @@ def solfunc_to_variance(solfunc, expv):
     return sfvariance
 
 
+def get_nu_sample(distribution='uniform', uncdims=1, nulb=0, nuub=1):
+    def nusample(nsamples):
+        return nulb + (nuub-nulb)*np.random.rand(nsamples, uncdims)
+    return nusample
+
+
 def run_mc_sim(parlist, solfunc, chunks=12, multiproc=0,
                tmpddir='_tmp_data_chunks/',
                comp_para_ev=True, verbose=False, ret_ev=True):
@@ -168,6 +174,16 @@ def setup_pce(distribution='uniform', distrpars={}, pcedim=None, uncdims=None):
         abscissae, weights = ceu.\
             get_weighted_gaussqr(N=pcedim, weightfunction=distribution,
                                  **distrpars)
+    else:
+        dstp = distribution.split('-')
+        wghtfnc = dstp[0]
+        if wghtfnc == 'beta':
+            abscissae, weights = ceu.\
+                get_weighted_gaussqr(N=pcedim, weightfunction=wghtfnc,
+                                     wfpdict=dict(alpha=dstp[1], beta=dstp[2]),
+                                     **distrpars)
+        else:
+            raise NotImplementedError()
 
     scalefac = (1./weights.sum())**uncdims
 
