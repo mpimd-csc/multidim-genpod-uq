@@ -165,7 +165,9 @@ def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
 def setup_pce(distribution='uniform', distrpars={}, pcedim=None, uncdims=None):
     # compute the expected value
     if distribution == 'uniform':
-        abscissae, weights = ceu.get_gaussqr_uniform(N=pcedim, **distrpars)
+        abscissae, weights = ceu.\
+            get_weighted_gaussqr(N=pcedim, weightfunction=distribution,
+                                 **distrpars)
 
     scalefac = (1./weights.sum())**uncdims
 

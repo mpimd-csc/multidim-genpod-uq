@@ -5,4 +5,4 @@ numpy
 scipy
 dolfin-navier-scipy>=1.0.0
 sadptprj-riclyap-adi>=1.0.0
-multidim-galerkin-pod>=1.0.2
+multidim-galerkin-pod>=1.1.0
