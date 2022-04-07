@@ -31,6 +31,7 @@ def get_wfunc(distribution='uniform', nulb=0., nuub=1., dimunc=1):
                 return wval
         else:
             raise NotImplementedError()
+    return wfunc
 
 
 def solfunc_to_variance(solfunc, expv):
