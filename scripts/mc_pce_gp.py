@@ -183,10 +183,18 @@ def simit(problem='circle', meshlevel=None,
 
         nukey = f'{nua:.1e}to{nub:.1e}'
         try:
-            subdict = dbmmnts[f'{meshlevel}'][nukey][distribution]
+            subdict = dbmmnts[f'{meshlevel}']
+            try:
+                subdict = dbmmnts[f'{meshlevel}'][nukey]
+                try:
+                    subdict = subdict[distribution]
+                except KeyError:
+                    subdict.update({distribution: {}})
+            except KeyError:
+                subdict.update({nukey: {distribution: {}}})
         except KeyError:
             dbmmnts.update({f'{meshlevel}': {nukey: {distribution: {}}}})
-            subdict = dbmmnts[f'{meshlevel}'][nukey][distribution]
+        subdict = dbmmnts[f'{meshlevel}'][nukey][distribution]
         subdict.update({f'{pcedim}': {'expv': expv.flatten()[0],
                                       'vrnc': vrnc.flatten()[0]}})
 

@@ -1,9 +1,9 @@
 source addpypath.sh
 
-MESH=5
+MESH=4
 MC=0
-PCE=0
-PCEDIMS='2-3-4-5'
+PCE=1
+PCEDIMS='2-3'  # -4-5'
 PODDIMS='3-6-9-12-15-16'
 PCEPOD=1
 MCPOD=0
@@ -16,8 +16,8 @@ NPCESNAP=$(($PCESNAPDIM**4))
 MCSNAP=$((5*1*$NPCESNAP))
 RBSNAP=$(($PCESNAPDIM**4))
 VARINU='[3,7]e-4'
-# DIST='uniform'
-DIST='beta-2-5'
+DIST='uniform'
+# DIST='beta-2-5'
 # PCEXPY=0.88102114
 # value of PCE(5) for MESH=10 and VARINU='[3,7]e-4'
 NPROCS=4
