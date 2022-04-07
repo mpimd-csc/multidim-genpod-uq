@@ -23,8 +23,8 @@ def get_nu_sample(distribution='uniform', uncdims=1, nulb=0, nuub=1):
         dstp = distribution.split('-')
         wghtfnc = dstp[0]
         if wghtfnc == 'beta':
-            alpha = dstp[1]
-            beta = dstp[2]
+            alpha = np.float(dstp[1])
+            beta = np.float(dstp[2])
 
             def nusample(nsamples):
                 return nulb + \
@@ -81,8 +81,8 @@ def run_mc_sim(parlist, solfunc, chunks=12, multiproc=0,
             yarray = np.vstack([yarray, cychunk])
             if verbose:
                 estxy = np.average(yarray, axis=0)[0]
-                print('mc:{0}/{1}: estxy[0]={2}'.
-                      format(yarray.shape[0], nmc, estxy))
+                logging.info('mc:{0}/{1}: estxy[0]={2}'.
+                             format(yarray.shape[0], nmc, estxy))
 
         return yarray, np.average(yarray, axis=0), expvpara
 
@@ -95,13 +95,13 @@ def run_mc_sim(parlist, solfunc, chunks=12, multiproc=0,
                     cy = (solfunc(cpar)).flatten()
                     ylist.append(cy)
                 estxy = np.average(np.array(ylist), axis=0)[0]
-                print('mc:{0}/{1}: estxy[0]={2}'.
-                      format((mcit+1)*mcx, nmc, estxy))
+                logging.info('mc:{0}/{1}: estxy[0]={2}'.
+                             format((mcit+1)*mcx, nmc, estxy))
             for cpar in parlist[(mcit+1)*mcx:]:
                 cy = (solfunc(cpar)).flatten()
                 ylist.append(cy)
             estxy = np.average(np.array(ylist), axis=0)[0]
-            print('mc:{0}/{1}: estxy[0]={2}'.format(nmc, nmc, estxy))
+            logging.info('mc:{0}/{1}: estxy[0]={2}'.format(nmc, nmc, estxy))
 
             return (np.array(ylist), np.average(np.array(ylist), axis=0),
                     expvpara)
@@ -193,9 +193,11 @@ def setup_pce(distribution='uniform', distrpars={}, pcedim=None, uncdims=None):
         dstp = distribution.split('-')
         wghtfnc = dstp[0]
         if wghtfnc == 'beta':
+            alpha = np.float(dstp[1])
+            beta = np.float(dstp[2])
             abscissae, weights = ceu.\
                 get_weighted_gaussqr(N=pcedim, weightfunction=wghtfnc,
-                                     wfpdict=dict(alpha=dstp[1], beta=dstp[2]),
+                                     wfpdict=dict(alpha=alpha, beta=beta),
                                      **distrpars)
         else:
             raise NotImplementedError()
