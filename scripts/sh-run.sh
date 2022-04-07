@@ -16,6 +16,8 @@ NPCESNAP=$(($PCESNAPDIM**4))
 MCSNAP=$((5*1*$NPCESNAP))
 RBSNAP=$(($PCESNAPDIM**4))
 VARINU='[3,7]e-4'
+# DIST='uniform'
+DIST='beta-2-5'
 # PCEXPY=0.88102114
 # value of PCE(5) for MESH=10 and VARINU='[3,7]e-4'
 NPROCS=4
@@ -29,7 +31,7 @@ python3 run_the_sims.py --mesh $MESH \
     --nprocs $NPROCS --timings $TIMINGS \
     --poddims $PODDIMS --rombase $BASISFROM \
     --pcepod $PCEPOD --pcesnapdim $PCESNAPDIM \
-    --varinu $VARINU \
+    --varinu $VARINU --distribution $DIST \
     --rbsnap $RBSNAP \
     --mcpod $MCPOD --mcsnap $MCSNAP
     # >> logs/$LOGFILE

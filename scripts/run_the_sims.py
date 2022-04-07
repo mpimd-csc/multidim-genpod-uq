@@ -38,6 +38,8 @@ problem = 'cylinder'
 meshlevel = 6
 nulb = 3e-4
 nuub = 7e-4
+distribution = 'beta-2-5'
+distribution = 'uniform'
 nprocs = 4
 timings = 1
 
@@ -50,6 +52,8 @@ prsr = argparse.ArgumentParser()
 prsr.add_argument("--mesh", type=int, help="mesh level", default=meshlevel)
 prsr.add_argument("--pcepod", type=lambda x: bool(int(x)),
                   help="do POD PCE", default=pcepod)
+prsr.add_argument("--distribution", type=str, help="type of distribution",
+                  default=distribution)
 prsr.add_argument("--mcpod", type=lambda x: bool(int(x)),
                   help="do POD MC", default=mcpod)
 prsr.add_argument("--mc", type=lambda x: bool(int(x)),
@@ -103,6 +107,7 @@ else:
     pass
 
 infostring = ('meshlevel      = {0}'.format(args.mesh) +
+              '\ndistribution   = ' + args.distribution +
               '\npce            = {0}'.format(args.pce) +
               '\nmc             = {0}'.format(args.mc) +
               '\nmcpod          = {0}'.format(args.mcpod) +
@@ -159,5 +164,6 @@ with Timer():
           multiproc=args.nprocs, timings=args.timings,
           # plotpcepoddiff=args.plotpcepoddiff, pcepoddiffdim=pcepoddiffdim,
           nulb=nulb, nuub=nuub,
+          distribution=args.distribution,
           mcplease=args.mc, pceplease=args.pce,
           mcpod=args.mcpod, pcepod=args.pcepod)
