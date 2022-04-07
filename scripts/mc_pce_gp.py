@@ -114,7 +114,8 @@ def simit(problem='circle', meshlevel=None,
                 diffl = []
                 for cprid, cpara in enumerate(rbtrainnu):
                     cdiff = dffun(cp_get_sol(cpara),
-                                  rbtrainset[cprid].reshape((-1, 1)))
+                                  rbtrainset[cprid].reshape((-1, 1)),
+                                  parval=cpara)
                     # print(f'err: {cdiff} -- para val {cpara}')
                     if cdiff > mxdiff:
                         logging.debug(f'n-max: err: {cdiff.flatten()[0]:2e}' +
@@ -126,9 +127,13 @@ def simit(problem='circle', meshlevel=None,
                               f'-- at: {mxdfpara}')
                 return mxdfpara, rbtrainset[mxdfprid].reshape((-1, 1))
 
-            def _dffun(vone, vtwo):
+            _wfun = mpu.get_wfun(distribution=distribution,
+                                 nulb=nulb, nuub=nuub)
+
+            def _dffun(vone, vtwo, parval=None):
+                wval = _wfun(parval)
                 diffv = vone-vtwo
-                return np.sqrt(diffv.T @ mmat @ diffv)
+                return wval*np.sqrt(diffv.T @ mmat @ diffv)
 
             rbbas = rbtrainset[0].reshape((-1, 1))
 
