@@ -5,8 +5,32 @@ import logging
 
 import numpy as np
 from scipy.io import savemat, loadmat, matlab
+from scipy.stats import beta
 
 import multidim_galerkin_pod.chaos_expansion_utils as ceu
+
+
+def get_wfunc(distribution='uniform', nulb=0., nuub=1., dimunc=1):
+    if distribution == 'uniform':
+        wval = (1/(nuub-nulb))**dimunc
+
+        def wfunc(cpara):
+            return wval
+    else:
+        dstp = distribution.split('-')
+        wghtfnc = dstp[0]
+        if wghtfnc == 'beta':
+            alp = np.float(dstp[1])
+            bet = np.float(dstp[2])
+
+            def wfunc(cpara):
+                wval = 1.
+                for ccp in cpara:
+                    wval = wval*beta.pdf(ccp, alp, bet,
+                                         loc=nulb, scale=nuub-nulb)
+                return wval
+        else:
+            raise NotImplementedError()
 
 
 def solfunc_to_variance(solfunc, expv):
