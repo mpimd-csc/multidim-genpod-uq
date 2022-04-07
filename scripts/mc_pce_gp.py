@@ -127,11 +127,14 @@ def simit(problem='circle', meshlevel=None,
                               f'-- at: {mxdfpara}')
                 return mxdfpara, rbtrainset[mxdfprid].reshape((-1, 1))
 
-            _wfun = mpu.get_wfun(distribution=distribution,
-                                 nulb=nulb, nuub=nuub)
+            _wfun = mpu.get_wfunc(distribution=distribution,
+                                  nulb=nulb, nuub=nuub, dimunc=uncdims)
 
             def _dffun(vone, vtwo, parval=None):
-                wval = _wfun(parval)
+                if parval is not None:
+                    wval = _wfun(parval)
+                else:
+                    wval = 1.
                 diffv = vone-vtwo
                 return wval*np.sqrt(diffv.T @ mmat @ diffv)
 
@@ -544,28 +547,34 @@ if __name__ == '__main__':
                         datefmt="[%X]",
                         )
     problem = 'cylinder'
-    distribution = 'beta-2-5'
     distribution = 'uniform'
+    distribution = 'beta-2-5'
     meshlevel = 4
     mcruns = 10  # 200
     pcedimlist = [2, 4, 5]  # , 3, 4]  # , 3, 4, 5]  # , 7]
     multiproc = 4
     timings = 1
+
     mcplease = False
     pceplease = False
-    plotplease = False
+    rbplease = False
     mcpod = False
     pcepod = False
+
     # ## make it come true
     # mcplease = True
-    pceplease = True
-    # plotplease = True
+    # pceplease = True
+    rbplease = True
     pcepod = True
     # mcpod = True
+
     basisfrom = 'mc'
-    basisfrom = 'rb'
     basisfrom = 'pce'
+    basisfrom = 'rb'
     rbparams = dict(samplemethod='random', nsample=16, N=16)
+
+    plotplease = False
+    # plotplease = True
 
     simit(mcruns=mcruns, pcedimlist=pcedimlist, problem=problem,
           distribution=distribution,
