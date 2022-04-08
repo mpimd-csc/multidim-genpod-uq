@@ -82,14 +82,34 @@ def simit(problem='circle', meshlevel=None,
     filestr = filestr + '_bf' + bssstr + '.json'
 
     if onlymeshtest or plotplease:
-        basenulist = [basenu]*uncdims
+        abscissae, weights, _, _ = mpu.\
+            setup_pce(distribution=distribution,
+                      distrpars=dict(a=nua, b=nub),
+                      pcedim=5, uncdims=1)
+        errl = []
+        basenulist = [abscissae[2]]*uncdims
         basev = get_sol(basenulist)
         logging.info('N{1}: y(basenu)={0}'.format(cmat.dot(basev), meshlevel))
+        errl.append(cmat.dot(basev).flatten()[0])
+        maxnulist = [abscissae[4]]*uncdims
+        maxv = get_sol(maxnulist)
+        logging.info('N{1}: y(maxnu)={0}'.format(cmat.dot(maxv), meshlevel))
+        errl.append(cmat.dot(maxv).flatten()[0])
+        minnulist = [abscissae[0]]*uncdims
+        minv = get_sol(minnulist)
+        logging.info('N{1}: y(minnu)={0}'.format(cmat.dot(minv), meshlevel))
+        errl.append(cmat.dot(minv).flatten()[0])
+        msnulist = [abscissae[0], abscissae[4], abscissae[0], abscissae[4]]
+        msv = get_sol(msnulist)
+        logging.info('N{1}: y(msnu)={0}'.format(cmat.dot(msv), meshlevel))
+        errl.append(cmat.dot(msv).flatten()[0])
+
         basepvdfile = dolfin.File('results/basesol-nu{1:0.2e}-N{0}.pvd'.
                                   format(meshlevel, basenu))
+
         plotit(vvec=basev, pvdfile=basepvdfile, plotplease=plotplease)
         if onlymeshtest:
-            return problemfems['mmat'].shape[0], cmat.dot(basev)
+            return problemfems['mmat'].shape[0], errl  # cmat.dot(basev)
 
     if rbplease or basisfrom == 'rb':
 
