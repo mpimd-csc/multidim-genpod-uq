@@ -1,4 +1,5 @@
 import numpy as np
+import re
 from mc_pce_gp import simit
 import logging
 import argparse
@@ -10,14 +11,17 @@ logging.basicConfig(level=logging.INFO, handlers=[RichHandler()],
 problem = 'cylinder'
 plotplease = False
 smlmesh = 5
-lrgmesh = 8
+lrgmesh = 6
 # meshlevellist = np.arange(5, 12)
 # meshlevellist = np.arange(12, 13)
 # meshlevellist = np.arange(4, 8)
 distribution = 'beta-2-5'
 multiproc = 4
 fullsweep = True
+nulb = 5e-4
+nuub = 1e-3
 
+prsr = argparse.ArgumentParser()
 prsr.add_argument("--distribution", type=str, help="type of distribution",
                   default=distribution)
 prsr.add_argument("--pcetestdim", type=int,
@@ -33,10 +37,18 @@ args = prsr.parse_args()
 logging.info(args)
 meshlevellist = np.arange(args.smlmesh, args.lrgmesh+1)
 
-simpars = dict(problem=problem, multiproc=multiproc,
-               distribution=distribution,
-               omtp_dict=dict(fullsweep=fullsweep, pcedim=2),
-               nulb=5e-4, nuub=1e-3, plotplease=plotplease, onlymeshtest=True)
+if args.varinu is not None:
+    nuabstrl = re.findall('\\d+', args.varinu)
+    nuabl = [np.int(xstr) for xstr in nuabstrl]
+    nulb = nuabl[0]*10**(-nuabl[2])
+    nuub = nuabl[1]*10**(-nuabl[2])
+else:
+    pass
+
+simpars = dict(problem=problem, multiproc=args.nprocs,
+               distribution=args.distribution,
+               omtp_dict=dict(fullsweep=fullsweep, pcedim=args.pcetestdim),
+               nulb=nulb, nuub=nuub, plotplease=plotplease, onlymeshtest=True)
 
 dofslist, ylist = [], []
 for meshlevel in meshlevellist:
@@ -52,7 +64,7 @@ if fullsweep:
     np.set_printoptions(precision=4)
     for kkk, ml in enumerate(meshlevellist[1:]):
         valdiff = ylist[kkk+1] - ylist[kkk]
-        print(f'Mesh:{ml} | {valdiff}')
+        print(f'mshd:{ml}-{meshlevellist[kkk]} | {valdiff}')
 else:
     for k, ml in enumerate(meshlevellist):
         b = [f'{x:.5f}' for x in ylist[k]]
