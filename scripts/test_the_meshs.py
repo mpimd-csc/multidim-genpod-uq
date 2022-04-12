@@ -1,6 +1,7 @@
 import numpy as np
 from mc_pce_gp import simit
 import logging
+import argparse
 from rich.logging import RichHandler
 
 logging.basicConfig(level=logging.INFO, handlers=[RichHandler()],
@@ -8,12 +9,29 @@ logging.basicConfig(level=logging.INFO, handlers=[RichHandler()],
 
 problem = 'cylinder'
 plotplease = False
-meshlevellist = np.arange(5, 12)
-meshlevellist = np.arange(12, 13)
-meshlevellist = np.arange(4, 8)
+smlmesh = 5
+lrgmesh = 8
+# meshlevellist = np.arange(5, 12)
+# meshlevellist = np.arange(12, 13)
+# meshlevellist = np.arange(4, 8)
 distribution = 'beta-2-5'
 multiproc = 4
 fullsweep = True
+
+prsr.add_argument("--distribution", type=str, help="type of distribution",
+                  default=distribution)
+prsr.add_argument("--pcetestdim", type=int,
+                  help="dimensions PCE for the mesh test", default=2)
+prsr.add_argument("--varinu", type=str, help="range of the nu's", default=None)
+prsr.add_argument("--nprocs", type=int,
+                  help="number of parallel threads", default=multiproc)
+prsr.add_argument("--smlmesh", type=int,
+                  help="lowest dimension of mesh to test", default=smlmesh)
+prsr.add_argument("--lrgmesh", type=int,
+                  help="lowest dimension of mesh to test", default=lrgmesh)
+args = prsr.parse_args()
+logging.info(args)
+meshlevellist = np.arange(args.smlmesh, args.lrgmesh+1)
 
 simpars = dict(problem=problem, multiproc=multiproc,
                distribution=distribution,
