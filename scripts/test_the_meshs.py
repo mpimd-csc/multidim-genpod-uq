@@ -1,6 +1,8 @@
 import numpy as np
+import re
 from mc_pce_gp import simit
 import logging
+import argparse
 from rich.logging import RichHandler
 
 logging.basicConfig(level=logging.INFO, handlers=[RichHandler()],
@@ -8,19 +10,62 @@ logging.basicConfig(level=logging.INFO, handlers=[RichHandler()],
 
 problem = 'cylinder'
 plotplease = False
-meshlevellist = np.arange(5, 12)
-meshlevellist = np.arange(12, 13)
+smlmesh = 5
+lrgmesh = 6
+# meshlevellist = np.arange(5, 12)
+# meshlevellist = np.arange(12, 13)
+# meshlevellist = np.arange(4, 8)
 distribution = 'beta-2-5'
+multiproc = 4
+fullsweep = True
+nulb = 5e-4
+nuub = 1e-3
+
+prsr = argparse.ArgumentParser()
+prsr.add_argument("--distribution", type=str, help="type of distribution",
+                  default=distribution)
+prsr.add_argument("--pcetestdim", type=int,
+                  help="dimensions PCE for the mesh test", default=2)
+prsr.add_argument("--varinu", type=str, help="range of the nu's", default=None)
+prsr.add_argument("--nprocs", type=int,
+                  help="number of parallel threads", default=multiproc)
+prsr.add_argument("--smlmesh", type=int,
+                  help="lowest dimension of mesh to test", default=smlmesh)
+prsr.add_argument("--lrgmesh", type=int,
+                  help="lowest dimension of mesh to test", default=lrgmesh)
+args = prsr.parse_args()
+logging.info(args)
+meshlevellist = np.arange(args.smlmesh, args.lrgmesh+1)
+
+if args.varinu is not None:
+    nuabstrl = re.findall('\\d+', args.varinu)
+    nuabl = [np.int(xstr) for xstr in nuabstrl]
+    nulb = nuabl[0]*10**(-nuabl[2])
+    nuub = nuabl[1]*10**(-nuabl[2])
+else:
+    pass
+
+simpars = dict(problem=problem, multiproc=args.nprocs,
+               distribution=args.distribution,
+               omtp_dict=dict(fullsweep=fullsweep, pcedim=args.pcetestdim),
+               nulb=nulb, nuub=nuub, plotplease=plotplease, onlymeshtest=True)
 
 dofslist, ylist = [], []
 for meshlevel in meshlevellist:
-    dofs, outpt = simit(problem=problem, meshlevel=meshlevel,
-                        distribution=distribution,
-                        nulb=3e-4, nuub=7e-4,
-                        plotplease=plotplease, onlymeshtest=True)
+    simpars.update(dict(meshlevel=meshlevel))
+    if fullsweep:
+        dofs, outpt, absc = simit(**simpars)
+        ylist.append(outpt.reshape(-1))
+    else:
+        dofs, outpt = simit(**simpars)
     dofslist.append(dofs)
-    ylist.append(outpt)
 
-for k, ml in enumerate(meshlevellist):
-    b = [f'{x:.5f}' for x in ylist[k]]
-    print('Mesh:{0} | dofs:{1} | y:{2}'.format(ml, dofslist[k], b))
+if fullsweep:
+    np.set_printoptions(precision=4)
+    for kkk, ml in enumerate(meshlevellist[1:]):
+        valdiff = ylist[kkk+1] - ylist[kkk]
+        print(f'mshd:{ml}-{meshlevellist[kkk]} | {valdiff}')
+else:
+    for k, ml in enumerate(meshlevellist):
+        b = [f'{x:.5f}' for x in ylist[k]]
+        print('Mesh:{0} | dofs:{1} | y:{2}'.format(ml, dofslist[k], b))

@@ -145,6 +145,7 @@ def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
     # compute the sols
     if multiproc > 1:
         # pqueue = Queue()
+        mpid = os.getpid()
 
         def comppart(itspart, filestr):
             locylist = []
@@ -166,7 +167,7 @@ def run_pce_sim_separable(solfunc=None, uncdims=None, abscissae=None,
         plist = []
         fstrl = []
         for k in range(multiproc):
-            filestr = tmpddir + '_tmp_pce_chunk{0}of{1}'.format(k+1, multiproc)
+            filestr = tmpddir + f'_tmp_pce_chunk{k+1}of{multiproc}pid{mpid}'
             p = Process(target=comppart, args=(itschunks[k], filestr))
             plist.append(p)
             fstrl.append(filestr)
