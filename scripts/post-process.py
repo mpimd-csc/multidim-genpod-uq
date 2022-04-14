@@ -9,10 +9,10 @@ import numpy as np
 N = 10
 podpcebas = 2
 ranbasruns = 10
-filedir = ''
 
-dist = 'uniform'
-dist = 'beta-2-5'
+dst = 'beta-2-5'
+dst = 'uniform'
+nustr = 'nu5.00e-04--1.00e-03'
 
 # filedir = '../mechthild-logs/mechthildlogs/'
 jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod{1}_bfmc.json'.format(N, podpcebas)
@@ -24,10 +24,10 @@ jsfstr = 'N5nu6.00e-04--8.00e-04_pcepod_bfrb_random16_runs1.json'
 jsfstr = 'N5nu6.00e-04--8.00e-04_pcepod_bfrb_random16_runs3.json'
 jsfstr = 'N5nu6.00e-04--8.00e-04_pcepod_bfpce2.json'
 jsfstr = 'N5nu6.00e-04--8.00e-04_pcepod_bfpce2.json'
-jsfstr = 'mh-data/N10nu3.00e-04--7.00e-04_pcepod_bfrb_random64_runs5.json'
-jsfstr = 'mh-data/N13nu5.00e-04--1.00e-03beta-2-5_pcepod_bfpce2.json'
-jsfstr = 'mh-data/N13nu5.00e-04--1.00e-03uniform_pcepod_bfpce2.json'
-# jsfstr = 'mh-data/N13nu5.00e-04--1.00e-03uniform_pcepod_bfrb_random16_runs10.json'
+jsfstr = f'mh-data/N10{nustr}_pcepod_bfrb_random64_runs5.json'
+jsfstr = f'mh-data/N13{nustr}beta-2-5_pcepod_bfpce2.json'
+jsfstr = f'mh-data/N13{nustr}uniform_pcepod_bfpce2.json'
+jsfstr = f'mh-data/N13{nustr}{dst}_pcepod_bfrb_random16_runs10.json'
 # jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod_mcpod_bfpce.json'.format(N)
 # jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod_mcpod_bfmc.json'.format(N)
 
@@ -36,16 +36,20 @@ if len(sys.argv) == 2:
 
 mcpod = False
 
-with open(filedir+jsfstr, 'r') as f:
-    ddct = json.load(f)
+try:
+    with open('mh-data/'+jsfstr, 'r') as f:
+        ddct = json.load(f)
+except FileNotFoundError:
+    with open(jsfstr, 'r') as f:
+        ddct = json.load(f)
 
 basisfrom = ddct['0']['basisfrom']
 truthexpy = ddct['truthexpy']
 truthvrnc = ddct['truthvrnc']
 
-labeldict = {'rb': 'wRB',
-             'pce': 'PCE',
-             }
+pltdict = {'rb': dict(label='wRB', mrkr='.', size=(15, 10), colrs=[.5, .6]),
+           'pce': dict(label='PCE', mrkr='s', size=(10, 7), colrs=[.8, .9]),
+           }
 
 # ## Collect the data
 
@@ -93,18 +97,24 @@ pceerrarray = np.abs(truthexpy - pcepodresarray)/truthexpy
 pcevrnce = np.abs(truthvrnc - (pceeyys - pcepodresarray**2))/truthvrnc
 
 poddimsints = [np.int(pd) for pd in poddims]
+cpltd = pltdict[basisfrom]
 
 plt.figure(101, figsize=(7, 3))
 plt.rcParams["axes.prop_cycle"] = \
-    plt.cycler("color", plt.cm.plasma([.5]))
+    plt.cycler("color", plt.cm.plasma(cpltd['colrs']))
 if ntims > 1:
     for ct in range(ntims):
-        plt.semilogy(poddimsints, pceerrarray[ct, :, -1], '.',
-                     markersize=20, alpha=.2)
+        plt.semilogy(poddimsints, pceerrarray[ct, :, -1], cpltd['mrkr'],
+                     markersize=cpltd['size'][0], alpha=.1)
+        plt.semilogy(poddimsints, pcevrnce[ct, :, -1], cpltd['mrkr'],
+                     markersize=cpltd['size'][1], alpha=.1)
 else:
     pass
-plt.semilogy(poddimsints, np.median(pceerrarray[:, :, -1], axis=0), 's',
-             markersize=10, label=labeldict[basisfrom])
+plt.semilogy(poddimsints, np.median(pceerrarray[:, :, -1], axis=0),
+             cpltd['mrkr'],
+             markersize=cpltd['size'][0], label=cpltd['label']+'_E')
+plt.semilogy(poddimsints, np.median(pcevrnce[:, :, -1], axis=0), cpltd['mrkr'],
+             markersize=cpltd['size'][1], label=cpltd['label']+'_V')
 plt.xlabel('ROM dimension')
 plt.title('ROM Expected Value Approximation Error')
 plt.legend()
@@ -120,7 +130,7 @@ if ntims > 1:
 else:
     pass
 plt.semilogy(poddimsints, np.median(pcevrnce[:, :, -1], axis=0), 's',
-             markersize=10, label=labeldict[basisfrom])
+             markersize=10, label=cpltd['label'])
 plt.xlabel('ROM dimension')
 plt.title('ROM Variance Approximation Error')
 plt.legend()
