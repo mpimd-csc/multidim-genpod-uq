@@ -190,6 +190,8 @@ def simit(problem='circle', meshlevel=None,
         if rbplease:
             rbbas = get_rbbas(nsamples=rbparams['nsample'],
                               nrbvecs=rbparams['N'])
+    else:
+        pass
 
     # ## CHAP Monte Carlo
     if mcplease:
