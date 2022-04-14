@@ -87,7 +87,10 @@ for timit in tims:
         pass  # no timit key
 
 pcepodresarray = np.array(pcepodreslist)
-pceerrarray = np.abs(truthexpy - pcepodresarray)
+pceeyys = np.array(pcepodeyyslist)
+
+pceerrarray = np.abs(truthexpy - pcepodresarray)/truthexpy
+pcevrnce = np.abs(truthvrnc - (pceeyys - pcepodresarray**2))/truthvrnc
 
 poddimsints = [np.int(pd) for pd in poddims]
 
@@ -103,7 +106,23 @@ else:
 plt.semilogy(poddimsints, np.median(pceerrarray[:, :, -1], axis=0), 's',
              markersize=10, label=labeldict[basisfrom])
 plt.xlabel('ROM dimension')
-plt.title('ROM Approximation Error for \\texttt{PCE[5]}')
+plt.title('ROM Expected Value Approximation Error')
+plt.legend()
+plt.tight_layout()
+
+plt.figure(102, figsize=(7, 3))
+plt.rcParams["axes.prop_cycle"] = \
+    plt.cycler("color", plt.cm.plasma([.75]))
+if ntims > 1:
+    for ct in range(ntims):
+        plt.semilogy(poddimsints, pcevrnce[ct, :, -1], '.',
+                     markersize=20, alpha=.2)
+else:
+    pass
+plt.semilogy(poddimsints, np.median(pcevrnce[:, :, -1], axis=0), 's',
+             markersize=10, label=labeldict[basisfrom])
+plt.xlabel('ROM dimension')
+plt.title('ROM Variance Approximation Error')
 plt.legend()
 plt.tight_layout()
 plt.show()
