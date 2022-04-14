@@ -10,6 +10,7 @@ logging.basicConfig(level=logging.INFO, handlers=[RichHandler()],
 
 problem = 'cylinder'
 plotplease = False
+fullsweep = False
 smlmesh = 5
 lrgmesh = 6
 # meshlevellist = np.arange(5, 12)
@@ -17,7 +18,7 @@ lrgmesh = 6
 # meshlevellist = np.arange(4, 8)
 distribution = 'beta-2-5'
 multiproc = 4
-fullsweep = True
+# fullsweep = True
 nulb = 5e-4
 nuub = 1e-3
 
@@ -58,6 +59,7 @@ for meshlevel in meshlevellist:
         ylist.append(outpt.reshape(-1))
     else:
         dofs, outpt = simit(**simpars)
+        ylist.append(outpt.reshape(-1))
     dofslist.append(dofs)
 
 if fullsweep:
