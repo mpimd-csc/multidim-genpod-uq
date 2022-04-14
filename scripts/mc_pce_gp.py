@@ -84,12 +84,12 @@ def simit(problem='circle', meshlevel=None,
     filestr = filestr + '_bf' + bssstr + '.json'
 
     if onlymeshtest or plotplease:
-        abscissae, weights, _, _ = mpu.\
-            setup_pce(distribution=distribution,
-                      distrpars=dict(a=nua, b=nub),
-                      pcedim=omtp_dict['pcedim'], uncdims=uncdims)
         fullsweep = omtp_dict['fullsweep']
         if fullsweep:
+            abscissae, weights, _, _ = mpu.\
+                setup_pce(distribution=distribution,
+                          distrpars=dict(a=nua, b=nub),
+                          pcedim=omtp_dict['pcedim'], uncdims=uncdims)
             ysoltens = mpu.run_pce_sim_separable(solfunc=get_output,
                                                  uncdims=uncdims,
                                                  multiproc=multiproc,
@@ -97,19 +97,20 @@ def simit(problem='circle', meshlevel=None,
             return problemfems['mmat'].shape[0], ysoltens, abscissae
         else:
             errl = []
-            basenulist = [abscissae[2]]*uncdims
+            mednu = .5*(nulb+nuub)
+            basenulist = [mednu]*uncdims
             basev = get_sol(basenulist)
             logging.info('N{1}: y(bnu)={0}'.format(cmat.dot(basev), meshlevel))
             errl.append(cmat.dot(basev).flatten()[0])
-            maxnulist = [abscissae[4]]*uncdims
+            maxnulist = [nuub]*uncdims
             maxv = get_sol(maxnulist)
             logging.info('N{1}: y(mxnu)={0}'.format(cmat.dot(maxv), meshlevel))
             errl.append(cmat.dot(maxv).flatten()[0])
-            minnulist = [abscissae[0]]*uncdims
+            minnulist = [nulb]*uncdims
             minv = get_sol(minnulist)
             logging.info('N{1}: y(mnnu)={0}'.format(cmat.dot(minv), meshlevel))
             errl.append(cmat.dot(minv).flatten()[0])
-            msnulist = [abscissae[0], abscissae[4], abscissae[0], abscissae[4]]
+            msnulist = [nulb, nuub, nulb, nuub]
             msv = get_sol(msnulist)
             logging.info('N{1}: y(msnu)={0}'.format(cmat.dot(msv), meshlevel))
             errl.append(cmat.dot(msv).flatten()[0])
@@ -190,6 +191,8 @@ def simit(problem='circle', meshlevel=None,
         if rbplease:
             rbbas = get_rbbas(nsamples=rbparams['nsample'],
                               nrbvecs=rbparams['N'])
+    else:
+        pass
 
     # ## CHAP Monte Carlo
     if mcplease:
