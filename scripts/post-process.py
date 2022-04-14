@@ -10,6 +10,10 @@ N = 10
 podpcebas = 2
 ranbasruns = 10
 filedir = ''
+
+dist = 'uniform'
+dist = 'beta-2-5'
+
 # filedir = '../mechthild-logs/mechthildlogs/'
 jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod{1}_bfmc.json'.format(N, podpcebas)
 jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod{1}_bfpce.json'.format(N, podpcebas)
@@ -21,6 +25,9 @@ jsfstr = 'N5nu6.00e-04--8.00e-04_pcepod_bfrb_random16_runs3.json'
 jsfstr = 'N5nu6.00e-04--8.00e-04_pcepod_bfpce2.json'
 jsfstr = 'N5nu6.00e-04--8.00e-04_pcepod_bfpce2.json'
 jsfstr = 'mh-data/N10nu3.00e-04--7.00e-04_pcepod_bfrb_random64_runs5.json'
+jsfstr = 'mh-data/N13nu5.00e-04--1.00e-03beta-2-5_pcepod_bfpce2.json'
+jsfstr = 'mh-data/N13nu5.00e-04--1.00e-03uniform_pcepod_bfpce2.json'
+# jsfstr = 'mh-data/N13nu5.00e-04--1.00e-03uniform_pcepod_bfrb_random16_runs10.json'
 # jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod_mcpod_bfpce.json'.format(N)
 # jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod_mcpod_bfmc.json'.format(N)
 
@@ -36,7 +43,9 @@ basisfrom = ddct['0']['basisfrom']
 truthexpy = ddct['truthexpy']
 truthvrnc = ddct['truthvrnc']
 
-labeldict = {'rb': 'wRB'}
+labeldict = {'rb': 'wRB',
+             'pce': 'PCE',
+             }
 
 # ## Collect the data
 
@@ -85,10 +94,14 @@ poddimsints = [np.int(pd) for pd in poddims]
 plt.figure(101, figsize=(7, 3))
 plt.rcParams["axes.prop_cycle"] = \
     plt.cycler("color", plt.cm.plasma([.5]))
-for ct in range(ntims):
-    plt.semilogy(poddimsints, pceerrarray[ct, :, -1], '.', markersize=20, alpha=.2)
-plt.semilogy(poddimsints, np.median(pceerrarray[:, :, -1], axis=0), '.',
-             markersize=20, label=labeldict[basisfrom])
+if ntims > 1:
+    for ct in range(ntims):
+        plt.semilogy(poddimsints, pceerrarray[ct, :, -1], '.',
+                     markersize=20, alpha=.2)
+else:
+    pass
+plt.semilogy(poddimsints, np.median(pceerrarray[:, :, -1], axis=0), 's',
+             markersize=10, label=labeldict[basisfrom])
 plt.xlabel('ROM dimension')
 plt.title('ROM Approximation Error for \\texttt{PCE[5]}')
 plt.legend()
