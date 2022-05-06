@@ -289,6 +289,8 @@ def simit(problem='circle', meshlevel=None,
                 logging.info('PCE({0}): E(yy): {1}'.format(pcedim, pcexpysqrd))
                 logging.info('PCE({0}): V(y): {1}'.format(pcedim, pcvrnc))
                 put_mmnts_db(pcedim=pcedim, expv=pcexpy, vrnc=pcvrnc)
+    else:
+        pass
 
     # if rbplease:
     #     rbey = np.mean(cmat @ rbbas)
@@ -300,7 +302,7 @@ def simit(problem='circle', meshlevel=None,
         try:
             pxexpxdct = dou.load_json_dicts(pcepoddiffstr)
             pcexpx = np.array(pxexpxdct['pcexpx'])
-            logging.info('loaded the pce-Ex from: ', pcepoddiffstr)
+            logging.info('loaded the pce-Ex from: ' + pcepoddiffstr)
         except IOError:
             # ## XXX: here is randomness
             abscissae, weights, compexpv, _ = mpu.\
@@ -316,7 +318,7 @@ def simit(problem='circle', meshlevel=None,
             jsfile.write(json.dumps({'pcexpx': pcexpx.tolist(),
                                      'podpcexpx': {}}))
             jsfile.close()
-            logging.info('saved the pce-Ex to: ', pcepoddiffstr)
+            logging.info('saved the pce-Ex to: ' + pcepoddiffstr)
 
     if not (pcepod or mcpod):
         return
@@ -567,11 +569,13 @@ def simit(problem='circle', meshlevel=None,
             pxexpxdct['podpcexpx'].update({pcepoddiffdim: podpcexpx.tolist()})
             logging.info(f'appended the pod{pcepoddiffdim}-pce-Ex to: ' +
                          pcepoddiffstr)
-        ppdpvdfile = dolfin.File('results/pce{2}pod{3}dif-nu{1:0.2e}-N{0}.pvd'.
-                                 format(meshlevel, basenu, pcedimlist[-1],
-                                        pcepoddiffdim))
+        ppdpvdfstr = f'results/{distribution}' +\
+            '-pce{2}pod{3}dif-nu{1:0.2e}-N{0}.pvd'.\
+            format(meshlevel, basenu, pcedimlist[-1], pcepoddiffdim)
+        ppdpvdfile = dolfin.File(ppdpvdfstr)
         plotit(vvec=np.atleast_2d(pcexpx-lyitVy.dot(podpcexpx)).T,
                pvdfile=ppdpvdfile, plotplease=True)
+        logging.info('paraview ' + ppdpvdfstr)
 
     plt.show()
 
@@ -586,7 +590,7 @@ if __name__ == '__main__':
     distribution = 'beta-2-5'
     meshlevel = 4
     mcruns = 10  # 200
-    pcedimlist = [2, 4, 5]  # , 3, 4]  # , 3, 4, 5]  # , 7]
+    pcedimlist = [2, 3]  # 4, 5]  # , 3, 4]  # , 3, 4, 5]  # , 7]
     multiproc = 4
     timings = 1
 
@@ -599,14 +603,17 @@ if __name__ == '__main__':
     # ## make it come true
     # mcplease = True
     # pceplease = True
-    rbplease = True
+    # rbplease = True
     pcepod = True
     # mcpod = True
 
     basisfrom = 'mc'
-    basisfrom = 'pce'
     basisfrom = 'rb'
+    basisfrom = 'pce'
     rbparams = dict(samplemethod='random', nsample=16, N=16)
+
+    comp_plot_pcediff = False
+    comp_plot_pcediff = True
 
     plotplease = False
     # plotplease = True
@@ -616,4 +623,5 @@ if __name__ == '__main__':
           meshlevel=meshlevel, timings=timings,
           plotplease=plotplease, basisfrom=basisfrom, multiproc=multiproc,
           rbparams=rbparams, trainpcedim=2, targetpcedim=5,
+          plotpcepoddiff=comp_plot_pcediff, pcepoddiffdim=6,
           mcplease=mcplease, pceplease=pceplease, mcpod=mcpod, pcepod=pcepod)
