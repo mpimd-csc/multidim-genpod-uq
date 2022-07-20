@@ -19,12 +19,12 @@ pltdict = {'rb': dict(label='wRB', mrkr='.', size=(7, 5), colrs=[.5, .6]),
            'mc': dict(label='Random', mrkr='.', size=(7, 5), colrs=[.2, .3]),
            }
 
-fstrl = [f'mh-data/N12{nustr}{dst}_pcepod_bfmc16_runs10.json',
-         f'mh-data/N12{nustr}{dst}_pcepod_bfmc32_runs10.json',
-         f'mh-data/N12{nustr}{dst}_pcepod_bfmc64_runs10.json',
-         f'mh-data/N12{nustr}{dst}_pcepod_bfrb_random32_runs10.json',
-         f'mh-data/N12{nustr}{dst}_pcepod_bfrb_random16_runs10.json',
-         f'mh-data/N12{nustr}{dst}_pcepod_bfpce2.json',
+fstrl = [f'cached-data/N12{nustr}{dst}_pcepod_bfmc16_runs10.json',
+         f'cached-data/N12{nustr}{dst}_pcepod_bfmc32_runs10.json',
+         f'cached-data/N12{nustr}{dst}_pcepod_bfmc64_runs10.json',
+         f'cached-data/N12{nustr}{dst}_pcepod_bfrb_random32_runs10.json',
+         f'cached-data/N12{nustr}{dst}_pcepod_bfrb_random16_runs10.json',
+         f'cached-data/N12{nustr}{dst}_pcepod_bfpce2.json',
          ]
 
 lbllst = ['MC-16', 'MC-32', 'MC-64', 'RB-16', 'RB-32', 'PCE-16']

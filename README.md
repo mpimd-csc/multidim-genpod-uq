@@ -45,25 +45,26 @@ source maketheme-3D.sh
 ### Results of the PCE and POD approximations
 
 To reproduce the results of the manuscript
+
 ```
 cd scripts
 source runitall.sh
 ```
+
 You may want to comment out some parts.
 
-### Meshtest
+In the Zenodo repository, the raw data of our simulations is provided in the folder `scripts/paper-data`. In order to run the postprocessing on this data, use
+
+```sh
+# ## caution: computed data may get overwritten
+# cp scripts/paper-data/*json scripts/cached-data/
+# ## caution: computed data may get overwritten
+```
+
+### Post Processing
 
 ```
 cd scripts
-python3 test_the_meshs.py
+source postprocess.sh
 ```
 
-### The small examples of Section 6
-
-```
-cd scripts
-python3 test_pce_mc.py
-```
-
-The file `test_pce_mc.py` has appended the commands that can be processed in
-`Mathematica` to compute the reference values.
