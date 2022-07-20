@@ -115,7 +115,7 @@ for kkk, jsfstr in enumerate(fstrl):
     plt.title('ROM Approximation Errors')
     plt.legend()
     plt.tight_layout()
-    save(dst+'-'+lbllst[kkk]+'.tex')
+    save('pics/' + dst+'-'+lbllst[kkk]+'.tex')
     fignum += 1
 
     plt.figure(10101, figsize=(6, 4))
