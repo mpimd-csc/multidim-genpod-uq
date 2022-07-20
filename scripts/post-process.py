@@ -1,18 +1,18 @@
+import argparse
 import json
 import matplotlib.pyplot as plt
 from tikzplotlib import save
-
-# import dolfin_navier_scipy.data_output_utils as dou
 import numpy as np
-# import mat_lib_plots.conv_plot_utils as cpu
 
-N = 10
-podpcebas = 2
-ranbasruns = 10
-
-dst = 'beta-2-5'
 dst = 'uniform'
+dst = 'beta-2-5'
 nustr = 'nu5.00e-04--1.00e-03'
+
+prsr = argparse.ArgumentParser()
+prsr.add_argument("--distribution", type=str, help="type of distribution",
+                  default=dst)
+args = prsr.parse_args()
+adst = args.distribution
 
 pltdict = {'rb': dict(label='wRB', mrkr='.', size=(7, 5), colrs=[.5, .6]),
            'pce': dict(label='PCE', mrkr='.', size=(7, 5), colrs=[.8, .9]),
@@ -29,6 +29,8 @@ fstrl = [f'mh-data/N12{nustr}{dst}_pcepod_bfmc16_runs10.json',
 
 lbllst = ['MC-16', 'MC-32', 'MC-64', 'RB-16', 'RB-32', 'PCE-16']
 sumclrs = [.2, .26, .32, .5, .59, .8]
+
+print('distribution: ' + adst)
 
 fignum = 101
 
@@ -127,6 +129,6 @@ plt.ylim([.5*1e-6, 1e-1])
 plt.title('Median ROM Approximation Errors for the Expected Value')
 plt.legend()
 plt.tight_layout()
-save(dst+'-eerrors.tex')
+save('pics/'+dst+'-eerrors.tex')
 
 plt.show()
