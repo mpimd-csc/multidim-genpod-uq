@@ -1,122 +1,54 @@
-import sys
 import json
+import matplotlib.pyplot as plt
+from tikzplotlib import save
 
 # import dolfin_navier_scipy.data_output_utils as dou
 import numpy as np
-import mat_lib_plots.conv_plot_utils as cpu
+# import mat_lib_plots.conv_plot_utils as cpu
 
 N = 10
 podpcebas = 2
 ranbasruns = 10
-filedir = ''
-# filedir = '../mechthild-logs/mechthildlogs/'
-jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod{1}_bfmc.json'.format(N, podpcebas)
-jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod{1}_bfpce.json'.format(N, podpcebas)
-jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod{1}_bfpce.json'.format(N, podpcebas)
-jsfstr = 'N10nu3.00e-04--7.00e-04_pcepod_bfmc16_runs10.json'
-jsfstr = 'N10nu3.00e-04--7.00e-04_pcepod_bfmc16_runs5.json'
-jsfstr = 'N5nu6.00e-04--8.00e-04_pcepod_bfrb_random16_runs1.json'
-jsfstr = 'N5nu6.00e-04--8.00e-04_pcepod_bfrb_random16_runs3.json'
-jsfstr = 'N5nu6.00e-04--8.00e-04_pcepod_bfpce2.json'
-# jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod_mcpod_bfpce.json'.format(N)
-# jsfstr = 'N{0}nu3.00e-04--7.00e-04_pcepod_mcpod_bfmc.json'.format(N)
-if len(sys.argv) == 2:
-    jsfstr = sys.argv[-1]
 
-mcpod = False
+dst = 'beta-2-5'
+dst = 'uniform'
+nustr = 'nu5.00e-04--1.00e-03'
 
-with open(filedir+jsfstr, 'r') as f:
-    ddct = json.load(f)
+pltdict = {'rb': dict(label='wRB', mrkr='.', size=(7, 5), colrs=[.5, .6]),
+           'pce': dict(label='PCE', mrkr='.', size=(7, 5), colrs=[.8, .9]),
+           'mc': dict(label='Random', mrkr='.', size=(7, 5), colrs=[.2, .3]),
+           }
 
-basisfrom = ddct['0']['basisfrom']
-truthexpy = ddct['truthexpy']
-truthvrnc = ddct['truthvrnc']
+fstrl = [f'mh-data/N12{nustr}{dst}_pcepod_bfmc16_runs10.json',
+         f'mh-data/N12{nustr}{dst}_pcepod_bfmc32_runs10.json',
+         f'mh-data/N12{nustr}{dst}_pcepod_bfmc64_runs10.json',
+         f'mh-data/N12{nustr}{dst}_pcepod_bfrb_random32_runs10.json',
+         f'mh-data/N12{nustr}{dst}_pcepod_bfrb_random16_runs10.json',
+         f'mh-data/N12{nustr}{dst}_pcepod_bfpce2.json',
+         ]
 
-# ## Collect the data
+lbllst = ['MC-16', 'MC-32', 'MC-64', 'RB-16', 'RB-32', 'PCE-16']
+sumclrs = [.2, .26, .32, .5, .59, .8]
 
-# ## PCE POD
-print('*** PCE POD ***')
-print('*** with basis from {0} ***'.format(basisfrom))
+fignum = 101
 
-poddims = list((ddct['0']['pcepod']).keys())
-pcedims = ddct['0']['pcepod'][poddims[0]]['pcedims']
+for kkk, jsfstr in enumerate(fstrl):
 
-tims = list(ddct.keys())
+    with open(jsfstr, 'r') as f:
+        ddct = json.load(f)
 
-teltlist = []
-trntimelist = []
-crmlist = []
-rmprjelist = []
-pcepodreslist = []
-pcepodeyyslist = []
-ntims = 0  # counting timings
-for timit in tims:
-    try:
-        trntimelist.append(ddct[timit]['traintime'])
-        pcepodtimlist = []
-        lpcepodreslist = []
-        lpcepodeyyslist = []
-        for cpd in poddims:
-            pcepodtimlist.append(ddct[timit]['pcepod'][cpd]['elts'])
-            cpceres = np.array(ddct[timit]['pcepod'][cpd]['pceres'])
-            cpceyys = np.array(ddct[timit]['pcepod'][cpd]['pcepodeyys'])
-            lpcepodreslist.append(cpceres.flatten())
-            lpcepodeyyslist.append(cpceyys.flatten())
-        teltlist.append(pcepodtimlist)
-        pcepodreslist.append(lpcepodreslist)
-        pcepodeyyslist.append(lpcepodeyyslist)
-        crmlist.append(ddct[timit]['comp-redmod-elts'])
-        rmprjelist.append(np.array(ddct[timit]['redmod-prj-errs']).flatten())
-        ntims += 1
-    except TypeError:
-        pass  # no timit key
+    basisfrom = ddct['0']['basisfrom']
+    truthexpy = ddct['truthexpy']
+    truthvrnc = ddct['truthvrnc']
 
-pcepodresarray = np.median(np.array(pcepodreslist), axis=0)
-pceerrarray = truthexpy - pcepodresarray
+    # ## Collect the data
 
-pcepodeyyarray = np.median(np.array(pcepodeyyslist), axis=0)
-pcepodvrncserrarray = pcepodeyyarray - np.square(pcepodresarray) - truthvrnc
-
-if basisfrom == 'pce':
-    trainpceexpv = ddct['0']['training-pce-expv']
-    print('***training errror***')
-    print('{0:.4e}'.format(truthexpy-trainpceexpv[0]))
-
-print(poddims)
-print(pcedims)
-print('*** pce errrors E(y) - med out of {0}'.format(ntims) + '***')
-cpu.print_nparray_tex(pceerrarray, formatit='math', fstr='.2e')
-
-print('*** pce errrors V(y) - med out of {0}'.format(ntims) + '***')
-cpu.print_nparray_tex(pcepodvrncserrarray, formatit='math', fstr='.2e')
-
-print('*** training time (min out of {0}) ***'.format(ntims))
-cpu.print_nparray_tex((np.array(trntimelist)).min(),
-                      formatit='texttt', fstr='.2f')
-
-print('*** poddims and ' +
-      'comp red mod (min out of {0}) ***'.format(ntims))
-print(poddims)
-cpu.print_nparray_tex((np.array(crmlist)).min(axis=0),
-                      formatit='texttt', fstr='.2f')
-print('*** comp red projection error (med out of {0}) ***'.format(ntims))
-print(np.median(np.array(rmprjelist), axis=0))
-
-teltarray = np.array(teltlist)
-
-print('*** pce elts (min out of {0}) ***'.format(ntims))
-cpu.print_nparray_tex(teltarray.min(axis=0), formatit='texttt', fstr='.2f')
-
-
-if mcpod:
-    # ## MC POD
-    print('*** MC POD ***')
+    # ## PCE POD
+    print('*** PCE POD ***')
     print('*** with basis from {0} ***'.format(basisfrom))
 
-    poddims = list((ddct['0']['mcpod']).keys())
-    mcruns = ddct['0']['mcpod'][poddims[0]]['mcruns']
-    print('*** mc runs ***')
-    print(mcruns)
+    poddims = list((ddct['0']['pcepod']).keys())
+    pcedims = ddct['0']['pcepod'][poddims[0]]['pcedims']
 
     tims = list(ddct.keys())
 
@@ -124,44 +56,77 @@ if mcpod:
     trntimelist = []
     crmlist = []
     rmprjelist = []
-    mcpodreslist = []
+    pcepodreslist = []
+    pcepodeyyslist = []
+    ntims = 0  # counting timings
     for timit in tims:
-        trntimelist.append(ddct[timit]['traintime'])
-        mcpodtimlist = []
-        lmcpodreslist = []
-        for cpd in poddims:
-            mcpodtimlist.append(ddct[timit]['mcpod'][cpd]['elt'])
-            cmcres = np.array(ddct[timit]['mcpod'][cpd]['mcres'])
-            lmcpodreslist.append(cmcres.flatten())
-        teltlist.append(mcpodtimlist)
-        mcpodreslist.append(lmcpodreslist)
-        crmlist.append(ddct[timit]['comp-redmod-elts'])
-        rmprjelist.append(np.array(ddct[timit]['redmod-prj-errs']).flatten())
+        try:
+            trntimelist.append(ddct[timit]['traintime'])
+            pcepodtimlist = []
+            lpcepodreslist = []
+            lpcepodeyyslist = []
+            for cpd in poddims:
+                pcepodtimlist.append(ddct[timit]['pcepod'][cpd]['elts'])
+                cpceres = np.array(ddct[timit]['pcepod'][cpd]['pceres'])
+                cpceyys = np.array(ddct[timit]['pcepod'][cpd]['pcepodeyys'])
+                lpcepodreslist.append(cpceres.flatten())
+                lpcepodeyyslist.append(cpceyys.flatten())
+            teltlist.append(pcepodtimlist)
+            pcepodreslist.append(lpcepodreslist)
+            pcepodeyyslist.append(lpcepodeyyslist)
+            crmlist.append(ddct[timit]['comp-redmod-elts'])
+            rmprjelist.append(np.array(ddct[timit]
+                                       ['redmod-prj-errs']).flatten())
+            ntims += 1
+        except TypeError:
+            pass  # no timit key
 
-    mcpodresarray = np.array(mcpodreslist)
-    mcerrarray = truthexpy - mcpodresarray
-    print('***mc errrors median (out of {0})***'.format(ntims))
-    cpu.print_nparray_tex(np.median(mcerrarray, axis=0),
-                          formatit='math', fstr='.4e')
+    pcepodresarray = np.array(pcepodreslist)
+    pceeyys = np.array(pcepodeyyslist)
 
-    print('***mc errrors min (out of {0})***'.format(ntims))
-    cpu.print_nparray_tex(np.min(mcerrarray, axis=0),
-                          formatit='math', fstr='.4e')
+    pceerrarray = np.abs(truthexpy - pcepodresarray)/truthexpy
+    pcevrnce = np.abs(truthvrnc - (pceeyys - pcepodresarray**2))/truthvrnc
 
-    print('*** training time (min out of {0})***'.format(ntims))
-    cpu.print_nparray_tex((np.array(trntimelist)).min(),
-                          formatit='texttt', fstr='.2f')
+    poddimsints = [np.int(pd) for pd in poddims]
+    cpltd = pltdict[basisfrom]
 
-    print('*** poddims and ' +
-          'comp red mod (min out of {0})***'.format(ntims))
-    print(poddims)
-    cpu.print_nparray_tex((np.array(crmlist)).min(axis=0),
-                          formatit='texttt', fstr='.2f')
-    print('*** comp red projection error (med out of {0})***'.
-          format(ntims))
-    print(np.median(np.array(rmprjelist), axis=0))
+    plt.figure(fignum, figsize=(6, 3))
+    plt.rcParams["axes.prop_cycle"] = \
+        plt.cycler("color", plt.cm.plasma(cpltd['colrs']))
+    if ntims > 1:
+        for ct in range(ntims):
+            plt.semilogy(poddimsints, pcevrnce[ct, :, -1], cpltd['mrkr'],
+                         markersize=cpltd['size'][1], alpha=.1)
+            plt.semilogy(poddimsints, pceerrarray[ct, :, -1], cpltd['mrkr'],
+                         markersize=cpltd['size'][0], alpha=.1)
+    else:
+        pass
+    plt.semilogy(poddimsints, np.median(pcevrnce[:, :, -1], axis=0),
+                 cpltd['mrkr'], markersize=cpltd['size'][1],
+                 label=lbllst[kkk]+'--E')
+    plt.semilogy(poddimsints, np.median(pceerrarray[:, :, -1], axis=0),
+                 cpltd['mrkr'],
+                 markersize=cpltd['size'][0],
+                 label=lbllst[kkk]+'--E')
+    plt.xlabel('ROM dimension')
+    plt.ylim([.5*1e-6, 1])
+    plt.title('ROM Approximation Errors')
+    plt.legend()
+    plt.tight_layout()
+    save(dst+'-'+lbllst[kkk]+'.tex')
+    fignum += 1
 
-    teltarray = np.array(teltlist)
+    plt.figure(10101, figsize=(6, 4))
+    plt.rcParams["axes.prop_cycle"] = \
+        plt.cycler("color", plt.cm.plasma(sumclrs))
+    plt.semilogy(poddimsints, np.median(pceerrarray[:, :, -1], axis=0),
+                 label=lbllst[kkk], linewidth=4)
 
-    print('*** mc elts ***')
-    cpu.print_nparray_tex(teltarray.min(axis=0), formatit='texttt', fstr='.2f')
+plt.xlabel('ROM dimension')
+plt.ylim([.5*1e-6, 1e-1])
+plt.title('Median ROM Approximation Errors for the Expected Value')
+plt.legend()
+plt.tight_layout()
+save(dst+'-eerrors.tex')
+
+plt.show()
