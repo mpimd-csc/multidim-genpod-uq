@@ -1,5 +1,3 @@
-export PYTHONPATH="$PYTHONPATH:../"
-
 # ## Set the parameters
 VARINU='[3,7]e-4'
 MESH=10
@@ -23,7 +21,7 @@ PCEPOD=1
 BASISFROM=pce
 PCESNAPDIM=2
 TIMINGS=5  # set this to 1 if only the results are wanted
-PCEXPY=0.88102114  
+PCEXPY=0.88102114
 # value of PCE(5) for MESH=10 and VARINU='[3,7]e-4'
 # not needed but used to print the error directly to the screen
 python3 run_the_sims.py --mesh $MESH \
@@ -44,7 +42,7 @@ PCESNAPDIM=2
 NPCESNAP=$(($PCESNAPDIM**4))
 MCSNAP=$((1*$NPCESNAP))
 TIMINGS=5  # here the 5 is needed to compute the median
-PCEXPY=0.88102114  
+PCEXPY=0.88102114
 # value of PCE(5) for MESH=10 and VARINU='[3,7]e-4'
 # not needed but used to print the error directly to the screen
 python3 run_the_sims.py --mesh $MESH \

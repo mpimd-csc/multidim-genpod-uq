@@ -8,6 +8,8 @@ This is the code of the numerical experiments in our paper
 > Benner, Heiland (2020): *Space and Chaos-expansion Galerkin POD Low-order
 > Discretization of PDEs for Uncertainty Quantification*
 
+in the second version from July 2022.
+
 ## Installation
 
 Install `dolfin` and `gmesh`.
@@ -21,9 +23,17 @@ pip install -e .  # make sure you use Python 3
 if the installation of `multim-galerkin-pod` fails because of `scikit-sparse`
 try `pip install --no-deps multidim-galerkin-pod==1.0.2` instead. 
 
-The source are in `gen_pod_uq` and the files for the simulations in `scripts`.
+The source are in `gen_pod_uq` and the files for the simulations are in `scripts`.
 
 ## Rerun the simulations
+
+**NOTE**: For reproduction of the results, use version `1.1.1` of the package to be installed like
+
+```sh
+pip install gen-pod-uq==1.1.1
+```
+
+from the [`pypi repo`](https://pypi.org/project/gen-pod-uq/)
 
 ### Generate the mesh
 ```
