@@ -13,12 +13,13 @@ plotplease = False
 fullsweep = False
 smlmesh = 7
 lrgmesh = 8
-# meshlevellist = np.arange(5, 12)
-# meshlevellist = np.arange(12, 13)
-# meshlevellist = np.arange(4, 8)
-distribution = 'beta-2-5'
+if fullsweep:
+    distribution = 'beta-2-5'
+    distribution = 'uniform'
+else:
+    distribution = None  # not needed
 multiproc = 4
-# fullsweep = True
+
 nulb = 5e-4
 nuub = 1e-3
 

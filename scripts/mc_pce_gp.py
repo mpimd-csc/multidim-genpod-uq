@@ -50,21 +50,17 @@ def simit(problem='circle', meshlevel=None,
         get_sol, get_output, problemfems, get_red_problem = get_problem()
         uncdims = 5
 
-    getsample = mpu.get_nu_sample(distribution=distribution, uncdims=uncdims,
-                                  nulb=nulb, nuub=nuub)
-
     logging.info('Problem dimension: {0}'.format(problemfems['mmat'].shape[0]))
 
     nua, nub = nulb, nuub
     basenu = .5*(nua+nub)
     logging.info(f'nu in [{nua}, {nub}], median: {basenu}')
-    logging.info('Distributed as: ' + distribution)
+    logging.info(f'Distributed as: {distribution}')
 
     cmat = problemfems['cmat']
     mmat = problemfems['mmat']
 
-    prbsetupstr = 'N{0}nu{1:.2e}--{2:.2e}'.format(meshlevel, nulb, nuub) \
-        + distribution
+    prbsetupstr = f'N{meshlevel}nu{nulb:.2e}--{nuub:.2e}{distribution}'
 
     if pcepod:
         filestr = prbsetupstr + '_pcepod'
@@ -123,6 +119,12 @@ def simit(problem='circle', meshlevel=None,
             return problemfems['mmat'].shape[0], errl  # cmat.dot(basev)
         else:
             pass
+
+    else:
+        pass
+
+    getsample = mpu.get_nu_sample(distribution=distribution,
+                                  uncdims=uncdims, nulb=nulb, nuub=nuub)
 
     if rbplease or basisfrom == 'rb':
 
