@@ -298,7 +298,7 @@ def simit(problem='circle', meshlevel=None,
 
     if plotpcepoddiff:
         pcedim = pcedimlist[-1]
-        pcepoddiffstr = 'pcepoddiff{0}_'.format(pcedim) + filestr
+        pcepoddiffstr = 'cached-data/pcepoddiff{0}_'.format(pcedim) + filestr
         try:
             pxexpxdct = dou.load_json_dicts(pcepoddiffstr)
             pcexpx = np.array(pxexpxdct['pcexpx'])
