@@ -53,12 +53,12 @@ source runitall.sh
 
 You may want to comment out some parts.
 
-In the Zenodo repository, the raw data of our simulations is provided in the folder `scripts/paper-data`. In order to run the postprocessing on this data, use
+The raw data of our simulations is provided in the folder `rawdata`. In order to postprocess copy it to the `scripts/cached-data` folder
 
 ```sh
-# ## caution: computed data may get overwritten
-# cp scripts/paper-data/*json scripts/cached-data/
-# ## caution: computed data may get overwritten
+# ## caution: this may replace computed data
+# cp rawdata/*json scripts/cached-data/
+# ## caution: this may replace computed data
 ```
 
 ### Post Processing
