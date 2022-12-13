@@ -263,3 +263,20 @@ def pce_comp_vrnc(ytens, expv, weights=None, uncdims=None, scalefac=None):
         cw = (np.array(wtpl)).prod()
         vrnc += cw*matysqrd[:, idx]
     return scalefac*vrnc - expv**2
+
+
+def lagrange_polynomials(abscissae, x):
+    '''by ChatGPT
+    '''
+    n = len(abscissae)
+    polynomials = []
+    for i in range(n):
+        # Initialize the Lagrange polynomial as L_i(x) = 1
+        polynomial = 1
+        for j in range(n):
+            if i == j:
+                # Skip the term corresponding to the current abscissa
+                continue
+            polynomial *= (x - abscissae[j]) / (abscissae[i] - abscissae[j])
+        polynomials.append(polynomial)
+    return polynomials
