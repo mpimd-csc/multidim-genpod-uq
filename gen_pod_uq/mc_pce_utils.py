@@ -219,8 +219,8 @@ def setup_pce(distribution='uniform', distrpars={}, pcedim=None, uncdims=None):
         dstp = distribution.split('-')
         wghtfnc = dstp[0]
         if wghtfnc == 'beta':
-            alpha = np.float(dstp[1])
-            beta = np.float(dstp[2])
+            alpha = float(dstp[1])
+            beta = float(dstp[2])
             abscissae, weights = ceu.\
                 get_weighted_gaussqr(N=pcedim, weightfunction=wghtfnc,
                                      wfpdict=dict(alpha=alpha, beta=beta),
@@ -229,15 +229,26 @@ def setup_pce(distribution='uniform', distrpars={}, pcedim=None, uncdims=None):
             raise NotImplementedError()
 
     scalefac = (1./weights.sum())**uncdims
+    # this seems to be right
+
+    wprod = weights
+    for _ in range(uncdims-1):
+        wprod = np.kron(wprod, weights)
+
+    scalefactwo = (1./wprod.sum())
+    if not np.allclose(scalefac, scalefactwo):
+        raise UserWarning('need to check this again')
 
     def comp_expv(ytens):
         ydim = ytens.shape[0]
         expv = 0
         maty = ytens.reshape((ydim, -1))
-    # for kk, cw in enumerate(weights):
-        for idx, wtpl in enumerate(product(weights, repeat=uncdims)):
-            cw = (np.array(wtpl)).prod()
-            expv += cw*maty[:, idx]
+        # for kk, cw in enumerate(weights):
+        # looks like this is wrong -- idx does not pass all of maty
+        # for idx, wtpl in enumerate(product(weights, repeat=uncdims)):
+        #     cw = (np.array(wtpl)).prod()
+        #     expv += cw*maty[:, idx]
+        expv = wprod @ maty.T
         return scalefac*expv
 
     def comp_vrnc(ytens, expv):

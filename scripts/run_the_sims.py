@@ -1,6 +1,6 @@
 # import getopt
 import argparse
-import numpy as np
+# import numpy as np
 import re
 
 from mc_pce_gp import simit
@@ -83,19 +83,19 @@ logging.info(args)
 
 if args.pcedims is not None:
     nmstrl = re.findall('\\d+', args.pcedims)
-    pcedimlist = [np.int(xstr) for xstr in nmstrl]
+    pcedimlist = [int(xstr) for xstr in nmstrl]
 else:
     pass
 
 if args.poddims is not None:
     poddstrl = re.findall('\\d+', args.poddims)
-    poddimlist = [np.int(xstr) for xstr in poddstrl]
+    poddimlist = [int(xstr) for xstr in poddstrl]
 else:
     pass
 
 if args.varinu is not None:
     nuabstrl = re.findall('\\d+', args.varinu)
-    nuabl = [np.int(xstr) for xstr in nuabstrl]
+    nuabl = [int(xstr) for xstr in nuabstrl]
     nulb = nuabl[0]*10**(-nuabl[2])
     nuub = nuabl[1]*10**(-nuabl[2])
 else:
