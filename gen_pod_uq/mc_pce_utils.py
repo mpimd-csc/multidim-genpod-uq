@@ -235,9 +235,9 @@ def setup_pce(distribution='uniform', distrpars={}, pcedim=None, uncdims=None):
     for _ in range(uncdims-1):
         wprod = np.kron(wprod, weights)
 
-    scalefactwo = (1./wprod.sum())
-    if not np.allclose(scalefac, scalefactwo):
-        raise UserWarning('need to check this again')
+    # scalefactwo = (1./wprod.sum())
+    # if not np.allclose(scalefac, scalefactwo):
+    #     raise UserWarning('need to check this again')
 
     def comp_expv(ytens):
         ydim = ytens.shape[0]

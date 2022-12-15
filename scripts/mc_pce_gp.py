@@ -293,6 +293,9 @@ def simit(problem='circle', meshlevel=None,
                 logging.info('PCE({0}): E(yy): {1}'.format(pcedim, pcexpysqrd))
                 logging.info('PCE({0}): V(y): {1}'.format(pcedim, pcvrnc))
                 put_mmnts_db(pcedim=pcedim, expv=pcexpy, vrnc=pcvrnc)
+                ysltnsstr = 'cached-data/'+prbsetupstr+f'_pce{pcedim}_ysoltns'
+                np.save(arr=ysoltens, file=ysltnsstr)
+                logging.info('saved ysoltens to ' + ysltnsstr)
     else:
         pass
 
@@ -592,10 +595,13 @@ if __name__ == '__main__':
     problem = 'cylinder'
     distribution = 'uniform'
     distribution = 'beta-2-5'
+    nulb = 5e-4
+    nuub = 10e-4
     meshlevel = 4
+    meshlevel = 12
     mcruns = 10  # 200
     pcedimlist = [2, 3]  # 4, 5]  # , 3, 4]  # , 3, 4, 5]  # , 7]
-    multiproc = 4
+    multiproc = 6
     timings = 1
 
     mcplease = False
@@ -623,6 +629,7 @@ if __name__ == '__main__':
     # plotplease = True
 
     simit(mcruns=mcruns, pcedimlist=pcedimlist, problem=problem,
+          nulb=nulb, nuub=nuub,
           distribution=distribution,
           meshlevel=meshlevel, timings=timings,
           plotplease=plotplease, basisfrom=basisfrom, multiproc=multiproc,
