@@ -597,8 +597,8 @@ if __name__ == '__main__':
     distribution = 'beta-2-5'
     nulb = 5e-4
     nuub = 10e-4
-    meshlevel = 4
     meshlevel = 12
+    meshlevel = 4
     mcruns = 10  # 200
     pcedimlist = [2, 3]  # 4, 5]  # , 3, 4]  # , 3, 4, 5]  # , 7]
     multiproc = 6

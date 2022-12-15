@@ -241,15 +241,21 @@ def setup_pce(distribution='uniform', distrpars={}, pcedim=None, uncdims=None):
 
     def comp_expv(ytens):
         ydim = ytens.shape[0]
-        expv = 0
         maty = ytens.reshape((ydim, -1))
-        # for kk, cw in enumerate(weights):
-        # looks like this is wrong -- idx does not pass all of maty
-        # for idx, wtpl in enumerate(product(weights, repeat=uncdims)):
-        #     cw = (np.array(wtpl)).prod()
-        #     expv += cw*maty[:, idx]
-        expv = wprod @ maty.T
-        return scalefac*expv
+        expvone = wprod @ maty.T
+
+        expvtwo = 0
+        for idx, wtpl in enumerate(product(weights, repeat=uncdims)):
+            cw = (np.array(wtpl)).prod()
+            expvtwo += cw*maty[:, idx]
+            # print(wtpl)
+            # print(idx)
+
+        if ydim == 1:
+            logging.info(f'diff in expvs {expvone.item()-expvtwo.item():.4e}')
+        else:
+            pass
+        return scalefac*expvone
 
     def comp_vrnc(ytens, expv):
         ydim = ytens.shape[0]
@@ -276,7 +282,7 @@ def pce_comp_vrnc(ytens, expv, weights=None, uncdims=None, scalefac=None):
     return scalefac*vrnc - expv**2
 
 
-def lagrange_polynomials(abscissae, x):
+def eva_all_lgrngs(abscissae, x):
     '''by ChatGPT
     '''
     n = len(abscissae)
