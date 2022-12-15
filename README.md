@@ -21,7 +21,7 @@ pip install -e .  # make sure you use Python 3
 ```
 
 if the installation of `multim-galerkin-pod` fails because of `scikit-sparse`
-try `pip install --no-deps multidim-galerkin-pod==1.0.2` instead. 
+try `pip install --no-deps multidim-galerkin-pod==1.1.0` instead. 
 
 The source are in `gen_pod_uq` and the files for the simulations are in `scripts`.
 

@@ -157,7 +157,7 @@ with Timer():
           problem=problem, meshlevel=args.mesh,
           plotplease=plotplease, basisfrom=args.rombase,
           # mcxpy=args.mcxpy, pcexpy=args.pcexpy,
-          redmcruns=15000,
+          # redmcruns=15000,
           mcsnap=args.mcsnap, trainpcedim=args.pcesnapdim,
           poddimlist=poddimlist,
           rbparams=dict(samplemethod='random', nsample=args.rbsnap),
