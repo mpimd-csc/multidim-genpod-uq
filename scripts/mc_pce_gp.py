@@ -504,7 +504,8 @@ def simit(problem='circle', meshlevel=None,
                                               abscissae=abscissae)
                     redpcexpy = compredexpv(redysoltens)
                     ysltnsstr = 'cached-data/' + prbsetupstr + \
-                            f'_pce{pcedim}_pod{poddim}_bf{bssstr}_ysoltns'
+                            f'_pce{pcedim}_pod{poddim}_' + \
+                            f'bf{bssstr}_run{tit+1}of{timings}_ysoltns'
                     np.save(arr=ysoltens, file=ysltnsstr)
                     logging.info('saved ysoltens to ' + ysltnsstr)
                     elt = time.time() - tstart
