@@ -40,7 +40,7 @@ def solfunc_to_variance(solfunc, expv):
     return sfvariance
 
 
-def get_nu_sample(distribution='uniform', uncdims=1, nulb=0, nuub=1):
+def get_nu_sample(distribution='uniform', uncdims=1, nulb=0., nuub=1.):
     if distribution == 'uniform':
         def nusample(nsamples):
             return nulb + (nuub-nulb)*np.random.rand(nsamples, uncdims)
@@ -48,8 +48,8 @@ def get_nu_sample(distribution='uniform', uncdims=1, nulb=0, nuub=1):
         dstp = distribution.split('-')
         wghtfnc = dstp[0]
         if wghtfnc == 'beta':
-            alpha = np.float(dstp[1])
-            beta = np.float(dstp[2])
+            alpha = float(dstp[1])
+            beta = float(dstp[2])
 
             def nusample(nsamples):
                 return nulb + \
@@ -297,3 +297,21 @@ def eva_all_lgrngs(abscissae, x):
             polynomial *= (x - abscissae[j]) / (abscissae[i] - abscissae[j])
         polynomials.append(polynomial)
     return polynomials
+
+
+def empirical_cdf(samples):
+    ''' by ChatGPT'''
+    # Sort the samples in ascending order
+    sorted_samples = sorted(samples)
+    N = len(samples)
+
+    # Create a list to store the CDF values
+    cdf_values = []
+
+    # Iterate over the sorted samples
+    for i, _ in enumerate(sorted_samples):
+        # Compute the CDF value for the current sample
+        cdf_value = (i + 1) / N
+        cdf_values.append(cdf_value)
+
+    return cdf_values

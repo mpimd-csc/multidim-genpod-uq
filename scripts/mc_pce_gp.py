@@ -278,7 +278,7 @@ def simit(problem='circle', meshlevel=None,
                 logging.info(f'Computing: PCE({pcedim})')
 
                 # ## XXX: here is randomness
-                abscissae, wghts, compexpv, _ = mpu.\
+                abscissae, _, compexpv, _ = mpu.\
                     setup_pce(distribution=distribution,
                               distrpars=dict(a=nua, b=nub),
                               pcedim=pcedim, uncdims=uncdims)
@@ -503,6 +503,10 @@ def simit(problem='circle', meshlevel=None,
                                               uncdims=uncdims,
                                               abscissae=abscissae)
                     redpcexpy = compredexpv(redysoltens)
+                    ysltnsstr = 'cached-data/' + prbsetupstr + \
+                            f'_pce{pcedim}_pod{poddim}_bf{bssstr}_ysoltns'
+                    np.save(arr=ysoltens, file=ysltnsstr)
+                    logging.info('saved ysoltens to ' + ysltnsstr)
                     elt = time.time() - tstart
                     redpcexpeysqrd = compredexpv(np.square(redysoltens))
                     pcereslist.append(redpcexpy.tolist())
