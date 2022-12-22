@@ -12,6 +12,7 @@ mechthild-logs/
 gen_pod_uq.egg-info/
 __pycache__
 scripts/job-files
+scripts/cached-data
 
 ChangeLog
 build/
