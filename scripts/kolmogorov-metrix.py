@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from tikzplotlib import save
 
 import gen_pod_uq.mc_pce_utils as mpu
 
@@ -165,5 +166,6 @@ if __name__ == '__main__':
 
     plt.title(dst)
     plt.legend()
+    save('kolmomotor'+dst+'.tikz')
 
     plt.show()
