@@ -15,24 +15,11 @@ def comp_cdf(ysoltens, nua=0., nub=1., dst='beta-2-5', nsample=1000000,
                   distrpars=dict(a=nua, b=nub),
                   pcedim=pcedim, uncdims=4)
     
-    # expv = compexpv(ysoltens)
     evay = get_evay(ysoltens, abscissae)
-    # vecy = ysoltens.reshape((1, -1))
-    # print(f'expv: {expv.item():.4e}')
-
-    # yamn = evay([numean]*4)
-    # print(f'y(amean): {yamn:.4e}')
-    # yamn = evay([nua]*4)
-    # print(f'y(amin): {yamn:.4e}')
-    # yamn = evay([nub]*4)
-    # print(f'y(amax): {yamn:.4e}')
     
     getsample = mpu.get_nu_sample(distribution=dst,
                                   uncdims=4, nulb=nua, nuub=nub)
-    # randa = getsample(1)
-    # yamn = evay(randa.flatten())
-    # print(f'y(arnd): {yamn:.4e}')
-    
+
     rndsa = getsample(nsample)
     smpllist = []
     for csmpl in rndsa:
@@ -42,6 +29,7 @@ def comp_cdf(ysoltens, nua=0., nub=1., dst='beta-2-5', nsample=1000000,
     srtdsmpllist = sorted(smpllist)
 
     return srtdsmpllist, cpfvals
+
 
 def compmaxdiff(xl, cdfxl, tx, tcdfx, intpoints=2000):
     smin, smax = tx[0], tx[-1]
@@ -65,107 +53,126 @@ if __name__ == '__main__':
 
     smpls = 10  # number of samples for the MC/wRB bases
     runs = 5  # how many runs --- since the sampling is also stochastic
-    # np.random.seed(1)
-
     nua, nub = 5e-4, 10e-4
-    dst = 'beta-2-5'
-    dst = 'uniform'
-    Nndstr = f'N12nu{nua:.2e}--{nub:.2e}' + dst
-    dataprfx = 'mh-data/cached-data/'  + Nndstr
+    smplsforcdf = int(1e4)
 
-    for rrr in range(runs):
-        yts = dataprfx + '_pce5_ysoltns.npy'
-        ysoltens = np.load(yts)
-        xtrth, cdfxtrth = comp_cdf(ysoltens, pcedim=5, dst=dst, nua=nua, nub=nub)
-        # jmin, jmax = xtrth[0], xtrth[-1]
+    onlyplots = True
+    onlyplots = False
 
-        yts = dataprfx + '_pce2_ysoltns.npy'
-        ysoltens = np.load(yts)
-        xpcetwo, cdfpcetwo = comp_cdf(ysoltens, pcedim=2, dst=dst, nua=nua, nub=nub)
-        ppkmmed, _, ppxc \
-            = compmaxdiff([xpcetwo], [cdfpcetwo], xtrth, cdfxtrth)
-        print(f'Kolmometer: pce[2]: {ppkmmed:.5f}')
-        # jmin, jmax = max(jmin, xpcetwo[0]), min(jmax, xpcetwo[-1])
+    if onlyplots:
+        runs = 1
+        smpls = 5  # number of samples for the MC/wRB bases
+        pltsmpls = smpls
+    else:
+        pltsmpls = int(smpls/2)
+    pltfilter = 4  # only plot every 4-th data point
 
-        yts = dataprfx + '_pce5_pod8_bfpce2_run1of1_ysoltns.npy'
-        ysoltens = np.load(yts)
-        xpodpcef, cdfpodpcef = comp_cdf(ysoltens, pcedim=5, dst=dst, nua=nua, nub=nub)
-        # jmin, jmax = max(jmin, xpodpcef[0]), min(jmax, xpodpcef[-1])
-        ppkmmed, _, ppxc \
-            = compmaxdiff([xpodpcef], [cdfpodpcef], xtrth, cdfxtrth)
-        print(f'Kolmometer: pce-16: {ppkmmed:.5f}')
+    dstl = ['beta-2-5', 'uniform']
+    for pltadd, dst in enumerate(dstl):
 
-        # accytns = 0
-        xrbl, rbcdfl = [], []
-        for kkk in range(smpls):
-            cyts = np.load(dataprfx + '_pce5_pod8_bfrb_random16_runs10' + \
-                           f'_run{kkk+1}of10_ysoltns.npy')
-            xrb, cdfrbx = comp_cdf(cyts, pcedim=5, dst=dst, nua=nua, nub=nub)
-            xrbl.append(xrb)
-            rbcdfl.append(cdfrbx)
-            # accytns += cyts
+        Nndstr = f'N12nu{nua:.2e}--{nub:.2e}' + dst
+        dataprfx = 'mh-data/cached-data/'  + Nndstr
 
-        rbkmmed, rbkmerrs, rbxc = compmaxdiff(xrbl, rbcdfl, xtrth, cdfxtrth)
-        print(f'Kolmometer: rb16: {rbkmmed:.5f} -- median out of {smpls}')
+        ccdfdct = dict(nua=nua, nub=nub, pcedim=5, dst=dst, nsample=smplsforcdf)
 
-        xrblt, rbcdflt = [], []
-        for kkk in range(smpls):
-            cyts = np.load(dataprfx + '_pce5_pod8_bfrb_random32_runs10' + \
-                           f'_run{kkk+1}of10_ysoltns.npy')
-            xrbt, cdfrbxt = comp_cdf(cyts, pcedim=5, dst=dst, nua=nua, nub=nub)
-            xrblt.append(xrbt)
-            rbcdflt.append(cdfrbxt)
-            # accytns += cyts
+        for rrr in range(runs):
+            yts = dataprfx + '_pce5_ysoltns.npy'
+            ysoltens = np.load(yts)
+            xtrth, cdfxtrth = comp_cdf(ysoltens, **ccdfdct)
+            # jmin, jmax = xtrth[0], xtrth[-1]
 
-        rbkmmedt, _, _ = compmaxdiff(xrblt, rbcdflt, xtrth, cdfxtrth)
-        print(f'Kolmometer: rb32: {rbkmmedt:.5f} -- median out of {smpls}')
+            if onlyplots:
+                pass
+            else:
+                yts = dataprfx + '_pce2_ysoltns.npy'
+                ysoltens = np.load(yts)
+                xpcetwo, cdfpcetwo = comp_cdf(ysoltens, pcedim=2, dst=dst,
+                                              nua=nua, nub=nub, nsample=smplsforcdf)
+                ppkmmed, _, ppxc \
+                    = compmaxdiff([xpcetwo], [cdfpcetwo], xtrth, cdfxtrth)
+                print(f'Kolmometer: {dst}: pce[2]: {ppkmmed:.5f}')
 
-        # accytns = 1/smpls*accytns
-        # jmin, jmax = max(jmin, xrb[0]), min(jmax, xrb[-1])
+            yts = dataprfx + '_pce5_pod8_bfpce2_run1of1_ysoltns.npy'
+            ysoltens = np.load(yts)
+            xpodpcef, cdfpodpcef = comp_cdf(ysoltens, **ccdfdct)
+            # jmin, jmax = max(jmin, xpodpcef[0]), min(jmax, xpodpcef[-1])
+            ppkmmed, _, ppxc \
+                = compmaxdiff([xpodpcef], [cdfpodpcef], xtrth, cdfxtrth)
+            print(f'Kolmometer: {dst}: pce-16: {ppkmmed:.5f}')
 
-        # accytns = 0
-        xmcl, mccdfl = [], []
-        for kkk in range(smpls):
-            cyts = np.load(dataprfx + '_pce5_pod8_bfmc16_runs10' + \
-                           f'_run{kkk+1}of10_ysoltns.npy')
-            xmc, cdfmcx = comp_cdf(cyts, pcedim=5, dst=dst, nua=nua, nub=nub)
-            xmcl.append(xmc)
-            mccdfl.append(cdfmcx)
-            # accytns += cyts
-        mckmmed, mckmerrs, mcxc = compmaxdiff(xmcl, mccdfl, xtrth, cdfxtrth)
-        print(f'Kolmometer: mc16: {mckmmed:.5f} -- median out of {smpls}')
+            # accytns = 0
+            xrbl, rbcdfl = [], []
+            for kkk in range(smpls):
+                cyts = np.load(dataprfx + '_pce5_pod8_bfrb_random16_runs10' + \
+                               f'_run{kkk+1}of10_ysoltns.npy')
+                xrb, cdfrbx = comp_cdf(cyts, **ccdfdct)
+                xrbl.append(xrb)
+                rbcdfl.append(cdfrbx)
+                # accytns += cyts
 
-        xmclt, mccdflt = [], []
-        for kkk in range(smpls):
-            cyts = np.load(dataprfx + '_pce5_pod8_bfmc32_runs10' + \
-                           f'_run{kkk+1}of10_ysoltns.npy')
-            xmct, cdfmcxt = comp_cdf(cyts, pcedim=5, dst=dst, nua=nua, nub=nub)
-            xmclt.append(xmct)
-            mccdflt.append(cdfmcxt)
-            # accytns += cyts
-        mckmmedt, _, _ = compmaxdiff(xmclt, mccdflt, xtrth, cdfxtrth)
-        print(f'Kolmometer: mc32: {mckmmed:.5f} -- median out of {smpls}')
+            rbkmmed, rbkmerrs, rbxc = compmaxdiff(xrbl, rbcdfl, xtrth, cdfxtrth)
+            print(f'Kolmometer: {dst}: rb16: {rbkmmed:.5f} -- median out of {smpls}')
 
-    plt.figure(3)
-    # plt.plot(iabsc, np.abs(icdfpcetwo-icdftrth), label='PCE[2]')
-    clrs = []
-    pltsmpls = int(smpls/2)
-    for kkk in range(pltsmpls+1):  # +1 for the legend dummy plot
-        clrs.extend([.6])
-        clrs.extend([.3])
-    clrs.extend([.9])
-    # clrs = [.9, .6, .3]
-    plt.rcParams["axes.prop_cycle"] = plt.cycler("color", plt.cm.plasma(clrs))
+            if onlyplots:
+                pass
+            else:
+                xrblt, rbcdflt = [], []
+                for kkk in range(smpls):
+                    cyts = np.load(dataprfx + '_pce5_pod8_bfrb_random32_runs10' + \
+                                   f'_run{kkk+1}of10_ysoltns.npy')
+                    xrbt, cdfrbxt = comp_cdf(cyts, **ccdfdct)
+                    xrblt.append(xrbt)
+                    rbcdflt.append(cdfrbxt)
+                    # accytns += cyts
 
-    for kkk in range(pltsmpls):
-        plt.plot(rbxc[kkk][0], rbxc[kkk][1], alpha=.4)
-        plt.plot(mcxc[kkk][0], mcxc[kkk][1], alpha=.4)
-    plt.plot(np.NaN, np.NaN, label='RB16')
-    plt.plot(np.NaN, np.NaN, label='MC16')
-    plt.plot(ppxc[0][0], ppxc[0][1], label='pcePOD16')
+                rbkmmedt, _, _ = compmaxdiff(xrblt, rbcdflt, xtrth, cdfxtrth)
+                print(f'Kolmometer: {dst}: rb32: {rbkmmedt:.5f} -- median out of {smpls}')
 
-    plt.title(dst)
-    plt.legend()
-    save('kolmomotor'+dst+'.tikz')
+            xmcl, mccdfl = [], []
+            for kkk in range(smpls):
+                cyts = np.load(dataprfx + '_pce5_pod8_bfmc16_runs10' + \
+                               f'_run{kkk+1}of10_ysoltns.npy')
+                xmc, cdfmcx = comp_cdf(cyts, **ccdfdct)
+                xmcl.append(xmc)
+                mccdfl.append(cdfmcx)
+
+            mckmmed, mckmerrs, mcxc = compmaxdiff(xmcl, mccdfl, xtrth, cdfxtrth)
+            print(f'Kolmometer: {dst}: mc16: {mckmmed:.5f} -- median out of {smpls}')
+
+            if onlyplots:
+                pass
+            else:
+                xmclt, mccdflt = [], []
+                for kkk in range(smpls):
+                    cyts = np.load(dataprfx + '_pce5_pod8_bfmc32_runs10' + \
+                                   f'_run{kkk+1}of10_ysoltns.npy')
+                    xmct, cdfmcxt = comp_cdf(cyts, **ccdfdct)
+                    xmclt.append(xmct)
+                    mccdflt.append(cdfmcxt)
+                mckmmedt, _, _ = compmaxdiff(xmclt, mccdflt, xtrth, cdfxtrth)
+                print(f'Kolmometer: {dst}: mc32: {mckmmed:.5f} -- median out of {smpls}')
+
+        plt.figure(330+pltadd)
+        clrs = []
+        pltsmpls = int(smpls/2)
+        for kkk in range(pltsmpls+1):  # +1 for the legend dummy plot
+            clrs.extend([.6])
+            clrs.extend([.3])
+        clrs.extend([.9])
+        plt.rcParams["axes.prop_cycle"] = plt.cycler("color", plt.cm.plasma(clrs))
+
+        for kkk in range(pltsmpls):
+            plt.plot(rbxc[kkk][0][::pltfilter], rbxc[kkk][1][::pltfilter], alpha=.4)
+            plt.plot(mcxc[kkk][0][::pltfilter], mcxc[kkk][1][::pltfilter], alpha=.4)
+
+        # one dummy point plot to have the labels in full color
+        plt.plot(0.65, 0., label='RB16')
+        plt.plot(0.65, 0., label='MC16')
+
+        plt.plot(ppxc[0][0][::pltfilter], ppxc[0][1][::pltfilter], label='pcePOD16')
+
+        plt.title(dst)
+        plt.legend()
+        save('kolmomotor'+dst+'.tikz')
 
     plt.show()
