@@ -54,7 +54,7 @@ if __name__ == '__main__':
     smpls = 10  # number of samples for the MC/wRB bases
     runs = 5  # how many runs --- since the sampling is also stochastic
     nua, nub = 5e-4, 10e-4
-    smplsforcdf = int(1e4)
+    smplsforcdf = int(1e6)
 
     onlyplots = True
     onlyplots = False
