@@ -71,7 +71,7 @@ if __name__ == '__main__':
     for pltadd, dst in enumerate(dstl):
 
         Nndstr = f'N12nu{nua:.2e}--{nub:.2e}' + dst
-        dataprfx = 'mh-data/cached-data/'  + Nndstr
+        dataprfx = 'cached-data/'  + Nndstr
 
         ccdfdct = dict(nua=nua, nub=nub, pcedim=5, dst=dst, nsample=smplsforcdf)
 
