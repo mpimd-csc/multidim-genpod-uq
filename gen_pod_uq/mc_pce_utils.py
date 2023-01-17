@@ -40,7 +40,7 @@ def solfunc_to_variance(solfunc, expv):
     return sfvariance
 
 
-def get_nu_sample(distribution='uniform', uncdims=1, nulb=0, nuub=1):
+def get_nu_sample(distribution='uniform', uncdims=1, nulb=0., nuub=1.):
     if distribution == 'uniform':
         def nusample(nsamples):
             return nulb + (nuub-nulb)*np.random.rand(nsamples, uncdims)
@@ -48,8 +48,8 @@ def get_nu_sample(distribution='uniform', uncdims=1, nulb=0, nuub=1):
         dstp = distribution.split('-')
         wghtfnc = dstp[0]
         if wghtfnc == 'beta':
-            alpha = np.float(dstp[1])
-            beta = np.float(dstp[2])
+            alpha = float(dstp[1])
+            beta = float(dstp[2])
 
             def nusample(nsamples):
                 return nulb + \
@@ -219,8 +219,8 @@ def setup_pce(distribution='uniform', distrpars={}, pcedim=None, uncdims=None):
         dstp = distribution.split('-')
         wghtfnc = dstp[0]
         if wghtfnc == 'beta':
-            alpha = np.float(dstp[1])
-            beta = np.float(dstp[2])
+            alpha = float(dstp[1])
+            beta = float(dstp[2])
             abscissae, weights = ceu.\
                 get_weighted_gaussqr(N=pcedim, weightfunction=wghtfnc,
                                      wfpdict=dict(alpha=alpha, beta=beta),
@@ -229,16 +229,33 @@ def setup_pce(distribution='uniform', distrpars={}, pcedim=None, uncdims=None):
             raise NotImplementedError()
 
     scalefac = (1./weights.sum())**uncdims
+    # this seems to be right
+
+    wprod = weights
+    for _ in range(uncdims-1):
+        wprod = np.kron(wprod, weights)
+
+    # scalefactwo = (1./wprod.sum())
+    # if not np.allclose(scalefac, scalefactwo):
+    #     raise UserWarning('need to check this again')
 
     def comp_expv(ytens):
         ydim = ytens.shape[0]
-        expv = 0
         maty = ytens.reshape((ydim, -1))
-    # for kk, cw in enumerate(weights):
+        expvone = wprod @ maty.T
+
+        expvtwo = 0
         for idx, wtpl in enumerate(product(weights, repeat=uncdims)):
             cw = (np.array(wtpl)).prod()
-            expv += cw*maty[:, idx]
-        return scalefac*expv
+            expvtwo += cw*maty[:, idx]
+            # print(wtpl)
+            # print(idx)
+
+        if ydim == 1:
+            logging.info(f'diff in expvs {expvone.item()-expvtwo.item():.4e}')
+        else:
+            pass
+        return scalefac*expvone
 
     def comp_vrnc(ytens, expv):
         ydim = ytens.shape[0]
@@ -263,3 +280,38 @@ def pce_comp_vrnc(ytens, expv, weights=None, uncdims=None, scalefac=None):
         cw = (np.array(wtpl)).prod()
         vrnc += cw*matysqrd[:, idx]
     return scalefac*vrnc - expv**2
+
+
+def eva_all_lgrngs(abscissae, x):
+    '''by ChatGPT
+    '''
+    n = len(abscissae)
+    polynomials = []
+    for i in range(n):
+        # Initialize the Lagrange polynomial as L_i(x) = 1
+        polynomial = 1
+        for j in range(n):
+            if i == j:
+                # Skip the term corresponding to the current abscissa
+                continue
+            polynomial *= (x - abscissae[j]) / (abscissae[i] - abscissae[j])
+        polynomials.append(polynomial)
+    return polynomials
+
+
+def empirical_cdf(samples):
+    ''' by ChatGPT'''
+    # Sort the samples in ascending order
+    sorted_samples = sorted(samples)
+    N = len(samples)
+
+    # Create a list to store the CDF values
+    cdf_values = []
+
+    # Iterate over the sorted samples
+    for i, _ in enumerate(sorted_samples):
+        # Compute the CDF value for the current sample
+        cdf_value = (i + 1) / N
+        cdf_values.append(cdf_value)
+
+    return cdf_values

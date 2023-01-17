@@ -29,11 +29,11 @@ def simit(problem='circle', meshlevel=None,
           mcpod=False, pcepod=False,
           rbparams={},
           checkredmod=False, pcexpy=None, pcvrnc=None,
-          mcxpy=None, redmcruns=None,
+          mcxpy=None,  # redmcruns=None,
           mcsnap=None,
           onlymeshtest=False,
           omtp_dict={'fullsweep': False, 'pcedim': 2},
-          trainpcedim=None, targetpcedim=None,
+          trainpcedim=None,  # targetpcedim=None,
           # basenu=5e-4, varia=-1e-4, varib=1e-4,
           plotpcepoddiff=False, pcepoddiffdim=9,
           multiproc=0, timings=1,
@@ -47,7 +47,8 @@ def simit(problem='circle', meshlevel=None,
          get_red_problem) = cylinder(meshlevel=meshlevel)
         uncdims = 4
     else:
-        get_sol, get_output, problemfems, get_red_problem = get_problem()
+        (get_sol, get_output, problemfems, plotit,
+         get_red_problem) = get_problem()
         uncdims = 5
 
     logging.info('Problem dimension: {0}'.format(problemfems['mmat'].shape[0]))
@@ -76,13 +77,14 @@ def simit(problem='circle', meshlevel=None,
         bssstr = basisfrom + '_' + rbparams['samplemethod'] + \
             '{0}_runs{1}'.format(rbparams['nsample'], timings)
     else:
+        bssstr = ''
         pass
     filestr = filestr + '_bf' + bssstr + '.json'
 
     if onlymeshtest or plotplease:
         fullsweep = omtp_dict['fullsweep']
         if fullsweep:
-            abscissae, weights, _, _ = mpu.\
+            abscissae, _, _, _ = mpu.\
                 setup_pce(distribution=distribution,
                           distrpars=dict(a=nua, b=nub),
                           pcedim=omtp_dict['pcedim'], uncdims=uncdims)
@@ -182,7 +184,7 @@ def simit(problem='circle', meshlevel=None,
 
                 def _compun(para):
                     return rbbas @ crb_red_realize_sol(para)
-                mxdfpara, mxdfsol = _getmaxparam(_compun, dffun=_dffun)
+                _, mxdfsol = _getmaxparam(_compun, dffun=_dffun)
                 # print('returned: ', mxdfpara)
                 # rbcheck = get_sol(mxdfpara)
                 # print('right vec?: ', dffun(rbcheck, mxdfsol))
@@ -268,7 +270,7 @@ def simit(problem='circle', meshlevel=None,
     if pceplease:
         for pcedim in pcedimlist:
             pcexpy, pcvrnc, esth = get_mmnts_db(pcedim=pcedim)
-            if esth:
+            if esth and False:
                 logging.info('PCE({0}): E(y): {1}'.format(pcedim, pcexpy))
                 logging.info('PCE({0}): V(y): {1}'.format(pcedim, pcvrnc))
                 logging.debug('loaded from ' + databasemoments)
@@ -276,7 +278,7 @@ def simit(problem='circle', meshlevel=None,
                 logging.info(f'Computing: PCE({pcedim})')
 
                 # ## XXX: here is randomness
-                abscissae, weights, compexpv, _ = mpu.\
+                abscissae, _, compexpv, _ = mpu.\
                     setup_pce(distribution=distribution,
                               distrpars=dict(a=nua, b=nub),
                               pcedim=pcedim, uncdims=uncdims)
@@ -291,6 +293,9 @@ def simit(problem='circle', meshlevel=None,
                 logging.info('PCE({0}): E(yy): {1}'.format(pcedim, pcexpysqrd))
                 logging.info('PCE({0}): V(y): {1}'.format(pcedim, pcvrnc))
                 put_mmnts_db(pcedim=pcedim, expv=pcexpy, vrnc=pcvrnc)
+                ysltnsstr = 'cached-data/'+prbsetupstr+f'_pce{pcedim}_ysoltns'
+                np.save(arr=ysoltens, file=ysltnsstr)
+                logging.info('saved ysoltens to ' + ysltnsstr)
     else:
         pass
 
@@ -307,7 +312,7 @@ def simit(problem='circle', meshlevel=None,
             logging.info('loaded the pce-Ex from: ' + pcepoddiffstr)
         except IOError:
             # ## XXX: here is randomness
-            abscissae, weights, compexpv, _ = mpu.\
+            abscissae, _, compexpv, _ = mpu.\
                 setup_pce(distribution=distribution,
                           distrpars=dict(a=nua, b=nub),
                           pcedim=pcedim, uncdims=uncdims)
@@ -346,7 +351,7 @@ def simit(problem='circle', meshlevel=None,
         if basisfrom == 'pce':
             trttstart = time.time()
             # ## XXX: here is randomness
-            trnabscissae, trnweights, trncompexpv, trncomvrnc = mpu.\
+            trnabscissae, trnweights, trncompexpv, _ = mpu.\
                 setup_pce(distribution=distribution,
                           distrpars=dict(a=nua, b=nub),
                           pcedim=trainpcedim, uncdims=uncdims)
@@ -487,7 +492,7 @@ def simit(problem='circle', meshlevel=None,
                 logging.info('dim of reduced model: {0}'.format(poddim))
                 for pcedim in pcedimlist:
                     # ## XXX: here is randomness
-                    abscissae, weights, compredexpv, compredvrnc = mpu.\
+                    abscissae, _, compredexpv, _ = mpu.\
                         setup_pce(distribution=distribution,
                                   distrpars=dict(a=nua, b=nub),
                                   pcedim=pcedim, uncdims=uncdims)
@@ -498,6 +503,11 @@ def simit(problem='circle', meshlevel=None,
                                               uncdims=uncdims,
                                               abscissae=abscissae)
                     redpcexpy = compredexpv(redysoltens)
+                    ysltnsstr = 'cached-data/' + prbsetupstr + \
+                            f'_pce{pcedim}_pod{poddim}_' + \
+                            f'bf{bssstr}_run{tit+1}of{timings}_ysoltns'
+                    np.save(arr=redysoltens, file=ysltnsstr)
+                    logging.info('saved ysoltens to ' + ysltnsstr)
                     elt = time.time() - tstart
                     redpcexpeysqrd = compredexpv(np.square(redysoltens))
                     pcereslist.append(redpcexpy.tolist())
@@ -558,7 +568,7 @@ def simit(problem='circle', meshlevel=None,
                 = get_red_problem(lyitVy)
             red_cmat = red_probfems['cmat']
             # ## XXX: here is randomness
-            abscissae, weights, compredexpv, compredvrnc = mpu.\
+            abscissae, _, compredexpv, _ = mpu.\
                 setup_pce(distribution=distribution,
                           distrpars=dict(a=nua, b=nub),
                           pcedim=pcedimlist[-1], uncdims=uncdims)
@@ -590,10 +600,13 @@ if __name__ == '__main__':
     problem = 'cylinder'
     distribution = 'uniform'
     distribution = 'beta-2-5'
+    nulb = 5e-4
+    nuub = 10e-4
+    meshlevel = 12
     meshlevel = 4
     mcruns = 10  # 200
     pcedimlist = [2, 3]  # 4, 5]  # , 3, 4]  # , 3, 4, 5]  # , 7]
-    multiproc = 4
+    multiproc = 6
     timings = 1
 
     mcplease = False
@@ -604,7 +617,7 @@ if __name__ == '__main__':
 
     # ## make it come true
     # mcplease = True
-    # pceplease = True
+    pceplease = True
     # rbplease = True
     pcepod = True
     # mcpod = True
@@ -621,9 +634,10 @@ if __name__ == '__main__':
     # plotplease = True
 
     simit(mcruns=mcruns, pcedimlist=pcedimlist, problem=problem,
+          nulb=nulb, nuub=nuub,
           distribution=distribution,
           meshlevel=meshlevel, timings=timings,
           plotplease=plotplease, basisfrom=basisfrom, multiproc=multiproc,
-          rbparams=rbparams, trainpcedim=2, targetpcedim=5,
+          rbparams=rbparams, trainpcedim=2,  # targetpcedim=5,
           plotpcepoddiff=comp_plot_pcediff, pcepoddiffdim=6,
           mcplease=mcplease, pceplease=pceplease, mcpod=mcpod, pcepod=pcepod)

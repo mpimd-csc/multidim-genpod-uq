@@ -8,7 +8,7 @@ This is the code of the numerical experiments in our paper
 > Benner, Heiland (2020): *Space and Chaos-expansion Galerkin POD Low-order
 > Discretization of PDEs for Uncertainty Quantification*
 
-in the second version from July 2022.
+in the third version from December 2022.
 
 ## Installation
 
@@ -21,16 +21,16 @@ pip install -e .  # make sure you use Python 3
 ```
 
 if the installation of `multim-galerkin-pod` fails because of `scikit-sparse`
-try `pip install --no-deps multidim-galerkin-pod==1.0.2` instead. 
+try `pip install --no-deps multidim-galerkin-pod==1.1.0` instead. 
 
 The source are in `gen_pod_uq` and the files for the simulations are in `scripts`.
 
 ## Rerun the simulations
 
-**NOTE**: For reproduction of the results, use version `1.1.1` of the package to be installed like
+**NOTE**: For reproduction of the results, use version `1.1.4` of the package to be installed like
 
 ```sh
-pip install gen-pod-uq==1.1.1
+pip install gen-pod-uq==1.1.4
 ```
 
 from the [`pypi repo`](https://pypi.org/project/gen-pod-uq/)
@@ -53,6 +53,8 @@ source runitall.sh
 
 You may want to comment out some parts.
 
+### Post Processing
+
 The raw data of our simulations is provided in the folder `rawdata`. In order to postprocess copy it to the `scripts/cached-data` folder
 
 ```sh
@@ -61,10 +63,29 @@ The raw data of our simulations is provided in the folder `rawdata`. In order to
 # ## caution: this may replace computed data
 ```
 
-### Post Processing
 
 ```
 cd scripts
 source postprocess.sh
 ```
 
+### Evaluating the Kolmogorov Metric
+
+```sh
+# ## caution: this may replace computed data
+# cp rawdata/ysoltens-for-kolmogorov-metric-evaluation/*npy scripts/cached-data/
+# ## caution: this may replace computed data
+```
+
+```sh
+cd scripts
+python3 kolmogorov-metrix.py
+```
+
+In order to (only) compute the plots, one may run a reduced experiment by setting 
+
+```py
+onlyplots = True
+```
+
+in `kolmogorov-metrix.py`.
