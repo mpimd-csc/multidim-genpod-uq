@@ -8,7 +8,7 @@ This is the code of the numerical experiments in our paper
 > Benner, Heiland (2020): *Space and Chaos-expansion Galerkin POD Low-order
 > Discretization of PDEs for Uncertainty Quantification*
 
-in the second version from July 2022.
+in the third version from December 2022.
 
 ## Installation
 
@@ -27,10 +27,10 @@ The source are in `gen_pod_uq` and the files for the simulations are in `scripts
 
 ## Rerun the simulations
 
-**NOTE**: For reproduction of the results, use version `1.1.1` of the package to be installed like
+**NOTE**: For reproduction of the results, use version `1.1.4` of the package to be installed like
 
 ```sh
-pip install gen-pod-uq==1.1.1
+pip install gen-pod-uq==1.1.4
 ```
 
 from the [`pypi repo`](https://pypi.org/project/gen-pod-uq/)
@@ -68,3 +68,17 @@ cd scripts
 source postprocess.sh
 ```
 
+### Evaluating the Kolmogorov Metric
+
+```sh
+cd scripts
+python3 kolmogorov-metrix.py
+```
+
+In order to (only) compute the plots, one may run a reduced experiment by setting 
+
+```py
+onlyplots = True
+```
+
+in `kolmogorov-metrix.py`.
