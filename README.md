@@ -72,6 +72,12 @@ source postprocess.sh
 ### Evaluating the Kolmogorov Metric
 
 ```sh
+# ## caution: this may replace computed data
+# cp rawdata/ysoltens-for-kolmogorov-metric-evaluation/*npy scripts/cached-data/
+# ## caution: this may replace computed data
+```
+
+```sh
 cd scripts
 python3 kolmogorov-metrix.py
 ```
