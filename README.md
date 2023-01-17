@@ -53,6 +53,8 @@ source runitall.sh
 
 You may want to comment out some parts.
 
+### Post Processing
+
 The raw data of our simulations is provided in the folder `rawdata`. In order to postprocess copy it to the `scripts/cached-data` folder
 
 ```sh
@@ -61,7 +63,6 @@ The raw data of our simulations is provided in the folder `rawdata`. In order to
 # ## caution: this may replace computed data
 ```
 
-### Post Processing
 
 ```
 cd scripts
